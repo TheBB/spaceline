@@ -29,7 +29,6 @@
 (require 'spaceline)
 
 (defvar spaceline-minor-modes-separator "|")
-
 (spaceline-define-segment minor-modes
   (progn
    (mapcar
@@ -101,6 +100,30 @@
 (spaceline-define-segment column "%l")
 (spaceline-define-segment line-column "%l:%2c")
 (spaceline-define-segment buffer-position "%p")
+
+(defvar spaceline-global-excludes nil)
+(defun spaceline--global ()
+  (-difference global-mode-string spaceline-global-excludes))
+(spaceline-define-segment global
+  (powerline-raw (spaceline--global))
+  :when (spaceline--mode-line-nonempty (spaceline--global)))
+
+(spaceline-define-segment selection-info
+  (let* ((lines (count-lines (region-beginning) (min (1+ (region-end)) (point-max))))
+         (chars (- (1+ (region-end)) (region-beginning)))
+         (cols (1+ (abs (- (column-number-at-pos (region-end))
+                           (column-number-at-pos (region-beginning)))))))
+    (cond
+     ((bound-and-true-p rectangle-mark-mode)
+      (format "%d×%d block" lines (1- cols)))
+     ((and (bound-and-true-p evil-local-mode)
+           (eq 'visual evil-state)
+           (eq 'block evil-visual-selection))
+      (format "%d×%d block" lines cols))
+     (t (format "%d %d %d" lines chars cols))))
+  :when (or mark-active
+            (and (bound-and-true-p evil-local-mode)
+                 (eq 'visual evil-state))))
 
 (provide 'spaceline-segments)
 
