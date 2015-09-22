@@ -28,7 +28,7 @@
 
 (defvar spaceline-left nil)
 (defvar spaceline-right nil)
-
+(defvar spaceline-pre-hook nil)
 (defvar spaceline-evil-state-faces nil)
 
 (defun spaceline--evil-state-face (&optional default)
@@ -268,6 +268,7 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
   (spaceline--prepare-any spaceline-right 'r))
 
 (defun spaceline--prepare ()
+  (run-hooks 'spaceline-pre-prepare-hook)
   (let* ((active (powerline-selected-window-active))
          (line-face (if active 'powerline-active2 'powerline-inactive2))
          (lhs (spaceline--prepare-left))
