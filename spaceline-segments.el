@@ -104,6 +104,7 @@
 (defvar spaceline-global-excludes nil)
 (defun spaceline--global ()
   (-difference global-mode-string spaceline-global-excludes))
+
 (spaceline-define-segment global
   (powerline-raw (spaceline--global))
   :when (spaceline--mode-line-nonempty (spaceline--global)))
@@ -112,15 +113,15 @@
   (let* ((lines (count-lines (region-beginning) (min (1+ (region-end)) (point-max))))
          (chars (- (1+ (region-end)) (region-beginning)))
          (cols (1+ (abs (- (column-number-at-pos (region-end))
-                           (column-number-at-pos (region-beginning)))))))
+                           (column-number-at-pos (region-beginning))))))
+         (evil (and (bound-and-true-p evil-state) (eq 'visual evil-state)))
+         (rect (or (bound-and-true-p rectangle-mark-mode)
+                   (and evil (eq 'block evil-visual-selection))))
+         (multi-line (or (> lines 1) (and evil (eq 'line evil-visual-selection)))))
     (cond
-     ((bound-and-true-p rectangle-mark-mode)
-      (format "%d×%d block" lines (1- cols)))
-     ((and (bound-and-true-p evil-local-mode)
-           (eq 'visual evil-state)
-           (eq 'block evil-visual-selection))
-      (format "%d×%d block" lines cols))
-     (t (format "%d %d %d" lines chars cols))))
+     (rect (format "%d×%d block" lines (if evil cols (1- cols))))
+     (multi-line (format "%d lines" lines))
+     (t (format "%d chars" (if evil chars (1- chars))))))
   :when (or mark-active
             (and (bound-and-true-p evil-local-mode)
                  (eq 'visual evil-state))))
