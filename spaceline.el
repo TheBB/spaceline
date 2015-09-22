@@ -168,7 +168,7 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
           (when results
             (setf (sl--seg-objects result)
                   (apply 'append (spacemacs//intersperse
-                                  (mapcar 'segment-objects results)
+                                  (mapcar 'sl--seg-objects results)
                                   (list separator))))
             (setf (sl--seg-face-left result)
                   (sl--seg-face-left (car results)))
@@ -181,18 +181,18 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
 
        ;; A single symbol
        ((symbolp segment)
-        (setf (segment-objects result)
+        (setf (sl--seg-objects result)
               (mapcar (lambda (s)
                         (if (spaceline--imagep s) s (powerline-raw s face)))
                       (funcall segment-symbol))))
 
        ;; A literal value
-       (t (setf (segment-objects result)
+       (t (setf (sl--seg-objects result)
                 (list (powerline-raw (format "%s" segment) face))))))
 
     (cond
      ;; This segment produced output, so return it
-     ((segment-objects result) result)
+     ((sl--seg-objects result) result)
 
      ;; Return the fallback segment, if any
      ((plist-get props :fallback)
@@ -207,14 +207,14 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
   (let* ((default-face (if active 'powerline-active1 'powerline-inactive1))
          (other-face (if active 'mode-line 'mode-line-inactive))
          (evil-state-face (if active
-                              (spaceline--evil-state-face line-face)
+                              (spaceline--evil-state-face default-face)
                             default-face))
 
          ;; Loop through the segments and collect the results
          (segments (loop with result
                          for s in spec
                          do (setq result (spaceline--eval-segment s))
-                         if (segment-objects result)
+                         if (sl--seg-objects result)
                            collect result
                            and do (rotatef default-face other-face)))
 
