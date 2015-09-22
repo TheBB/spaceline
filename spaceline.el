@@ -71,11 +71,13 @@ evaluation time by `spaceline--eval-segment'."
                         (plist-get props :when)
                       t)))
     `(progn
-       (defun ,wrapper-func ()
+       (defun ,wrapper-func (&optional props)
          (when ,condition
-           (let ((value ,value))
+           (let ((separator (eval (or (plist-get props :separator) " ")))
+                 (value ,value))
              (cond ((spaceline--imagep value) (list value))
-                   ((listp value) value)
+                   ((listp value)
+                    (spaceline--intersperse value separator))
                    ((and (stringp value)
                          (= 0 (length value)))
                     nil)
@@ -148,7 +150,7 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
                       t))
          (face (let ((face-spec (or (plist-get props :face) 'default-face)))
                  (if (facep face-spec) face-spec (eval face-spec))))
-         (separator (powerline-raw (or (plist-get props :separator) " ") face))
+         (separator (powerline-raw (eval (or (plist-get props :separator) " ")) face))
          (tight-left (or (plist-get props :tight)
                          (plist-get props :tight-left)))
          (tight-right (or (plist-get props :tight)
@@ -193,7 +195,7 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
         (setf (sl--seg-objects result)
               (mapcar (lambda (s)
                         (if (spaceline--imagep s) s (powerline-raw s face)))
-                      (funcall segment-symbol))))
+                      (funcall segment-symbol props))))
 
        ;; A literal value
        (t (setf (sl--seg-objects result)
