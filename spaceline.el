@@ -34,8 +34,8 @@
 (defun spaceline--evil-state-face (&optional default)
   (if (bound-and-true-p evil-local-mode)
       (let* ((state (if (eq 'operator evil-state) evil-previous-state evil-state))
-             (face (assq state spaceline--evil-state-faces)))
-        (when face (cdr face) (default)))
+             (face (assq state spaceline-evil-state-faces)))
+        (if face (cdr face) default))
     default))
 
 (defun spaceline--imagep (object)
