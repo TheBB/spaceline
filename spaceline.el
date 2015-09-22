@@ -267,4 +267,6 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
             (powerline-fill line-face (powerline-width rhs))
             (powerline-render rhs))))
 
+(provide 'spaceline)
+
 ;;; spaceline.el ends here
