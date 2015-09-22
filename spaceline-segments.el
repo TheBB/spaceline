@@ -29,6 +29,7 @@
 (require 'spaceline)
 
 (defvar spaceline-minor-modes-separator "|")
+
 (spaceline-define-segment minor-modes
   (progn
    (mapcar
@@ -55,6 +56,51 @@
                                map)))
    (split-string (format-mode-line minor-mode-alist))))
   :separator spaceline-minor-modes-separator)
+
+(spaceline-define-segment evil-state
+  (s-trim (evil-state-property evil-state :tag t))
+  :when (bound-and-true-p evil-local-mode))
+
+(spaceline-define-segment buffer-modified "%*")
+
+(spaceline-define-segment buffer-size
+  (powerline-buffer-size))
+
+(spaceline-define-segment buffer-id
+  (powerline-buffer-id))
+
+(spaceline-define-segment remote-host
+  (concat "@" (file-remote-p default-directory 'host))
+  :when (file-remote-p default-directory 'host))
+
+(spaceline-define-segment major-mode
+  (powerline-major-mode))
+
+(spaceline-define-segment process
+  (powerline-raw mode-line-process)
+  :when (spaceline--mode-line-nonempty mode-line-process))
+
+(spaceline-define-segment version-control
+  (s-trim (powerline-vc))
+  :when (powerline-vc))
+
+(spaceline-define-segment buffer-encoding
+  (format "%s" buffer-file-coding-system))
+
+(spaceline-define-segment buffer-encoding-abbrev
+  (let ((buf-coding (format "%s" buffer-file-coding-system)))
+    (if (string-match "\\(dos\\|unix\\|mac\\)" buf-coding)
+        (match-string 1 buf-coding)
+      buf-coding)))
+
+(spaceline-define-segment point-position
+  (format "%d" (point))
+  :when spacemacs-mode-line-display-point-p)
+
+(spaceline-define-segment line "%l")
+(spaceline-define-segment column "%l")
+(spaceline-define-segment line-column "%l:%2c")
+(spaceline-define-segment buffer-position "%p")
 
 (provide 'spaceline-segments)
 

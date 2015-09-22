@@ -46,13 +46,20 @@ symbol `image')."
        (eq 'image (car object))))
 
 (defun spaceline--intersperse (seq separator)
-  "Returns a list with `SEPARATOR' added between each element
-of the list `SEQ'."
+  "Returns a list with `SEPARATOR' added between each element of the list
+`SEQ'."
   (cond
    ((not seq) nil)
    ((not (cdr seq)) seq)
    (t (append (list (car seq) separator)
               (spaceline--intersperse (cdr seq) separator)))))
+
+(defun spaceline--mode-line-nonempty (seg)
+  "Checks whether a modeline segment (classical Emacs style) is nonempty."
+  (let ((val (format-mode-line seg)))
+    (cond ((listp val) val)
+          ((stringp val) (< 0 (length val)))
+          (t))))
 
 (defmacro spaceline-define-segment (name value &rest props)
   "Defines a modeline segment called `NAME' whose value is computed by the form
