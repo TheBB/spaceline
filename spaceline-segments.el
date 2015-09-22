@@ -28,32 +28,33 @@
 
 (require 'spaceline)
 
+(defvar spaceline-minor-modes-separator "|")
 (spaceline-define-segment minor-modes
   (progn
    (mapcar
-   (lambda (m)
-     (propertize m
-                 'mouse-face 'mode-line-highlight
-                 'help-echo (concat "Minor mode\n"
-                                    "mouse-1: Display minor mode menu\n"
-                                    "mouse-2: Show help for minor mode\n"
-                                    "mouse-3: Toggle minor mode")
-                 'local-map (let ((map (make-sparse-keymap)))
-                              (define-key map
-                                [mode-line down-mouse-1]
-                                (powerline-mouse 'minor 'menu m))
-                              (define-key map
-                                [mode-line down-mouse-2]
-                                (powerline-mouse 'minor 'help m))
-                              (define-key map
-                                [mode-line down-mouse-3]
-                                (powerline-mouse 'minor 'menu m))
-                              (define-key map
-                                [header-line down-mouse-3]
-                                (powerline-mouse 'minor 'menu m))
-                              map)))
+    (lambda (m)
+      (propertize m
+                  'mouse-face 'mode-line-highlight
+                  'help-echo (concat "Minor mode\n"
+                                     "mouse-1: Display minor mode menu\n"
+                                     "mouse-2: Show help for minor mode\n"
+                                     "mouse-3: Toggle minor mode")
+                  'local-map (let ((map (make-sparse-keymap)))
+                               (define-key map
+                                 [mode-line down-mouse-1]
+                                 (powerline-mouse 'minor 'menu m))
+                               (define-key map
+                                 [mode-line down-mouse-2]
+                                 (powerline-mouse 'minor 'help m))
+                               (define-key map
+                                 [mode-line down-mouse-3]
+                                 (powerline-mouse 'minor 'menu m))
+                               (define-key map
+                                 [header-line down-mouse-3]
+                                 (powerline-mouse 'minor 'menu m))
+                               map)))
    (split-string (format-mode-line minor-mode-alist))))
-  :separator "|")
+  :separator spaceline-minor-modes-separator)
 
 (provide 'spaceline-segments)
 
