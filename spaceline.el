@@ -26,6 +26,11 @@
 
 ;;; Code:
 
+(require 'dash)
+(require 'cl)
+(require 'gv)
+(require 'powerline)
+
 (defvar spaceline-left nil)
 (defvar spaceline-right nil)
 (defvar spaceline-pre-hook nil)
