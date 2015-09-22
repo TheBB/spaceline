@@ -45,6 +45,15 @@ symbol `image')."
        object
        (eq 'image (car object))))
 
+(defun spaceline--intersperse (seq separator)
+  "Returns a list with `SEPARATOR' added between each element
+of the list `SEQ'."
+  (cond
+   ((not seq) nil)
+   ((not (cdr seq)) seq)
+   (t (append (list (car seq) separator)
+              (spaceline--intersperse (cdr seq) separator)))))
+
 (defmacro spaceline-define-segment (name value &rest props)
   "Defines a modeline segment called `NAME' whose value is computed by the form
 `VALUE'. The optional keyword argument `WHEN' defines a condition required for
@@ -167,7 +176,7 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
                                 segment))))
           (when results
             (setf (sl--seg-objects result)
-                  (apply 'append (spacemacs//intersperse
+                  (apply 'append (spaceline--intersperse
                                   (mapcar 'sl--seg-objects results)
                                   (list separator))))
             (setf (sl--seg-face-left result)
