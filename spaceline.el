@@ -270,7 +270,7 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
   (spaceline--prepare-any spaceline-right 'r))
 
 (defun spaceline--prepare ()
-  (run-hooks 'spaceline-pre-prepare-hook)
+  (run-hooks 'spaceline-pre-hook)
   (let* ((active (powerline-selected-window-active))
          (line-face (if active 'powerline-active2 'powerline-inactive2))
          (lhs (spaceline--prepare-left))
