@@ -104,16 +104,18 @@
 (defvar spaceline-global-excludes nil)
 (defun spaceline--global ()
   (-difference global-mode-string spaceline-global-excludes))
-
 (spaceline-define-segment global
   (powerline-raw (spaceline--global))
   :when (spaceline--mode-line-nonempty (spaceline--global)))
 
+(defun spaceline--column-number-at-pos (pos)
+  "Analog to line-number-at-pos."
+  (save-excursion (goto-char pos) (current-column)))
 (spaceline-define-segment selection-info
   (let* ((lines (count-lines (region-beginning) (min (1+ (region-end)) (point-max))))
          (chars (- (1+ (region-end)) (region-beginning)))
-         (cols (1+ (abs (- (column-number-at-pos (region-end))
-                           (column-number-at-pos (region-beginning))))))
+         (cols (1+ (abs (- (spaceline--column-number-at-pos (region-end))
+                           (spaceline--column-number-at-pos (region-beginning))))))
          (evil (and (bound-and-true-p evil-state) (eq 'visual evil-state)))
          (rect (or (bound-and-true-p rectangle-mark-mode)
                    (and evil (eq 'block evil-visual-selection))))
