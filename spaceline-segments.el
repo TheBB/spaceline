@@ -126,6 +126,15 @@
             (and (bound-and-true-p evil-local-mode)
                  (eq 'visual evil-state))))
 
+(spaceline-define-segment anzu
+  (anzu--update-mode-line)
+  :when (and active (bound-and-true-p anzu--state)))
+
+(spaceline-define-segment erc-track
+  (mapcar (lambda (b) (buffer-name (car b)))
+          erc-modified-channels-alist)
+  :when (bound-and-true-p erc-track-mode))
+
 (provide 'spaceline-segments)
 
 ;;; spaceline-segments.el ends here
