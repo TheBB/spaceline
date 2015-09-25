@@ -150,10 +150,20 @@ All properties are stored in a plist attached to the symbol, to be inspected at
 evaluation time by `spaceline--eval-segment'."
   (declare (indent 1))
   (let* ((wrapper-func (intern (format "spaceline--segment-%S" name)))
-         (condition (if (plist-member props :when)
-                        (plist-get props :when)
-                      t)))
+         (toggle-var (intern (format "spaceline-%S-p" name)))
+         (toggle-func (intern (format "spaceline-toggle-%S" name)))
+         (toggle-func-on (intern (format "spaceline-toggle-%S-on" name)))
+         (toggle-func-off (intern (format "spaceline-toggle-%S-off" name)))
+         (condition `(and ,toggle-var
+                          ,(if (plist-member props :when)
+                               (plist-get props :when)
+                             t))))
     `(progn
+       (defvar ,toggle-var t
+         ,(format "True if modeline segment %S is enabled." name))
+       (defun ,toggle-func () (interactive) (setq ,toggle-var (not ,toggle-var)))
+       (defun ,toggle-func-on () (interactive) (setq ,toggle-var t))
+       (defun ,toggle-func-off () (interactive) (setq ,toggle-var nil))
        (defun ,wrapper-func (&optional props)
          (when ,condition
            (let ((separator (eval (or (plist-get props :separator) " ")))
