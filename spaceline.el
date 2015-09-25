@@ -35,6 +35,7 @@
 (defvar spaceline-right nil)
 (defvar spaceline-pre-hook nil)
 (defvar spaceline-evil-state-faces nil)
+(defvar spaceline--global-excludes nil)
 
 (defun spaceline--evil-state-face (&optional default)
   (if (bound-and-true-p evil-local-mode)
@@ -66,6 +67,42 @@ symbol `image')."
           ((stringp val) (< 0 (length val)))
           (t))))
 
+(defmacro spaceline--parse-segment-spec (spec &rest body)
+  (declare (indent 1))
+  `(let* ((input (if (and (listp ,spec)
+                          (cdr ,spec)
+                          (keywordp (cadr ,spec)))
+                     ,spec
+                   (cons ,spec nil)))
+          (segment (car input))
+          (segment-symbol (when (symbolp segment)
+                            (intern (format "spaceline--segment-%S" segment))))
+          (input-props (cdr input))
+          (props (append input-props
+                         (when (symbolp segment)
+                           (symbol-plist segment-symbol)))))
+     ,@body))
+
+(defun spaceline--update-global-excludes-from-list (segments)
+  (when segments
+    (spaceline--parse-segment-spec (car segments)
+      (let* ((exclude (plist-get props :global-override))
+             (excludes (if (listp exclude) exclude (list exclude))))
+        (dolist (e excludes)
+          (add-to-list 'spaceline--global-excludes e))))
+    (spaceline--update-global-excludes-from-list (cdr segments))))
+
+(defun spaceline--update-global-excludes ()
+  (setq spaceline--global-excludes nil)
+  (spaceline--update-global-excludes-from-list spaceline-left)
+  (spaceline--update-global-excludes-from-list spaceline-right))
+
+(defun spaceline-install (left right)
+  (setq spaceline-left left)
+  (setq spaceline-right right)
+  (spaceline--update-global-excludes)
+  (setq-default mode-line-format '("%e" (:eval (spaceline--prepare)))))
+
 (defmacro spaceline-define-segment (name value &rest props)
   "Defines a modeline segment called `NAME' whose value is computed by the form
 `VALUE'. The optional keyword argument `WHEN' defines a condition required for
@@ -95,6 +132,12 @@ evaluation time by `spaceline--eval-segment'."
                     nil)
                    (t (list value))))))
        (setplist ',wrapper-func ',props))))
+
+(defun spaceline--global ()
+  (-difference global-mode-string spaceline--global-excludes))
+(spaceline-define-segment global
+  (powerline-raw (spaceline--global))
+  :when (spaceline--mode-line-nonempty (spaceline--global)))
 
 (defstruct sl--seg
   objects
@@ -137,93 +180,81 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
 
   ;; We get a property list from `SEGMENT-SPEC' if it's a list with more than
   ;; one element whose second element is a keyword symbol
-  (let* ((input (if (and (listp segment-spec)
-                         (cdr segment-spec)
-                         (keywordp (cadr segment-spec)))
-                    segment-spec
-                  (cons segment-spec nil)))
+  (spaceline--parse-segment-spec segment-spec
+    (let* (;; Assemble the properties in the correct order
+           (props (append props outer-props))
 
-         ;; The actual segment
-         (segment (car input))
-         (segment-symbol (when (symbolp segment)
-                           (intern (format "spaceline--segment-%S" segment))))
+           ;; Property list to be passed to nested or fallback segments
+           (nest-props (append '(:fallback nil) input-props outer-props))
 
-         ;; Assemble the properties in the correct order
-         (props (append (cdr input)
-                        (when (symbolp segment) (symbol-plist segment-symbol))
-                        outer-props))
+           ;; Parse property list
+           (condition (if (plist-member props :when)
+                          (eval (plist-get props :when))
+                        t))
+           (face (let ((face-spec (or (plist-get props :face) 'default-face)))
+                   (if (facep face-spec) face-spec (eval face-spec))))
+           (separator (powerline-raw (eval (or (plist-get props :separator) " ")) face))
+           (tight-left (or (plist-get props :tight)
+                           (plist-get props :tight-left)))
+           (tight-right (or (plist-get props :tight)
+                            (plist-get props :tight-right)))
 
-         ;; Property list to be passed to nested or fallback segments
-         (nest-props (append '(:fallback nil) (cdr input) outer-props))
+           ;; Final output
+           (result (make-sl--seg
+                    :objects nil
+                    :face-left face
+                    :face-right face
+                    :tight-left tight-left
+                    :tight-right tight-right)))
 
-         ;; Parse property list
-         (condition (if (plist-member props :when)
-                        (eval (plist-get props :when))
-                      t))
-         (face (let ((face-spec (or (plist-get props :face) 'default-face)))
-                 (if (facep face-spec) face-spec (eval face-spec))))
-         (separator (powerline-raw (eval (or (plist-get props :separator) " ")) face))
-         (tight-left (or (plist-get props :tight)
-                         (plist-get props :tight-left)))
-         (tight-right (or (plist-get props :tight)
-                          (plist-get props :tight-right)))
+      ;; Evaluate the segment based on its type
+      (when condition
+        (cond
 
-         ;; Final output
-         (result (make-sl--seg
-                  :objects nil
-                  :face-left face
-                  :face-right face
-                  :tight-left tight-left
-                  :tight-right tight-right)))
+         ;; A list of segments
+         ((listp segment)
+          (let ((results (remove-if-not
+                          'sl--seg-objects
+                          (mapcar (lambda (s)
+                                    (apply 'spaceline--eval-segment
+                                           s nest-props))
+                                  segment))))
+            (when results
+              (setf (sl--seg-objects result)
+                    (apply 'append (spaceline--intersperse
+                                    (mapcar 'sl--seg-objects results)
+                                    (list separator))))
+              (setf (sl--seg-face-left result)
+                    (sl--seg-face-left (car results)))
+              (setf (sl--seg-face-right result)
+                    (sl--seg-face-right (car (last results))))
+              (setf (sl--seg-tight-left result)
+                    (sl--seg-tight-left (car results)))
+              (setf (sl--seg-tight-right result)
+                    (sl--seg-tight-right (car (last results)))))))
 
-    ;; Evaluate the segment based on its type
-    (when condition
+         ;; A single symbol
+         ((symbolp segment)
+          (setf (sl--seg-objects result)
+                (mapcar (lambda (s)
+                          (if (spaceline--imagep s) s (powerline-raw s face)))
+                        (funcall segment-symbol props))))
+
+         ;; A literal value
+         (t (setf (sl--seg-objects result)
+                  (list (powerline-raw (format "%s" segment) face))))))
+
       (cond
+       ;; This segment produced output, so return it
+       ((sl--seg-objects result) result)
 
-       ;; A list of segments
-       ((listp segment)
-        (let ((results (remove-if-not
-                        'sl--seg-objects
-                        (mapcar (lambda (s)
-                                  (apply 'spaceline--eval-segment
-                                         s nest-props))
-                                segment))))
-          (when results
-            (setf (sl--seg-objects result)
-                  (apply 'append (spaceline--intersperse
-                                  (mapcar 'sl--seg-objects results)
-                                  (list separator))))
-            (setf (sl--seg-face-left result)
-                  (sl--seg-face-left (car results)))
-            (setf (sl--seg-face-right result)
-                  (sl--seg-face-right (car (last results))))
-            (setf (sl--seg-tight-left result)
-                  (sl--seg-tight-left (car results)))
-            (setf (sl--seg-tight-right result)
-                  (sl--seg-tight-right (car (last results)))))))
+       ;; Return the fallback segment, if any
+       ((plist-get props :fallback)
+        (apply 'spaceline--eval-segment
+               (plist-get props :fallback) nest-props))
 
-       ;; A single symbol
-       ((symbolp segment)
-        (setf (sl--seg-objects result)
-              (mapcar (lambda (s)
-                        (if (spaceline--imagep s) s (powerline-raw s face)))
-                      (funcall segment-symbol props))))
-
-       ;; A literal value
-       (t (setf (sl--seg-objects result)
-                (list (powerline-raw (format "%s" segment) face))))))
-
-    (cond
-     ;; This segment produced output, so return it
-     ((sl--seg-objects result) result)
-
-     ;; Return the fallback segment, if any
-     ((plist-get props :fallback)
-      (apply 'spaceline--eval-segment
-             (plist-get props :fallback) nest-props))
-
-     ;; No output (objects = nil)
-     (t result))))
+       ;; No output (objects = nil)
+       (t result)))))
 
 (defun spaceline--prepare-any (spec side)
   "Prepares one side of the modeline."

@@ -97,13 +97,6 @@
 (spaceline-define-segment line-column "%l:%2c")
 (spaceline-define-segment buffer-position "%p")
 
-(defvar spaceline-global-excludes nil)
-(defun spaceline--global ()
-  (-difference global-mode-string spaceline-global-excludes))
-(spaceline-define-segment global
-  (powerline-raw (spaceline--global))
-  :when (spaceline--mode-line-nonempty (spaceline--global)))
-
 (defun spaceline--column-number-at-pos (pos)
   "Analog to line-number-at-pos."
   (save-excursion (goto-char pos) (current-column)))
@@ -129,7 +122,6 @@
   :tight t
   :when (string-match "\%" (format-mode-line "%p")))
 
-
 ;; Segments requiring optional dependencies
 ;; ========================================
 
@@ -145,18 +137,21 @@
 (spaceline-define-segment battery
   (powerline-raw (s-trim (fancy-battery-default-mode-line))
                  (fancy-battery-powerline-face))
-  :when (bound-and-true-p fancy-battery-mode))
+  :when (bound-and-true-p fancy-battery-mode)
+  :global-override fancy-battery-mode-line)
 
 (spaceline-define-segment org-clock
   (substring-no-properties (funcall spacemacs-mode-line-org-clock-format-function))
   :when (and spacemacs-mode-line-org-clock-current-taskp
              (fboundp 'org-clocking-p)
-             (org-clocking-p)))
+             (org-clocking-p))
+  :global-override org-mode-line-string)
 
 (spaceline-define-segment org-pomodoro
   (nth 1 org-pomodoro-mode-line)
   :when (and (fboundp 'org-pomodoro-active-p)
-             (org-pomodoro-active-p)))
+             (org-pomodoro-active-p))
+  :global-override org-pomodoro-mode-line)
 
 (spaceline-define-segment nyan-cat
   (powerline-raw (nyan-create) default-face)
