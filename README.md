@@ -1,5 +1,29 @@
 # Spaceline
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
+**Table of Contents**
+
+- [Spaceline](#spaceline)
+    - [Introduction](#introduction)
+    - [The Spacemacs mode-line theme](#the-spacemacs-mode-line-theme)
+    - [Medium tweaking](#medium-tweaking)
+        - [Turning segments on and off](#turning-segments-on-and-off)
+        - [The highlight face](#the-highlight-face)
+        - [Other faces](#other-faces)
+        - [Powerline separators](#powerline-separators)
+        - [Hooks](#hooks)
+        - [Unicode numbers](#unicode-numbers)
+        - [Minor modes separator](#minor-modes-separator)
+        - [Org clock](#org-clock)
+    - [Difficult tweaking](#difficult-tweaking)
+        - [Segments](#segments)
+        - [Defining a segment](#defining-a-segment)
+        - [Properties](#properties)
+        - [Bindings](#bindings)
+        - [Setting up a mode-line](#setting-up-a-mode-line)
+
+<!-- markdown-toc end -->
+
 This is the package that provides
 [Spacemacs](https://github.com/syl20bnr/spacemacs) with its famous mode-line
 theme. It has been extracted as an independent package for general fun and
