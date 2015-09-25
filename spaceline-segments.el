@@ -21,8 +21,8 @@
 
 (require 'spaceline)
 
-;; Stock segments - no dependencies (except evil)
-;; ==============================================
+;; Stock segments - no optional dependencies
+;; =========================================
 
 (defvar spaceline-minor-modes-separator "|")
 (spaceline-define-segment minor-modes
@@ -51,10 +51,6 @@
                                map)))
    (split-string (format-mode-line minor-mode-alist))))
   :separator spaceline-minor-modes-separator)
-
-(spaceline-define-segment evil-state
-  (s-trim (evil-state-property evil-state :tag t))
-  :when (bound-and-true-p evil-local-mode))
 
 (spaceline-define-segment buffer-modified "%*")
 
@@ -221,6 +217,10 @@
         :when (and (bound-and-true-p flycheck-mode)
                    (or flycheck-current-errors
                        (eq 'running flycheck-last-status-change)))))))
+
+(spaceline-define-segment evil-state
+  (s-trim (evil-state-property evil-state :tag t))
+  :when (bound-and-true-p evil-local-mode))
 
 (provide 'spaceline-segments)
 
