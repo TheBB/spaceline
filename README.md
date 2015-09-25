@@ -36,9 +36,10 @@ This package provides features for three kinds of users.
 1. You just want to use the Spacemacs mode-line theme and forget about it.
 2. You want to use something similar to the Spacemacs mode-line theme, but with
 a handful of easy tweaks.
-3. You want an easy-to-use library for building your own mode-line from scratch.
+3. You want an easy-to-use library for building your own mode-line from scratch,
+and you think the Spacemacs theme looks good.
 
-The functionality for each is described in the following sections.
+The functionality for each are described in the following sections.
 
 The files in this package are organized as follows. Choose which you want to
 load based on what you want to do.
@@ -95,6 +96,42 @@ for toggling segments:
 
 You can bind these to whichever keys you like.
 
+The full list of segments available, from left to right:
+
+- `workspace-number`: integrates with `eyebrowse`.
+- `window-number`: integrates with `window-numbering`.
+- `evil-state`: shows the current evil state, integrates with `evil`.
+- `anzu`: integrates with `anzu`.
+- `buffer-modified`: the standard marker denoting whether the buffer is modified
+or not.
+- `buffer-size`: the size of the buffer.
+- `buffer-id`: the name of the buffer.
+- `remote-host`: the host for remote buffers.
+- `major-mode`: the current major mode.
+- `flycheck-error`: number of flycheck errors, integrates with `flycheck`.
+- `flycheck-warning`: number of flycheck warnings, integrates with `flycheck`.
+- `flycheck-info`: number of flycheck notifications, integrates with `flycheck`.
+- `minor-modes`: the currently enabled minor modes. The output of this segment
+can be tweaked with [`diminish`](https://github.com/emacsmirror/diminish).
+- `process`: the background process associated with the buffer, if any.
+- `erc-track`: IRC channels with new messages, integrates with `erc`.
+- `version-control`: version control information.
+- `org-pomodoro`: integrates with `org-pomodoro`.
+- `org-clock`: the current org clock, integrates with `org`.
+- `nyan-cat`: integrates with `nyan-mode`.
+- `battery`: integrates with `fancy-battery-mode`.
+- `selection-info`: information about the currently active selection, if any.
+- `buffer-encoding-abbrev`: the line ending convention used in the current
+buffer (`unix`, `dos` or `mac`).
+- `point-position`: the value of point, this is disabled by default.
+- `line-column`: current line and column.
+- `global`: meta-segment used by third-party packages.
+- `buffer-position`: shows the current position in the buffer as a percentage.
+- `hud`: shows the currently visible part of the buffer.
+
+There is also a `buffer-encoding` segment, which is not used by the Spacemacs
+theme.
+
 ### The highlight face
 
 The highlight face is the face that (by default) is a sharp orange, used e.g. by
@@ -104,7 +141,8 @@ actual face used as a highlight face is determined by a function, which can be
 configured by setting the value of `spaceline-highlight-face-func`. Spaceline
 comes with two choices, but of course you can write your own:
 
-- `spaceline-highlight-face-default`: Uses the orange, all the time.
+- `spaceline-highlight-face-default`: Uses the orange, all the time. This is the
+default. Hence the name.
 - `spaceline-highlight-face-evil-state`: Chooses a face determined by the
 current evil state. The face corresponding to each state is determined by the
 association list `spaceline-evil-state-faces`, which contains default values for
@@ -245,6 +283,17 @@ symbol (or list of symbols) which you want to exclude from `global-mode-string`.
 This setting will be honored by the `global` segment, which is defined by
 Spaceline.
 
+The properties which take effect for any given segment are, in order of
+priority:
+
+- the properties specified in the segment specification
+- the propreties given in the call to `spaceline-define-segment`
+- the properties of the parent segment
+
+The exceptions are `:when`, which must be true on *all* levels for a segment to
+be displayed, and `:fallback` which does *not* pass through from the parent
+segment.
+
 ### Bindings
 
 When evaluating a segment, its `:when` condition or its `:face` property, the
@@ -298,6 +347,10 @@ For example, this is the Spacemacs mode-line.
        (global :when active)
        buffer-position
        hud)))
+
+Spaceline will then collect data from each segment and render them in a
+beautiful manner, with powerline separators inserted between each top-level
+segment. Top-level segments will be rendered with alternating faces.
 
 Note: For facilitating third-party packages, it is strongly recommended that
 your mode-line specification includes the `global` segment, which is defined in

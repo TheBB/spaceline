@@ -58,8 +58,7 @@ rendering. This list is populated by `spacemacs-install' by investigating the
         :foreground ,(face-background 'mode-line)
         :box ,(face-attribute 'mode-line :box)
         :inherit 'mode-line)))
-  "Default highlight face for spaceline."
-  :group 'spaceline)
+  "Default highlight face for spaceline.")
 
 (dolist (s '((normal . "DarkGoldenrod2")
              (insert . "chartreuse3")
