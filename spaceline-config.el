@@ -22,6 +22,7 @@
 (require 'spaceline-segments)
 
 (defun spaceline-spacemacs-theme (&rest additional-segments)
+  "Installs the modeline used by Spacemacs."
   (spaceline-install
 
    '(((workspace-number window-number)

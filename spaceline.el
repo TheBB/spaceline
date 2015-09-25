@@ -31,11 +31,24 @@
 (require 'gv)
 (require 'powerline)
 
-(defvar spaceline-left nil)
-(defvar spaceline-right nil)
-(defvar spaceline-pre-hook nil)
-(defvar spaceline--global-excludes nil)
-(defvar spaceline-highlight-face-func 'spaceline-highlight-face-default)
+(defvar spaceline-left nil
+  "List of modeline segments to render on the left side of the modeline. See
+`spaceline--eval-segment' for what constitutes a segment.")
+
+(defvar spaceline-right nil
+  "List of modeline segments to render on the right side of the modeline. See
+`spaceline--eval-segment' for what constitutes a segment.")
+
+(defvar spaceline-pre-hook nil
+  "Hook run before the modeline is rendered.")
+
+(defvar spaceline--global-excludes nil
+  "List of symbols that will be excluded from `global-mode-string' upon
+rendering. This list is populated by `spacemacs-install' by investigating the
+`:global-override' properties of all the included segments.")
+
+(defvar spaceline-highlight-face-func 'spaceline-highlight-face-default
+  "The function that decides the highlight face.")
 
 (defface spaceline-highlight-face
   `((t (:background "DarkGoldenrod2"
@@ -60,6 +73,8 @@
            :group 'spaceline)))
 
 (defun spaceline-highlight-face-default ()
+  "The default highlight face function. Set `spaceline-highlight-face-func' to
+`spaceline-highlight-face-default' to use it."
   'spaceline-highlight-face)
 
 (defvar spaceline-evil-state-faces
@@ -68,9 +83,14 @@
     (emacs . spaceline-evil-emacs)
     (replace . spaceline-evil-replace)
     (visual . spaceline-evil-visual)
-    (motion . spaceline-evil-motion)))
+    (motion . spaceline-evil-motion))
+  "Association list mapping evil states to their corresponding highlight faces.
+Is used by `spaceline-highlight-face-evil-state'.")
 
 (defun spaceline-highlight-face-evil-state ()
+  "Sets the highlight face depending on the evil state. Set
+`spaceline-highlight-face-func' to `spaceline-highlight-face-evil-state' to use
+it."
   (if (bound-and-true-p evil-local-mode)
       (let* ((state (if (eq 'operator evil-state) evil-previous-state evil-state))
              (face (assq state spaceline-evil-state-faces)))
@@ -101,6 +121,15 @@ symbol `image')."
           (t))))
 
 (defmacro spaceline--parse-segment-spec (spec &rest body)
+  "Destructures the segment specification `SPEC' and then runs `BODY'. The
+following bindings are available:
+
+- `segment': The segment itself, either a symbol or a literal value, or a list
+  of such.
+- `segment-symbol': Equal to `segment' if it is a symbol, nil otherwise.
+- `input-props': The property list part of `SPEC', if present.
+- `props': The full property list (including those bound to `segment-symbol', if
+  applicable)."
   (declare (indent 1))
   `(let* ((input (if (and (listp ,spec)
                           (cdr ,spec)
@@ -117,6 +146,8 @@ symbol `image')."
      ,@body))
 
 (defun spaceline--update-global-excludes-from-list (segments)
+  "Runs through the list of segment specs `SEGMENTS', finds any global overrides
+and adds them to `spaceline--global-excludes.'"
   (when segments
     (spaceline--parse-segment-spec (car segments)
       (let* ((exclude (plist-get props :global-override))
@@ -126,11 +157,14 @@ symbol `image')."
     (spaceline--update-global-excludes-from-list (cdr segments))))
 
 (defun spaceline--update-global-excludes ()
+  "Populates the list `spacemacs--global-excludes' according to the values of
+`spaceline-left' and `spaceline-right',"
   (setq spaceline--global-excludes nil)
   (spaceline--update-global-excludes-from-list spaceline-left)
   (spaceline--update-global-excludes-from-list spaceline-right))
 
 (defun spaceline-install (left right)
+  "Installs a modeline given by the lists of segment specs `LEFT' and `RIGHT'."
   (setq spaceline-left left)
   (setq spaceline-right right)
   (spaceline--update-global-excludes)
@@ -145,14 +179,30 @@ This macro defines a function `spaceline--segment-NAME' which returns a list of
 modeline objects (strings or images). If the form `VALUE' does not result in a
 list, the return value will be wrapped as a singleton list.
 
-All properties are stored in a plist attached to the symbol, to be inspected at
-evaluation time by `spaceline--eval-segment'."
-  (declare (indent 1))
+Also defined is a variable `spaceline--NAME-p' whose value can be used to switch
+the segment on or off. Its initial value is given by the optional keyword
+argument `ENABLED', which defaults to `t'.
+
+If the segment is intended as a replacement for data which is otherwise inserted
+into `global-mode-string' (typically by another package), you can use the
+keyword argument `GLOBAL-OVERRIDE' to disable that.
+
+All properties listed in `spaceline--eval-segment' are also accepted here. They
+are stored in a plist attached to the symbol, to be inspected at evaluation time
+by `spaceline--eval-segment'."
+  (declare (indent 1)
+           (doc-string 2))
   (let* ((wrapper-func (intern (format "spaceline--segment-%S" name)))
          (toggle-var (intern (format "spaceline-%S-p" name)))
          (toggle-func (intern (format "spaceline-toggle-%S" name)))
          (toggle-func-on (intern (format "spaceline-toggle-%S-on" name)))
          (toggle-func-off (intern (format "spaceline-toggle-%S-off" name)))
+         (docstring (when (stringp value)
+                      (prog1 value
+                        (setq value (car props)
+                              props (cdr props)))))
+         (docstring (concat "A modeline segment generated by `spaceline-define-segment'.\n\n"
+                            docstring))
          (enabled (if (plist-member props :enabled)
                       (plist-get props :enabled)
                     t))
@@ -160,6 +210,9 @@ evaluation time by `spaceline--eval-segment'."
                           ,(if (plist-member props :when)
                                (plist-get props :when)
                              t))))
+    (when (stringp value)
+      (setq docstring value)
+      (setq value (car props)))
     `(progn
        (defvar ,toggle-var ,enabled
          ,(format "True if modeline segment %S is enabled." name))
@@ -167,6 +220,7 @@ evaluation time by `spaceline--eval-segment'."
        (defun ,toggle-func-on () (interactive) (setq ,toggle-var t))
        (defun ,toggle-func-off () (interactive) (setq ,toggle-var nil))
        (defun ,wrapper-func (&optional props)
+         ,docstring
          (when ,condition
            (let ((separator (eval (or (plist-get props :separator) " ")))
                  (value ,value))
@@ -180,6 +234,7 @@ evaluation time by `spaceline--eval-segment'."
        (setplist ',wrapper-func ',props))))
 
 (defun spaceline--global ()
+  "Returns `global-mode-string' with the excluded segments removed."
   (-difference global-mode-string spaceline--global-excludes))
 (spaceline-define-segment global
   (powerline-raw (spaceline--global))
@@ -303,7 +358,8 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
        (t result)))))
 
 (defun spaceline--prepare-any (spec side)
-  "Prepares one side of the modeline."
+  "Prepares one side of the modeline. `SPEC' is a list of segment specs (see
+`spaceline--eval-segment'), and `SIDE' is either `l' or `r'."
   (let* ((default-face (if active 'powerline-active1 'powerline-inactive1))
          (other-face (if active 'mode-line 'mode-line-inactive))
          (highlight-face (funcall spaceline-highlight-face-func))
@@ -351,12 +407,15 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
                   (if (eq 'l side) (append (cdr segments) (list dummy)) segments))))))
 
 (defun spaceline--prepare-left ()
+  "Prepares the left side of the modeline."
   (spaceline--prepare-any spaceline-left 'l))
 
 (defun spaceline--prepare-right ()
+  "Prepares the left side of the modeline."
   (spaceline--prepare-any spaceline-right 'r))
 
 (defun spaceline--prepare ()
+  "Prepares the modeline."
   (run-hooks 'spaceline-pre-hook)
   (let* ((active (powerline-selected-window-active))
          (line-face (if active 'powerline-active2 'powerline-inactive2))
