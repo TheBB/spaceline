@@ -35,7 +35,7 @@
 (defvar spaceline-right nil)
 (defvar spaceline-pre-hook nil)
 (defvar spaceline--global-excludes nil)
-(defvar spaceline-highlight-face-func 'spaceline-highlight-face)
+(defvar spaceline-highlight-face-func 'spaceline-highlight-face-default)
 
 (defface spaceline-highlight-face
   `((t (:background "DarkGoldenrod2"
@@ -45,8 +45,38 @@
   "Default highlight face for spaceline."
   :group 'spaceline)
 
-(defun spaceline-highlight-face ()
+(mapcar (lambda (s)
+          (eval `(defface ,(intern (format "spaceline-evil-%S" (car s)))
+                   `((t (:background ,(cdr s)
+                         :foreground ,(face-background 'mode-line)
+                         :box ,(face-attribute 'mode-line :box)
+                         :inherit 'mode-line)))
+                   ,(format "Evil %S state face." (car s))
+                   :group 'spaceline)))
+        '((normal . "DarkGoldenrod2")
+          (insert . "chartreuse3")
+          (emacs . "SkyBlue2")
+          (replace . "chocolate")
+          (visual . "gray")
+          (motion . "plum3")))
+
+(defun spaceline-highlight-face-default ()
   'spaceline-highlight-face)
+
+(defvar spaceline-evil-state-faces
+  '((normal . spaceline-evil-normal)
+    (insert . spaceline-evil-insert)
+    (emacs . spaceline-evil-emacs)
+    (replace . spaceline-evil-replace)
+    (visual . spaceline-evil-visual)
+    (motion . spaceline-evil-motion)))
+
+(defun spaceline-highlight-face-evil-state ()
+  (if (bound-and-true-p evil-local-mode)
+      (let* ((state (if (eq 'operator evil-state) evil-previous-state evil-state))
+             (face (assq state spaceline-evil-state-faces)))
+        (if face (cdr face) (spaceline-highlight-face-default)))
+    (spaceline-highlight-face-default)))
 
 (defun spaceline--imagep (object)
   "Tests whether the given object is an image (a list whose first element is the
