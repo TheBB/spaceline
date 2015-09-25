@@ -69,8 +69,9 @@ each visible window a number.
 the total number of matches while searching.
 - [`flycheck`](https://github.com/flycheck/flycheck/): shows the number of
 errors, warnings and notifications after syntax checking.
-- `erc`: shows the channels with new messages if you have `erc-track` turned on.
-- `org`: shows the currently clocking task.
+- [`erc`](http://www.emacswiki.org/emacs/ERC): shows the channels with new
+messages if you have `erc-track` turned on.
+- [`org`](http://orgmode.org/): shows the currently clocking task.
 - [`org-pomodoro`](https://github.com/lolownia/org-pomodoro): kind of like
 clocks in org, only with a tomato.
 - [`nyan-mode`](https://github.com/TeMPOraL/nyan-mode): shows the current
