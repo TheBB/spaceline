@@ -1,12 +1,5 @@
 ;;; spaceline-segments.el --- Segments for spaceline
 
-;; Copyright (C) 2015 TheBB
-;;
-;; Author: Eivind Fonn <evfonn@gmail.com>
-;; Keywords: modeline powerline
-;; Created: 21 Sep 2015
-;; Version: 0.1
-
 ;; This file is not part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
