@@ -90,7 +90,7 @@
 
 (spaceline-define-segment point-position
   (format "%d" (point))
-  :when spacemacs-mode-line-display-point-p)
+  :enabled nil)
 
 (spaceline-define-segment line "%l")
 (spaceline-define-segment column "%l")
@@ -140,10 +140,10 @@
   :when (bound-and-true-p fancy-battery-mode)
   :global-override fancy-battery-mode-line)
 
+(defvar spaceline-org-clock-format-function 'org-clock-get-clock-string)
 (spaceline-define-segment org-clock
-  (substring-no-properties (funcall spacemacs-mode-line-org-clock-format-function))
-  :when (and spacemacs-mode-line-org-clock-current-taskp
-             (fboundp 'org-clocking-p)
+  (substring-no-properties (funcall spacline-org-clock-format-function))
+  :when (and (fboundp 'org-clocking-p)
              (org-clocking-p))
   :global-override org-mode-line-string)
 
