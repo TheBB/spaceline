@@ -200,6 +200,40 @@
       str))
   :when (bound-and-true-p eyebrowse-mode))
 
+(defmacro spaceline--flycheck-face (state)
+  (let* ((fname (intern (format "spaceline-flycheck-%S-face" state)))
+         (foreground (face-foreground (intern (format "flycheck-fringe-%S" state)))))
+    `(progn
+       (defface ,fname '((t ()))
+         ,(format "Face for flycheck %S feedback in modeline." state)
+         :group 'spaceline)
+       (set-face-attribute ',fname nil
+                           :foreground ,foreground
+                           :box (face-attribute 'mode-line :box)))))
+
+(with-eval-after-load 'flycheck
+  (spaceline--flycheck-face error)
+  (spaceline--flycheck-face warning)
+  (spaceline--flycheck-face info))
+
+(defmacro spaceline--flycheck-lighter (state)
+  `(let* ((counts (flycheck-count-errors flycheck-current-errors))
+          (errorp (flycheck-has-current-errors-p ',state))
+          (err (or (cdr (assq ',state counts)) "?"))
+          (running (eq 'running flycheck-last-status-change)))
+     (if (or errorp running) (format "•%s" err))))
+
+(dolist (state '(error warning info))
+  (let ((segment-name (intern (format "flycheck-%S" state)))
+        (face (intern (format "spaceline-flycheck-%S-face" state))))
+    (eval
+     `(spaceline-define-segment ,segment-name
+        (let ((lighter (spaceline--flycheck-lighter ,state)))
+          (when lighter (powerline-raw (s-trim lighter) ',face)))
+        :when (and (bound-and-true-p flycheck-mode)
+                   (or flycheck-current-errors
+                       (eq 'running flycheck-last-status-change)))))))
+
 (provide 'spaceline-segments)
 
 ;;; spaceline-segments.el ends here
