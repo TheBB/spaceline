@@ -28,6 +28,9 @@
 
 (require 'spaceline)
 
+;; Stock segments - no dependencies (except evil)
+;; ==============================================
+
 (defvar spaceline-minor-modes-separator "|")
 (spaceline-define-segment minor-modes
   (progn
@@ -128,6 +131,15 @@
             (and (bound-and-true-p evil-local-mode)
                  (eq 'visual evil-state))))
 
+(spaceline-define-segment hud
+  (powerline-hud evil-state-face default-face)
+  :tight t
+  :when (string-match "\%" (format-mode-line "%p")))
+
+
+;; Segments requiring optional dependencies
+;; ========================================
+
 (spaceline-define-segment anzu
   (anzu--update-mode-line)
   :when (and active (bound-and-true-p anzu--state)))
@@ -136,6 +148,57 @@
   (mapcar (lambda (b) (buffer-name (car b)))
           erc-modified-channels-alist)
   :when (bound-and-true-p erc-track-mode))
+
+(spaceline-define-segment battery
+  (powerline-raw (s-trim (fancy-battery-default-mode-line))
+                 (fancy-battery-powerline-face))
+  :when (bound-and-true-p fancy-battery-mode))
+
+(spaceline-define-segment org-clock
+  (substring-no-properties (funcall spacemacs-mode-line-org-clock-format-function))
+  :when (and spacemacs-mode-line-org-clock-current-taskp
+             (fboundp 'org-clocking-p)
+             (org-clocking-p)))
+
+(spaceline-define-segment org-pomodoro
+  (nth 1 org-pomodoro-mode-line)
+  :when (and (fboundp 'org-pomodoro-active-p)
+             (org-pomodoro-active-p)))
+
+(spaceline-define-segment nyan-cat
+  (powerline-raw (nyan-create) default-face)
+  :when (bound-and-true-p nyan-mode))
+
+(defun spaceline--unicode-number (str)
+  (cond
+   ((string= "1" str) "➊")
+   ((string= "2" str) "➋")
+   ((string= "3" str) "➌")
+   ((string= "4" str) "➍")
+   ((string= "5" str) "➎")
+   ((string= "6" str) "❻")
+   ((string= "7" str) "➐")
+   ((string= "8" str) "➑")
+   ((string= "9" str) "➒")
+   ((string= "0" str) "➓")))
+
+(defvar spaceline-window-numbers-unicode nil)
+(spaceline-define-segment window-number
+  (let* ((num (window-numbering-get-number))
+         (str (when num (int-to-string num))))
+    (if spaceline-window-numbers-unicode
+        (spaceline--unicode-number str)
+      str))
+  :when (bound-and-true-p window-numbering-mode))
+
+(defvar spaceline-workspace-numbers-unicode nil)
+(spaceline-define-segment workspace-number
+  (let* ((num (eyebrowse--get 'current-slot))
+         (str (when num (int-to-string num))))
+    (if spaceline-workspace-numbers-unicode
+        (spaceline--unicode-number str)
+      str))
+  :when (bound-and-true-p eyebrowse-mode))
 
 (provide 'spaceline-segments)
 
