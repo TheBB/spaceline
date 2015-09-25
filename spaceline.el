@@ -34,15 +34,19 @@
 (defvar spaceline-left nil)
 (defvar spaceline-right nil)
 (defvar spaceline-pre-hook nil)
-(defvar spaceline-evil-state-faces nil)
 (defvar spaceline--global-excludes nil)
+(defvar spaceline-highlight-face-func 'spaceline-highlight-face)
 
-(defun spaceline--evil-state-face (&optional default)
-  (if (bound-and-true-p evil-local-mode)
-      (let* ((state (if (eq 'operator evil-state) evil-previous-state evil-state))
-             (face (assq state spaceline-evil-state-faces)))
-        (if face (cdr face) default))
-    default))
+(defface spaceline-highlight-face
+  `((t (:background "DarkGoldenrod2"
+        :foreground ,(face-background 'mode-line)
+        :box ,(face-attribute 'mode-line :box)
+        :inherit 'mode-line)))
+  "Default highlight face for spaceline."
+  :group 'spaceline)
+
+(defun spaceline-highlight-face ()
+  'spaceline-highlight-face)
 
 (defun spaceline--imagep (object)
   "Tests whether the given object is an image (a list whose first element is the
@@ -260,9 +264,7 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
   "Prepares one side of the modeline."
   (let* ((default-face (if active 'powerline-active1 'powerline-inactive1))
          (other-face (if active 'mode-line 'mode-line-inactive))
-         (evil-state-face (if active
-                              (spaceline--evil-state-face default-face)
-                            default-face))
+         (highlight-face (funcall spaceline-highlight-face-func))
 
          ;; Loop through the segments and collect the results
          (segments (loop with result

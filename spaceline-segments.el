@@ -118,7 +118,7 @@
                  (eq 'visual evil-state))))
 
 (spaceline-define-segment hud
-  (powerline-hud evil-state-face default-face)
+  (powerline-hud highlight-face default-face)
   :tight t
   :when (string-match "\%" (format-mode-line "%p")))
 

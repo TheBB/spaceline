@@ -27,7 +27,7 @@
    '(((workspace-number window-number)
       :fallback evil-state
       :separator "|"
-      :face evil-state-face)
+      :face highlight-face)
      anzu
      (buffer-modified buffer-size buffer-id remote-host)
      major-mode
