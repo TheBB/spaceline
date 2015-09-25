@@ -24,6 +24,9 @@
 
 ;;; Commentary:
 
+;; This file contains the core library required to make spaceline work. Here are
+;; tools for defining segments, and for evaluating and rendering the modeline.
+
 ;;; Code:
 
 (require 'dash)

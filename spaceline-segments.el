@@ -17,6 +17,14 @@
 
 ;;; Commentary:
 
+;; This file contains a variety of segments that may be of general interest in
+;; many people's modelines. It contains both "stock" segments which are usable
+;; without any additional packages, as well as a number of segments which depend
+;; on optional third-party packages.
+
+;; Note: The `global' segment is defined in spaceline.el, not here. It's the
+;; only exception.
+
 ;;; Code:
 
 (require 'spaceline)

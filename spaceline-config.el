@@ -17,6 +17,8 @@
 
 ;;; Commentary:
 
+;; This file contains ready-to-use modeline themes for powerline.
+
 ;;; Code:
 
 (require 'spaceline-segments)
