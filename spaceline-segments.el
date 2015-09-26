@@ -247,20 +247,20 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
       str))
   :when (bound-and-true-p eyebrowse-mode))
 
-(defmacro spaceline--flycheck-face (state)
-  "Generate a face for the given flycheck error type STATE."
-  (let* ((fname (intern (format "spaceline-flycheck-%S-face" state)))
-         (foreground (face-foreground (intern (format "flycheck-fringe-%S" state)))))
-    `(progn
-       (defface ,fname '((t ()))
-         ,(format "Face for flycheck %S feedback in modeline." state)
-         :group 'spaceline)
-       (set-face-attribute ',fname nil
-                           :foreground ,foreground
-                           :box (face-attribute 'mode-line :box)))))
-
 (eval-after-load 'flycheck
   '(progn
+     (defmacro spaceline--flycheck-face (state)
+       "Generate a face for the given flycheck error type STATE."
+       (let* ((fname (intern (format "spaceline-flycheck-%S-face" state)))
+              (foreground (face-foreground (intern (format "flycheck-fringe-%S" state)))))
+         `(progn
+            (defface ,fname '((t ()))
+              ,(format "Face for flycheck %S feedback in modeline." state)
+              :group 'spaceline)
+            (set-face-attribute ',fname nil
+                                :foreground ,foreground
+                                :box (face-attribute 'mode-line :box)))))
+
      (spaceline--flycheck-face error)
      (spaceline--flycheck-face warning)
      (spaceline--flycheck-face info)))
