@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'spaceline)
+(require 's)
 
 ;; Stock segments - no optional dependencies
 ;; =========================================
