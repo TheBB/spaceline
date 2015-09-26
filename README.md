@@ -48,7 +48,7 @@ load based on what you want to do.
 the modeline. It defines no segments by itself except the `global` segment. (See
 below.)
 - `spaceline-segments.el`: Defines all the segments used by the default
-Spacemacs theme, but doesn't do anything with them.dfA
+Spacemacs theme, but doesn't do anything with them.
 - `spaceline-config.el`: Defines the default Spacemacs theme.
 
 ## The Spacemacs mode-line theme
