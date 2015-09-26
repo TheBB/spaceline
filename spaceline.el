@@ -3,9 +3,10 @@
 ;; Copyright (C) 2015 TheBB
 ;;
 ;; Author: Eivind Fonn <evfonn@gmail.com>
-;; Keywords: modeline powerline
-;; Created: 21 Sep 2015
+;; URL: https://github.com/TheBB/spaceline
 ;; Version: 0.1
+;; Keywords: mode-line powerline spacemacs
+;; Package-Requires: ((emacs "24") (powerline "2.3"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -30,24 +31,27 @@
 ;;; Code:
 
 (require 'dash)
-(require 'cl)
 (require 'gv)
 (require 'powerline)
+(require 'cl)
 
 (defvar spaceline-left nil
-  "List of modeline segments to render on the left side of the modeline. See
-`spaceline--eval-segment' for what constitutes a segment.")
+  "A list of modeline segments to render on the left side of the modeline.
+
+See `spaceline--eval-segment' for what constitutes a segment.")
 
 (defvar spaceline-right nil
-  "List of modeline segments to render on the right side of the modeline. See
-`spaceline--eval-segment' for what constitutes a segment.")
+  "List of modeline segments to render on the right side of the modeline.
+
+See `spaceline--eval-segment' for what constitutes a segment.")
 
 (defvar spaceline-pre-hook nil
   "Hook run before the modeline is rendered.")
 
 (defvar spaceline--global-excludes nil
-  "List of symbols that will be excluded from `global-mode-string' upon
-rendering. This list is populated by `spacemacs-install' by investigating the
+  "List of symbols that will be excluded from `global-mode-string'.
+
+This list is populated by `spacemacs-install' by investigating the
 `:global-override' properties of all the included segments.")
 
 (defvar spaceline-highlight-face-func 'spaceline-highlight-face-default
@@ -58,7 +62,8 @@ rendering. This list is populated by `spacemacs-install' by investigating the
         :foreground ,(face-background 'mode-line)
         :box ,(face-attribute 'mode-line :box)
         :inherit 'mode-line)))
-  "Default highlight face for spaceline.")
+  "Default highlight face for spaceline."
+  :group 'spaceline)
 
 (dolist (s '((normal . "DarkGoldenrod2")
              (insert . "chartreuse3")
@@ -75,8 +80,10 @@ rendering. This list is populated by `spacemacs-install' by investigating the
            :group 'spaceline)))
 
 (defun spaceline-highlight-face-default ()
-  "The default highlight face function. Set `spaceline-highlight-face-func' to
-`spaceline-highlight-face-default' to use it."
+  "The default highlight face function.
+
+Set `spaceline-highlight-face-func' to `spaceline-highlight-face-default' to use
+this."
   'spaceline-highlight-face)
 
 (defvar spaceline-evil-state-faces
@@ -90,9 +97,10 @@ rendering. This list is populated by `spacemacs-install' by investigating the
 Is used by `spaceline-highlight-face-evil-state'.")
 
 (defun spaceline-highlight-face-evil-state ()
-  "Sets the highlight face depending on the evil state. Set
-`spaceline-highlight-face-func' to `spaceline-highlight-face-evil-state' to use
-it."
+  "Set the highlight face depending on the evil state.
+
+Set `spaceline-highlight-face-func' to `spaceline-highlight-face-evil-state' to
+use this."
   (if (bound-and-true-p evil-local-mode)
       (let* ((state (if (eq 'operator evil-state) evil-previous-state evil-state))
              (face (assq state spaceline-evil-state-faces)))
@@ -100,36 +108,37 @@ it."
     (spaceline-highlight-face-default)))
 
 (defun spaceline--imagep (object)
-  "Tests whether the given object is an image (a list whose first element is the
-symbol `image')."
+  "Test whether the given OBJECT is an image.
+
+An image is a list whose first element is the symbol `image'."
   (and (listp object)
        object
        (eq 'image (car object))))
 
-(defun spaceline--intersperse (seq separator)
-  "Returns a list with `SEPARATOR' added between each element of the list
-`SEQ'."
+(defun spaceline--intersperse (separator seq)
+  "Intersperses SEPARATOR between each element of SEQ."
   (cond
    ((not seq) nil)
    ((not (cdr seq)) seq)
    (t (append (list (car seq) separator)
-              (spaceline--intersperse (cdr seq) separator)))))
+              (spaceline--intersperse separator (cdr seq))))))
 
 (defun spaceline--mode-line-nonempty (seg)
-  "Checks whether a modeline segment (classical Emacs style) is nonempty."
+  "Check whether a modeline segment SEG (classical Emacs style) is nonempty."
   (let ((val (format-mode-line seg)))
     (cond ((listp val) val)
           ((stringp val) (< 0 (length val)))
           (t))))
 
 (defmacro spaceline--parse-segment-spec (spec &rest body)
-  "Destructures the segment specification `SPEC' and then runs `BODY'. The
-following bindings are available:
+  "Destructure the segment specification SPEC and then run BODY.
+
+The following bindings are available in BODY:
 
 - `segment': The segment itself, either a symbol or a literal value, or a list
   of such.
-- `segment-symbol': Equal to `segment' if it is a symbol, nil otherwise.
-- `input-props': The property list part of `SPEC', if present.
+- `segment-symbol': The function that evaluates `segment', if it is a symbol.
+- `input-props': The property list part of SPEC, if present.
 - `props': The full property list (including those bound to `segment-symbol', if
   applicable)."
   (declare (indent 1))
@@ -148,8 +157,7 @@ following bindings are available:
      ,@body))
 
 (defun spaceline--update-global-excludes-from-list (segments)
-  "Runs through the list of segment specs `SEGMENTS', finds any global overrides
-and adds them to `spaceline--global-excludes.'"
+  "Add global overrides from the segment list SEGMENTS."
   (when segments
     (spaceline--parse-segment-spec (car segments)
       (let* ((exclude (plist-get props :global-override))
@@ -159,37 +167,39 @@ and adds them to `spaceline--global-excludes.'"
     (spaceline--update-global-excludes-from-list (cdr segments))))
 
 (defun spaceline--update-global-excludes ()
-  "Populates the list `spacemacs--global-excludes' according to the values of
-`spaceline-left' and `spaceline-right',"
+  "Populate the list `spacemacs--global-excludes'.
+
+Depends on the values of `spaceline-left' and `spaceline-right',"
   (setq spaceline--global-excludes nil)
   (spaceline--update-global-excludes-from-list spaceline-left)
   (spaceline--update-global-excludes-from-list spaceline-right))
 
 (defun spaceline-install (left right)
-  "Installs a modeline given by the lists of segment specs `LEFT' and `RIGHT'."
+  "Install a modeline given by the lists of segment specs LEFT and RIGHT."
   (setq spaceline-left left)
   (setq spaceline-right right)
   (spaceline--update-global-excludes)
   (setq-default mode-line-format '("%e" (:eval (spaceline--prepare)))))
 
 (defmacro spaceline-define-segment (name value &rest props)
-  "Defines a modeline segment called `NAME' whose value is computed by the form
-`VALUE'. The optional keyword argument `WHEN' defines a condition required for
-the segment to be shown.
+  "Define a modeline segment called NAME with value VALUE and properties PROPS.
+
+Its value is computed by the form VALUE.  The optional keyword argument `:when'
+defines a condition required for the segment to be shown.
 
 This macro defines a function `spaceline--segment-NAME' which returns a list of
-modeline objects (strings or images). If the form `VALUE' does not result in a
+modeline objects (strings or images).  If the form VALUE does not result in a
 list, the return value will be wrapped as a singleton list.
 
 Also defined is a variable `spaceline--NAME-p' whose value can be used to switch
-the segment on or off. Its initial value is given by the optional keyword
-argument `ENABLED', which defaults to `t'.
+the segment on or off.  Its initial value is given by the optional keyword
+argument `:enabled', which defaults to true.
 
 If the segment is intended as a replacement for data which is otherwise inserted
 into `global-mode-string' (typically by another package), you can use the
 keyword argument `GLOBAL-OVERRIDE' to disable that.
 
-All properties listed in `spaceline--eval-segment' are also accepted here. They
+All properties listed in `spaceline--eval-segment' are also accepted here.  They
 are stored in a plist attached to the symbol, to be inspected at evaluation time
 by `spaceline--eval-segment'."
   (declare (indent 1)
@@ -212,9 +222,6 @@ by `spaceline--eval-segment'."
                           ,(if (plist-member props :when)
                                (plist-get props :when)
                              t))))
-    (when (stringp value)
-      (setq docstring value)
-      (setq value (car props)))
     `(progn
        (defvar ,toggle-var ,enabled
          ,(format "True if modeline segment %S is enabled." name))
@@ -228,7 +235,7 @@ by `spaceline--eval-segment'."
                  (value ,value))
              (cond ((spaceline--imagep value) (list value))
                    ((listp value)
-                    (spaceline--intersperse value separator))
+                    (spaceline--intersperse separator value))
                    ((and (stringp value)
                          (= 0 (length value)))
                     nil)
@@ -236,7 +243,7 @@ by `spaceline--eval-segment'."
        (setplist ',wrapper-func ',props))))
 
 (defun spaceline--global ()
-  "Returns `global-mode-string' with the excluded segments removed."
+  "Return `global-mode-string' with the excluded segments removed."
   (-difference global-mode-string spaceline--global-excludes))
 (spaceline-define-segment global
   (powerline-raw (spaceline--global))
@@ -250,19 +257,18 @@ by `spaceline--eval-segment'."
   tight-right)
 
 (defun spaceline--eval-segment (segment-spec &rest outer-props)
-  "Evaluates a modeline segment given by `SEGMENT-SPEC' with additional
-properties given by `OUTER-PROPS'.
+  "Evaluate SEGMENT-SPEC with additional properties OUTER-PROPS.
 
-`SEGMENT-SPEC' may be either:
+SEGMENT-SPEC may be either:
 - A literal value (number or string, for example)
 - A symbol previously defined by `spaceline-define-segment'
 - A list whose car is a segment-spec and whose cdr is a plist of properties
 - A list of segment-specs
 
 The properties applied are, in order of priority:
-- Those given by `SEGMENT-SPEC', if applicable
+- Those given by SEGMENT-SPEC, if applicable
 - The properties attached to the segment symbol, if applicable
-- `OUTER-PROPS'
+- OUTER-PROPS
 
 Valid properties are:
 - `:tight-left' => if true, the segment should be rendered with no padding or
@@ -275,13 +281,13 @@ Valid properties are:
 - `:face' => the face with which to render the segment
 
 When calling nested or fallback segments, the full property list is passed as
-`OUTER-PROPS', with the exception of `:fallback'. This means that more deeply
-specified properties, as a rule, override the higher level ones. The exception
+`OUTER-PROPS', with the exception of `:fallback'.  This means that more deeply
+specified properties, as a rule, override the higher level ones.  The exception
 is `:when', which must be true at all levels.
 
-The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
+The return vaule is a `segment' struct.  Its OBJECTS list may be nil."
 
-  ;; We get a property list from `SEGMENT-SPEC' if it's a list with more than
+  ;; We get a property list from SEGMENT-SPEC if it's a list with more than
   ;; one element whose second element is a keyword symbol
   (spaceline--parse-segment-spec segment-spec
     (let* (;; Assemble the properties in the correct order
@@ -325,8 +331,8 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
             (when results
               (setf (sl--seg-objects result)
                     (apply 'append (spaceline--intersperse
-                                    (mapcar 'sl--seg-objects results)
-                                    (list separator))))
+                                    (list separator)
+                                    (mapcar 'sl--seg-objects results))))
               (setf (sl--seg-face-left result)
                     (sl--seg-face-left (car results)))
               (setf (sl--seg-face-right result)
@@ -359,9 +365,14 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
        ;; No output (objects = nil)
        (t result)))))
 
-(defun spaceline--prepare-any (spec side)
-  "Prepares one side of the modeline. `SPEC' is a list of segment specs (see
-`spaceline--eval-segment'), and `SIDE' is either `l' or `r'."
+(defun spaceline--prepare-any (spec side active line-face)
+  "Prepare one side of the modeline.
+
+SPEC is a list of segment specs (see `spaceline--eval-segment'), and SIDE is
+either of the symbols l or r.
+
+ACTIVE is true if the current window is active.  LINE-FACE is the face used to
+render the empty space in the middle of the mode-line."
   (let* ((default-face (if active 'powerline-active1 'powerline-inactive1))
          (other-face (if active 'mode-line 'mode-line-inactive))
          (highlight-face (funcall spaceline-highlight-face-func))
@@ -408,21 +419,27 @@ The return vaule is a `segment' struct. Its `OBJECTS' list may be nil."
             (-zip (if (eq 'l side) segments (cons dummy segments))
                   (if (eq 'l side) (append (cdr segments) (list dummy)) segments))))))
 
-(defun spaceline--prepare-left ()
-  "Prepares the left side of the modeline."
-  (spaceline--prepare-any spaceline-left 'l))
+(defun spaceline--prepare-left (active line-face)
+  "Prepare the left side of the modeline.
 
-(defun spaceline--prepare-right ()
-  "Prepares the left side of the modeline."
-  (spaceline--prepare-any spaceline-right 'r))
+ACTIVE is true if the current window is active.  LINE-FACE is the face used to
+render the empty space in the middle of the mode-line."
+  (spaceline--prepare-any spaceline-left 'l active line-face))
+
+(defun spaceline--prepare-right (active line-face)
+  "Prepare the right side of the modeline.
+
+ACTIVE is true if the current window is active.  LINE-FACE is the face used to
+render the empty space in the middle of the mode-line."
+  (spaceline--prepare-any spaceline-right 'r active line-face))
 
 (defun spaceline--prepare ()
-  "Prepares the modeline."
+  "Prepare the modeline."
   (run-hooks 'spaceline-pre-hook)
   (let* ((active (powerline-selected-window-active))
          (line-face (if active 'powerline-active2 'powerline-inactive2))
-         (lhs (spaceline--prepare-left))
-         (rhs (spaceline--prepare-right)))
+         (lhs (spaceline--prepare-left active line-face))
+         (rhs (spaceline--prepare-right active line-face)))
     (concat (powerline-render lhs)
             (powerline-fill line-face (powerline-width rhs))
             (powerline-render rhs))))

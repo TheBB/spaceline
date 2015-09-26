@@ -126,7 +126,7 @@
   "%p")
 
 (defun spaceline--column-number-at-pos (pos)
-  "Analog to line-number-at-pos."
+  "Column number at POS.  Analog to `line-number-at-pos'."
   (save-excursion (goto-char pos) (current-column)))
 
 (spaceline-define-segment selection-info
@@ -158,20 +158,20 @@ Supports both Emacs and Evil cursor conventions."
 ;; ========================================
 
 (spaceline-define-segment anzu
-  "Showing the current match number and the total number of matches. Requires
-anzu to be enabled."
+  "Show the current match number and the total number of matches.  Requires anzu
+to be enabled."
   (anzu--update-mode-line)
   :when (and active (bound-and-true-p anzu--state)))
 
 (spaceline-define-segment erc-track
-  "Shows the ERC buffers with new messages. Requires `erc-track-mode' to be
+  "Show the ERC buffers with new messages.  Requires `erc-track-mode' to be
 enabled."
   (mapcar (lambda (b) (buffer-name (car b)))
           erc-modified-channels-alist)
   :when (bound-and-true-p erc-track-mode))
 
 (spaceline-define-segment battery
-  "Shows battery information. Requires `fancy-battery-mode' to be enabled.
+  "Show battery information.  Requires `fancy-battery-mode' to be enabled.
 
 This segment overrides the modeline functionality of `fancy-battery-mode'."
   (powerline-raw (s-trim (fancy-battery-default-mode-line))
@@ -184,7 +184,7 @@ This segment overrides the modeline functionality of `fancy-battery-mode'."
   "The function called by the `org-clock' segment to determine what to show.")
 
 (spaceline-define-segment org-clock
-  "Shows information about the current org clock task. Configure
+  "Show information about the current org clock task.  Configure
 `spaceline-org-clock-format-function' to configure. Requires a currently running
 org clock.
 
@@ -195,7 +195,7 @@ This segment overrides the modeline functionality of `org-mode-line-string'."
   :global-override org-mode-line-string)
 
 (spaceline-define-segment org-pomodoro
-  "Shows the current pomodoro. Requires `org-pomodoro' to be active.
+  "Shows the current pomodoro.  Requires `org-pomodoro' to be active.
 
 This segment overrides the modeline functionality of `org-pomodoro' itself."
   (nth 1 org-pomodoro-mode-line)
@@ -204,12 +204,12 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
   :global-override org-pomodoro-mode-line)
 
 (spaceline-define-segment nyan-cat
-  "Shows the infamous nyan cat. Requires `nyan-mode' to be enabled."
+  "Shows the infamous nyan cat.  Requires `nyan-mode' to be enabled."
   (powerline-raw (nyan-create) default-face)
   :when (bound-and-true-p nyan-mode))
 
 (defun spaceline--unicode-number (str)
-  "Returns a nice unicode representation of a single-digit number."
+  "Return a nice unicode representation of a single-digit number STR."
   (cond
    ((string= "1" str) "➊")
    ((string= "2" str) "➋")
@@ -238,7 +238,7 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
   "Set to true to enable unicode display in the `workspace-number' segment.")
 
 (spaceline-define-segment workspace-number
-  "The current workspace number. Requires `eyebrowse-mode' to be enabled."
+  "The current workspace number.  Requires `eyebrowse-mode' to be enabled."
   (let* ((num (eyebrowse--get 'current-slot))
          (str (when num (int-to-string num))))
     (if spaceline-workspace-numbers-unicode
@@ -247,7 +247,7 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
   :when (bound-and-true-p eyebrowse-mode))
 
 (defmacro spaceline--flycheck-face (state)
-  "Generates a face for the given flycheck error type."
+  "Generate a face for the given flycheck error type STATE."
   (let* ((fname (intern (format "spaceline-flycheck-%S-face" state)))
          (foreground (face-foreground (intern (format "flycheck-fringe-%S" state)))))
     `(progn
@@ -265,7 +265,7 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
      (spaceline--flycheck-face info)))
 
 (defmacro spaceline--flycheck-lighter (state)
-  "Returns flycheck information for the given error type."
+  "Return flycheck information for the given error type STATE."
   `(let* ((counts (flycheck-count-errors flycheck-current-errors))
           (errorp (flycheck-has-current-errors-p ',state))
           (err (or (cdr (assq ',state counts)) "?"))
@@ -285,7 +285,7 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
                        (eq 'running flycheck-last-status-change)))))))
 
 (spaceline-define-segment evil-state
-  "The current evil state. Requires `evil-mode' to be enabled."
+  "The current evil state.  Requires `evil-mode' to be enabled."
   (s-trim (evil-state-property evil-state :tag t))
   :when (bound-and-true-p evil-local-mode))
 

@@ -24,7 +24,10 @@
 (require 'spaceline-segments)
 
 (defun spaceline-spacemacs-theme (&rest additional-segments)
-  "Installs the modeline used by Spacemacs."
+  "Install the modeline used by Spacemacs.
+
+ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
+`buffer-position'."
   (spaceline-install
 
    '(((workspace-number window-number)
