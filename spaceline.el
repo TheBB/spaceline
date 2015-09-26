@@ -6,7 +6,7 @@
 ;; URL: https://github.com/TheBB/spaceline
 ;; Version: 0.1
 ;; Keywords: mode-line powerline spacemacs
-;; Package-Requires: ((emacs "24") (powerline "2.3") (dash "2.11.0"))
+;; Package-Requires: ((emacs "24") (powerline "2.3") (dash "2.11.0") (s "1.10.0"))
 
 ;; This file is not part of GNU Emacs.
 
