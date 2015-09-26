@@ -347,10 +347,11 @@ The return vaule is a `segment' struct.  Its OBJECTS list may be nil."
 
          ;; A single symbol
          ((symbolp segment)
-          (setf (sl--seg-objects result)
-                (mapcar (lambda (s)
-                          (if (spaceline--imagep s) s (powerline-raw s face)))
-                        (funcall segment-symbol props))))
+          (when (fboundp segment-symbol)
+            (setf (sl--seg-objects result)
+                  (mapcar (lambda (s)
+                            (if (spaceline--imagep s) s (powerline-raw s face)))
+                          (funcall segment-symbol props)))))
 
          ;; A literal value
          (t (setf (sl--seg-objects result)
