@@ -76,9 +76,8 @@ This list is populated by `spacemacs-install' by investigating the
              (motion . "plum3")))
   (eval `(defface ,(intern (format "spaceline-evil-%S" (car s)))
            `((t (:background ,(cdr s)
-                             :foreground ,(face-background 'mode-line)
-                             :box ,(face-attribute 'mode-line :box)
-                             :inherit 'mode-line)))
+                 :inverse-video t
+                 :inherit 'mode-line)))
            ,(format "Evil %S state face." (car s))
            :group 'spaceline)))
 
