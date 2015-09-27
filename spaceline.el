@@ -62,8 +62,7 @@ This list is populated by `spacemacs-install' by investigating the
 
 (defface spaceline-highlight-face
   `((t (:background "DarkGoldenrod2"
-        :foreground ,(face-background 'mode-line)
-        :box ,(face-attribute 'mode-line :box)
+        :foreground "#3E3D31"
         :inherit 'mode-line)))
   "Default highlight face for spaceline."
   :group 'spaceline)
@@ -76,7 +75,7 @@ This list is populated by `spacemacs-install' by investigating the
              (motion . "plum3")))
   (eval `(defface ,(intern (format "spaceline-evil-%S" (car s)))
            `((t (:background ,(cdr s)
-                 :inverse-video t
+                 :foreground "#3E3D31"
                  :inherit 'mode-line)))
            ,(format "Evil %S state face." (car s))
            :group 'spaceline)))
