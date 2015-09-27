@@ -151,7 +151,7 @@ Supports both Emacs and Evil cursor conventions."
 
 (spaceline-define-segment hud
   "A HUD that shows which part of the buffer is currently visible."
-  (powerline-hud highlight-face default-face)
+  (powerline-hud 'highlight 'default)
   :tight t
   :when (string-match "\%" (format-mode-line "%p")))
 
