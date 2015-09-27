@@ -247,23 +247,18 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
       str))
   :when (bound-and-true-p eyebrowse-mode))
 
-(eval-after-load 'flycheck
-  '(progn
-     (defmacro spaceline--flycheck-face (state)
-       "Generate a face for the given flycheck error type STATE."
-       (let* ((fname (intern (format "spaceline-flycheck-%S-face" state)))
-              (foreground (face-foreground (intern (format "flycheck-fringe-%S" state)) nil t)))
-         `(progn
-            (defface ,fname '((t ()))
-              ,(format "Face for flycheck %S feedback in modeline." state)
-              :group 'spaceline)
-            (set-face-attribute ',fname nil
-                                :foreground ,foreground
-                                :box (face-attribute 'mode-line :box)))))
-
-     (spaceline--flycheck-face error)
-     (spaceline--flycheck-face warning)
-     (spaceline--flycheck-face info)))
+(defface spaceline-flycheck-error
+  '((t (:foreground "#FC5C94" :distant-foreground "#A20C41")))
+  "Face for flycheck error feedback in the modeline."
+  :group 'spaceline)
+(defface spaceline-flycheck-warning
+  '((t (:foreground "#F3EA98" :distant-foreground "#968B26")))
+  "Face for flycheck warning feedback in the modeline."
+  :group 'spaceline)
+(defface spaceline-flycheck-info
+  '((t (:foreground "#8DE6F7" :distant-foreground "#21889B")))
+  "Face for flycheck info feedback in the modeline."
+  :group 'spaceline)
 
 (defmacro spaceline--flycheck-lighter (state)
   "Return flycheck information for the given error type STATE."
@@ -275,7 +270,7 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
 
 (dolist (state '(error warning info))
   (let ((segment-name (intern (format "flycheck-%S" state)))
-        (face (intern (format "spaceline-flycheck-%S-face" state))))
+        (face (intern (format "spaceline-flycheck-%S" state))))
     (eval
      `(spaceline-define-segment ,segment-name
         ,(format "Information about flycheck %Ss. Requires `flycheck-mode' to be enabled" state)
