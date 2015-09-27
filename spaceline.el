@@ -252,7 +252,7 @@ by `spaceline--eval-segment'."
   (powerline-raw (spaceline--global))
   :when (spaceline--mode-line-nonempty (spaceline--global)))
 
-(defstruct sl--seg
+(defstruct spaceline--seg
   objects
   face-left
   face-right
@@ -312,7 +312,7 @@ The return vaule is a `segment' struct.  Its OBJECTS list may be nil."
                             (plist-get props :tight-right)))
 
            ;; Final output
-           (result (make-sl--seg
+           (result (make-spaceline--seg
                     :objects nil
                     :face-left face
                     :face-right face
@@ -326,40 +326,40 @@ The return vaule is a `segment' struct.  Its OBJECTS list may be nil."
          ;; A list of segments
          ((listp segment)
           (let ((results (remove-if-not
-                          'sl--seg-objects
+                          'spaceline--seg-objects
                           (mapcar (lambda (s)
                                     (apply 'spaceline--eval-segment
                                            s nest-props))
                                   segment))))
             (when results
-              (setf (sl--seg-objects result)
+              (setf (spaceline--seg-objects result)
                     (apply 'append (spaceline--intersperse
                                     (list separator)
-                                    (mapcar 'sl--seg-objects results))))
-              (setf (sl--seg-face-left result)
-                    (sl--seg-face-left (car results)))
-              (setf (sl--seg-face-right result)
-                    (sl--seg-face-right (car (last results))))
-              (setf (sl--seg-tight-left result)
-                    (sl--seg-tight-left (car results)))
-              (setf (sl--seg-tight-right result)
-                    (sl--seg-tight-right (car (last results)))))))
+                                    (mapcar 'spaceline--seg-objects results))))
+              (setf (spaceline--seg-face-left result)
+                    (spaceline--seg-face-left (car results)))
+              (setf (spaceline--seg-face-right result)
+                    (spaceline--seg-face-right (car (last results))))
+              (setf (spaceline--seg-tight-left result)
+                    (spaceline--seg-tight-left (car results)))
+              (setf (spaceline--seg-tight-right result)
+                    (spaceline--seg-tight-right (car (last results)))))))
 
          ;; A single symbol
          ((symbolp segment)
           (when (fboundp segment-symbol)
-            (setf (sl--seg-objects result)
+            (setf (spaceline--seg-objects result)
                   (mapcar (lambda (s)
                             (if (spaceline--imagep s) s (powerline-raw s face)))
                           (funcall segment-symbol props)))))
 
          ;; A literal value
-         (t (setf (sl--seg-objects result)
+         (t (setf (spaceline--seg-objects result)
                   (list (powerline-raw (format "%s" segment) face))))))
 
       (cond
        ;; This segment produced output, so return it
-       ((sl--seg-objects result) result)
+       ((spaceline--seg-objects result) result)
 
        ;; Return the fallback segment, if any
        ((plist-get props :fallback)
@@ -385,11 +385,11 @@ render the empty space in the middle of the mode-line."
          (segments (loop with result
                          for s in spec
                          do (setq result (spaceline--eval-segment s))
-                         if (sl--seg-objects result)
+                         if (spaceline--seg-objects result)
                            collect result
                            and do (rotatef default-face other-face)))
 
-         (dummy (make-sl--seg :face-left line-face :face-right line-face))
+         (dummy (make-spaceline--seg :face-left line-face :face-right line-face))
          (separator-style (format "powerline-%S" powerline-default-separator))
          (default-separator (intern (format "%s-%S" separator-style
                                             (car powerline-default-separator-dir))))
@@ -403,23 +403,23 @@ render the empty space in the middle of the mode-line."
               (let* ((lhs (car pair))
                      (rhs (cdr pair))
                      (objs (if (eq 'l side) lhs rhs))
-                     (add-sep (not (or (sl--seg-tight-right lhs)
-                                       (sl--seg-tight-left rhs)))))
+                     (add-sep (not (or (spaceline--seg-tight-right lhs)
+                                       (spaceline--seg-tight-left rhs)))))
                 (rotatef default-separator other-separator)
                 (append
                  (when (and (eq 'r side) add-sep)
                    (list (funcall default-separator
-                                  (sl--seg-face-right lhs)
-                                  (sl--seg-face-left rhs))))
-                 (unless (sl--seg-tight-left objs)
-                   (list (powerline-raw " " (sl--seg-face-left objs))))
-                 (sl--seg-objects objs)
-                 (unless (sl--seg-tight-right objs)
-                   (list (powerline-raw " " (sl--seg-face-right objs))))
+                                  (spaceline--seg-face-right lhs)
+                                  (spaceline--seg-face-left rhs))))
+                 (unless (spaceline--seg-tight-left objs)
+                   (list (powerline-raw " " (spaceline--seg-face-left objs))))
+                 (spaceline--seg-objects objs)
+                 (unless (spaceline--seg-tight-right objs)
+                   (list (powerline-raw " " (spaceline--seg-face-right objs))))
                  (when (and (eq 'l side) add-sep)
                    (list (funcall default-separator
-                                  (sl--seg-face-right lhs)
-                                  (sl--seg-face-left rhs)))))))
+                                  (spaceline--seg-face-right lhs)
+                                  (spaceline--seg-face-left rhs)))))))
             (-zip (if (eq 'l side) segments (cons dummy segments))
                   (if (eq 'l side) (append (cdr segments) (list dummy)) segments))))))
 
