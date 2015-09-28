@@ -8,6 +8,7 @@
 - [Spaceline](#spaceline)
     - [Introduction](#introduction)
     - [The Spacemacs mode-line theme](#the-spacemacs-mode-line-theme)
+        - [Why does it look different?](#why-does-it-look-different)
     - [Medium tweaking](#medium-tweaking)
         - [Turning segments on and off](#turning-segments-on-and-off)
         - [The highlight face](#the-highlight-face)
@@ -57,11 +58,17 @@ Spacemacs theme, but doesn't do anything with them.
 
 ## The Spacemacs mode-line theme
 
-To install it, just load `spaceline-config` and call
-`spaceline-spacemacs-theme`. E.g.
+To install it, just load `spaceline-config` and call the theme function you
+want. E.g.
 
     (require 'spaceline-config)
     (spaceline-spacemacs-theme)
+
+There are two themes currently:
+
+- `spaceline-spacemacs-theme`: The theme used by Spacemacs.
+- `spaceline-emacs-theme`: A similar theme designed to look good with no other
+packages installed.
 
 It should work out of the box. This theme integrates with the following
 third-party packages, which you may consider installing for added benefit:
@@ -86,17 +93,34 @@ battery information.
 - [`evil`](https://bitbucket.org/lyro/evil/wiki/Home): makes Emacs behave like
 vim.
 
-Spaceline also includes a theme that is slightly different from the Spacemacs
-theme, but which should look better if you aren't using `eyebrowse`,
-`window-numbering` or `evil`. It's called `spaceline-emacs-theme`.
+### Why does it look different?
 
-    (require 'spaceline-config)
-    (spaceline-emacs-theme)
+There are a number of reasons why Spaceline might look different on your setup
+compared to Spacemacs proper. Some of the more important ones are addressed
+here.
 
-To ensure you get a really nice mode-line, it can be good to set
-`powerline-height` to a suitably large value, and to set
-`powerline-default-separator` something other than the default (Spacemacs uses
-`wave` out of the box—but Spaceline does not touch this variable).
+- You're missing an optional dependency. Spacemacs includes packages that
+display information in the mode-line. The leftmost segment is invisible
+`eyebrowse-mode`, `window-numbering-mode` and `evil` are all not present. I you
+don't wish to use these packages, there is a theme provided called
+`spaceline-emacs-theme` which is supposed to look good regardless.
+
+- Consider setting or increasing the value of `powerline-height` to give your
+mode-line some room to breathe.
+
+- The default powerline separator is `arrow`, but Spacemacs uses `wave`. You
+should try out various settings of `powerline-default-separator` to find the one
+that works for you.
+
+- If you're using `eyebrowse-mode` or `window-numbering-mode`, consider setting
+`spaceline-workspace-numbers-unicode` and `spaceline-window-numbers-unicode` to
+`t` to get the nice-looking unicode numbers seen in the screenshot.
+
+- Use [`diminish`](https://github.com/emacsmirror/diminish) to tweak the output
+of the minor modes segment.
+
+- To get the mode-line highlight to change color depending on the evil state,
+set `spaceline-highlight-face-func` to `spaceline-highlight-face-evil-state`. 
 
 ## Medium tweaking
 
