@@ -26,6 +26,8 @@
 
 <!-- markdown-toc end -->
 
+![Screenshot](screen.png)
+
 This is the package that provides
 [Spacemacs](https://github.com/syl20bnr/spacemacs) with its famous mode-line
 theme. It has been extracted as an independent package for general fun and
