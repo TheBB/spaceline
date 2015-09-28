@@ -91,6 +91,11 @@ theme, but which should look better if you aren't using `eyebrowse`,
     (require 'spaceline-config)
     (spaceline-emacs-theme)
 
+To ensure you get a really nice mode-line, it can be good to set
+`powerline-height` to a suitably large value, and to set
+`powerline-default-separator` something other than the default (Spacemacs uses
+`wave` out of the box—but Spaceline does not touch this variable).
+
 ## Medium tweaking
 
 ### Turning segments on and off
