@@ -190,7 +190,7 @@ This segment overrides the modeline functionality of `fancy-battery-mode'."
 org clock.
 
 This segment overrides the modeline functionality of `org-mode-line-string'."
-  (substring-no-properties (funcall spacline-org-clock-format-function))
+  (substring-no-properties (funcall spaceline-org-clock-format-function))
   :when (and (fboundp 'org-clocking-p)
              (org-clocking-p))
   :global-override org-mode-line-string)
