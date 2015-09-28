@@ -6,7 +6,7 @@
 ;; URL: https://github.com/TheBB/spaceline
 ;; Version: 0.1
 ;; Keywords: mode-line powerline spacemacs
-;; Package-Requires: ((emacs "24") (powerline "2.3") (dash "2.11.0") (s "1.10.0"))
+;; Package-Requires: ((emacs "24") (cl-lib "0.5") (powerline "2.3") (dash "2.11.0") (s "1.10.0"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -36,7 +36,7 @@
 (require 'dash)
 (require 'gv)
 (require 'powerline)
-(require 'cl)
+(require 'cl-lib)
 
 (defvar spaceline-left nil
   "A list of modeline segments to render on the left side of the modeline.
@@ -250,7 +250,7 @@ by `spaceline--eval-segment'."
   (powerline-raw (spaceline--global))
   :when (spaceline--mode-line-nonempty (spaceline--global)))
 
-(defstruct spaceline--seg
+(cl-defstruct spaceline--seg
   objects
   face-left
   face-right
@@ -323,7 +323,7 @@ The return vaule is a `segment' struct.  Its OBJECTS list may be nil."
 
          ;; A list of segments
          ((listp segment)
-          (let ((results (remove-if-not
+          (let ((results (cl-remove-if-not
                           'spaceline--seg-objects
                           (mapcar (lambda (s)
                                     (apply 'spaceline--eval-segment
@@ -380,12 +380,12 @@ render the empty space in the middle of the mode-line."
          (highlight-face (funcall spaceline-highlight-face-func))
 
          ;; Loop through the segments and collect the results
-         (segments (loop with result
-                         for s in spec
-                         do (setq result (spaceline--eval-segment s))
-                         if (spaceline--seg-objects result)
-                           collect result
-                           and do (rotatef default-face other-face)))
+         (segments (cl-loop with result
+                            for s in spec
+                            do (setq result (spaceline--eval-segment s))
+                            if (spaceline--seg-objects result)
+                            collect result
+                            and do (cl-rotatef default-face other-face)))
 
          (dummy (make-spaceline--seg :face-left line-face :face-right line-face))
          (separator-style (format "powerline-%S" powerline-default-separator))
@@ -403,7 +403,7 @@ render the empty space in the middle of the mode-line."
                      (objs (if (eq 'l side) lhs rhs))
                      (add-sep (not (or (spaceline--seg-tight-right lhs)
                                        (spaceline--seg-tight-left rhs)))))
-                (rotatef default-separator other-separator)
+                (cl-rotatef default-separator other-separator)
                 (append
                  (when (and (eq 'r side) add-sep)
                    (list (funcall default-separator
