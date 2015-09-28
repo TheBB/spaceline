@@ -67,17 +67,21 @@ This list is populated by `spacemacs-install' by investigating the
   "Default highlight face for spaceline."
   :group 'spaceline)
 
-(dolist (s '((normal . "DarkGoldenrod2")
-             (insert . "chartreuse3")
-             (emacs . "SkyBlue2")
-             (replace . "chocolate")
-             (visual . "gray")
-             (motion . "plum3")))
-  (eval `(defface ,(intern (format "spaceline-evil-%S" (car s)))
-           `((t (:background ,(cdr s)
-                 :foreground "#3E3D31"
-                 :inherit 'mode-line)))
-           ,(format "Evil %S state face." (car s))
+;; Define various other highlight faces
+(dolist (s '((spaceline-evil-normal "DarkGoldenrod2" "Evil normal state face.")
+             (spaceline-evil-insert "chartreuse3" "Evil insert state face.")
+             (spaceline-evil-emacs "SkyBlue2" "Evil emacs state face.")
+             (spaceline-evil-replace "chocolate" "Evil replace state face.")
+             (spaceline-evil-visual "gray" "Evil visual state face.")
+             (spaceline-evil-motion "plum3" "Evil motion state face.")
+             (spaceline-unmodified "DarkGoldenrod2" "Unmodified buffer face.")
+             (spaceline-modified "SkyBlue2" "Modified buffer face.")
+             (spaceline-read-only "plum3" "Read-only buffer face.")))
+  (eval `(defface ,(nth 0 s)
+           `((t (:background ,(nth 1 s)
+                             :foreground "#3E3D31"
+                             :inherit 'mode-line)))
+           ,(nth 2 s)
            :group 'spaceline)))
 
 (defun spaceline-highlight-face-default ()
@@ -107,6 +111,16 @@ use this."
              (face (assq state spaceline-evil-state-faces)))
         (if face (cdr face) (spaceline-highlight-face-default)))
     (spaceline-highlight-face-default)))
+
+(defun spaceline-highlight-face-modified ()
+  "Set the highlight face depending on the buffer modified status.
+
+Set `spaceline-highlight-face-func' to `spaceline-highlight-face-modified' to
+use this."
+  (cond
+   (buffer-read-only 'spaceline-read-only)
+   ((buffer-modified-p) 'spaceline-modified)
+   (t 'spaceline-unmodified)))
 
 (defun spaceline--imagep (object)
   "Test whether the given OBJECT is an image.

@@ -141,7 +141,7 @@ the HUD segment on the far right, and the first segment on the left (if you are
 using either evil, window-numbering or eyebrowse—if not, it is invisible). The
 actual face used as a highlight face is determined by a function, which can be
 configured by setting the value of `spaceline-highlight-face-func`. Spaceline
-comes with two choices, but of course you can write your own:
+comes with three choices, but of course you can write your own:
 
 - `spaceline-highlight-face-default`: Uses the orange, all the time. This is the
 default. Hence the name.
@@ -149,6 +149,8 @@ default. Hence the name.
 current evil state. The face corresponding to each state is determined by the
 association list `spaceline-evil-state-faces`, which contains default values for
 the standard evil states. (Spacemacs has a few more.)
+- `spaceline-highlight-face-modified`: Chooses a face determined by the status
+of the current buffer (modified, unmodified or read-only).
 
 Note that the highlight face is only used in the active window.
 
