@@ -84,6 +84,13 @@ battery information.
 - [`evil`](https://bitbucket.org/lyro/evil/wiki/Home): makes Emacs behave like
 vim.
 
+Spaceline also includes a theme that is slightly different from the Spacemacs
+theme, but which should look better if you aren't using `eyebrowse`,
+`window-numbering` or `evil`. It's called `spaceline-emacs-theme`.
+
+    (require 'spaceline-config)
+    (spaceline-emacs-theme)
+
 ## Medium tweaking
 
 ### Turning segments on and off
@@ -137,11 +144,12 @@ theme.
 ### The highlight face
 
 The highlight face is the face that (by default) is a sharp orange, used e.g. by
-the HUD segment on the far right, and the first segment on the left (if you are
-using either evil, window-numbering or eyebrowse—if not, it is invisible). The
-actual face used as a highlight face is determined by a function, which can be
-configured by setting the value of `spaceline-highlight-face-func`. Spaceline
-comes with three choices, but of course you can write your own:
+the HUD segment on the far right, and the first segment on the left (note that
+it may be invisible if you are using the Spacemacs theme but not some of its
+optional dependencies). The actual face used as a highlight face is determined
+by a function, which can be configured by setting the value of
+`spaceline-highlight-face-func`. Spaceline comes with three choices, but of
+course you can write your own:
 
 - `spaceline-highlight-face-default`: Uses the orange, all the time. This is the
 default. Hence the name.

@@ -48,16 +48,53 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
      (org-clock :when active)
      nyan-cat)
 
-  `((battery :when active)
-    selection-info
-    ((buffer-encoding-abbrev
-      point-position
-      line-column)
-     :separator " | ")
-    (global :when active)
-    ,@additional-segments
-    buffer-position
-    hud)))
+   `((battery :when active)
+     selection-info
+     ((buffer-encoding-abbrev
+       point-position
+       line-column)
+      :separator " | ")
+     (global :when active)
+     ,@additional-segments
+     buffer-position
+     hud)))
+
+(defun spaceline-emacs-theme (&rest additional-segments)
+  "Install a modeline close to the one used by Spacemacs, but which
+looks better without third-party dependencies.
+
+ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
+`buffer-position'."
+  (spaceline-install
+
+   '(((((workspace-number window-number) :separator "|")
+       buffer-modified
+       buffer-size)
+      :face highlight-face)
+     anzu
+     (buffer-id remote-host)
+     major-mode
+     ((flycheck-error flycheck-warning flycheck-info)
+      :when active)
+     (((minor-modes :separator spaceline-minor-modes-separator)
+       process)
+      :when active)
+     (erc-track :when active)
+     (version-control :when active)
+     (org-pomodoro :when active)
+     (org-clock :when active)
+     nyan-cat)
+
+   `((battery :when active)
+     selection-info
+     ((buffer-encoding-abbrev
+       point-position
+       line-column)
+      :separator " | ")
+     (global :when active)
+     ,@additional-segments
+     buffer-position
+     hud)))
 
 (provide 'spaceline-config)
 
