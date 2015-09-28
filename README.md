@@ -100,8 +100,8 @@ compared to Spacemacs proper. Some of the more important ones are addressed
 here.
 
 - You're missing an optional dependency. Spacemacs includes packages that
-display information in the mode-line. The leftmost segment is invisible
-`eyebrowse-mode`, `window-numbering-mode` and `evil` are all not present. I you
+display information in the mode-line. The leftmost segment is invisible if
+`eyebrowse-mode`, `window-numbering-mode` and `evil` are all not present. If you
 don't wish to use these packages, there is a theme provided called
 `spaceline-emacs-theme` which is supposed to look good regardless.
 
