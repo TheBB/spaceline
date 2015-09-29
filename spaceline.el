@@ -391,7 +391,9 @@ ACTIVE is true if the current window is active.  LINE-FACE is the face used to
 render the empty space in the middle of the mode-line."
   (let* ((default-face (if active 'powerline-active1 'powerline-inactive1))
          (other-face (if active 'mode-line 'mode-line-inactive))
-         (highlight-face (funcall spaceline-highlight-face-func))
+         (highlight-face (if active
+                             (funcall spaceline-highlight-face-func)
+                           default-face))
 
          ;; Loop through the segments and collect the results
          (segments (cl-loop with result
