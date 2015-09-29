@@ -212,6 +212,18 @@ And in inactive windows:
 Set `powerline-default-separator` to configure this. The docstring for that
 variable enumerates the choices.
 
+Each separator comes in two directions: left and right. The variables
+`spaceline-separator-dir-left` and `spaceline-separator-dir-right` specify which
+directions to alternate between on the left and right side, respectively.
+
+For example, to use only one direction on each side (looks good with the `arrow`
+separator style), you can use
+
+    (setq spaceline-separator-dir-left '(left . left))
+    (setq spaceline-separator-dir-right '(right . right))
+
+By default, the directions alternate between each segment.
+
 ### Hooks
 
 The hook `spaceline-pre-hook` is executed before rendering the modeline. Don't

@@ -57,6 +57,18 @@ See `spaceline--eval-segment' for what constitutes a segment.")
 This list is populated by `spacemacs-install' by investigating the
 `:global-override' properties of all the included segments.")
 
+(defvar spaceline-separator-dir-left
+  powerline-default-separator-dir
+  "The separator directions to use for the left side.
+
+Cons of the form (DIR . DIR) where DIR is one of left and right.")
+
+(defvar spaceline-separator-dir-right
+  powerline-default-separator-dir
+  "The separator directions to use for the left side.
+
+Cons of the form (DIR . DIR) where DIR is one of left and right.")
+
 (defvar spaceline-highlight-face-func 'spaceline-highlight-face-default
   "The function that decides the highlight face.")
 
@@ -405,10 +417,11 @@ render the empty space in the middle of the mode-line."
 
          (dummy (make-spaceline--seg :face-left line-face :face-right line-face))
          (separator-style (format "powerline-%S" powerline-default-separator))
-         (default-separator (intern (format "%s-%S" separator-style
-                                            (car powerline-default-separator-dir))))
-         (other-separator (intern (format "%s-%S" separator-style
-                                          (cdr powerline-default-separator-dir)))))
+         (dirs (if (eq 'l side)
+                   spaceline-separator-dir-left
+                 spaceline-separator-dir-right))
+         (default-separator (intern (format "%s-%S" separator-style (car dirs))))
+         (other-separator (intern (format "%s-%S" separator-style (cdr dirs)))))
 
     ;; Collect all segment values and add separators
     (apply 'append
