@@ -37,30 +37,35 @@
 (spaceline-define-segment minor-modes
   "A list of minor modes. Configure the separator with
 `spaceline-minor-modes-separator'."
-  (progn
-   (mapcar
-    (lambda (m)
-      (propertize m
+  (-filter
+   (lambda (k) (and k (not (string= k ""))))
+   (mapcar (lambda (mm)
+             (let* ((lighter (s-trim (format-mode-line (cadr mm))))
+                    (displayp (and (symbol-value (car mm))
+                                   (not (string= "" lighter)))))
+               (when displayp
+                 (propertize
+                  lighter
                   'mouse-face 'mode-line-highlight
-                  'help-echo (concat "Minor mode\n"
-                                     "mouse-1: Display minor mode menu\n"
-                                     "mouse-2: Show help for minor mode\n"
-                                     "mouse-3: Toggle minor mode")
+                  'help-echo (concat (symbol-name (car mm))
+                                     "\nmouse-1: Display minor mode menu"
+                                     "\nmouse-2: Show help for minor mode"
+                                     "\nmouse-3: Toggle minor mode")
                   'local-map (let ((map (make-sparse-keymap)))
                                (define-key map
                                  [mode-line down-mouse-1]
-                                 (powerline-mouse 'minor 'menu m))
+                                 (powerline-mouse 'minor 'menu lighter))
                                (define-key map
                                  [mode-line down-mouse-2]
-                                 (powerline-mouse 'minor 'help m))
+                                 (powerline-mouse 'minor 'help lighter))
                                (define-key map
                                  [mode-line down-mouse-3]
-                                 (powerline-mouse 'minor 'menu m))
+                                 (powerline-mouse 'minor 'menu lighter))
                                (define-key map
                                  [header-line down-mouse-3]
-                                 (powerline-mouse 'minor 'menu m))
-                               map)))
-   (split-string (format-mode-line minor-mode-alist))))
+                                 (powerline-mouse 'minor 'menu lighter))
+                               map)))))
+           minor-mode-alist))
   :separator spaceline-minor-modes-separator)
 
 (spaceline-define-segment buffer-modified
