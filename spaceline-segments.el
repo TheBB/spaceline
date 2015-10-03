@@ -40,10 +40,11 @@
   (-filter
    (lambda (k) (and k (not (string= k ""))))
    (mapcar (lambda (mm)
-             (let* ((lighter (s-trim (format-mode-line (cadr mm))))
-                    (displayp (and (boundp (car mm))
-                                   (symbol-value (car mm))
-                                   (not (string= "" lighter)))))
+             (let* ((displayp (and (boundp (car mm))
+                                   (symbol-value (car mm))))
+                    (lighter (when displayp
+                               (s-trim (format-mode-line (cadr mm)))))
+                    (displayp (and lighter (not (string= "" lighter)))))
                (when displayp
                  (propertize
                   lighter
