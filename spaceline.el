@@ -70,7 +70,32 @@ Cons of the form (DIR . DIR) where DIR is one of left and right.")
 Cons of the form (DIR . DIR) where DIR is one of left and right.")
 
 (defvar spaceline-highlight-face-func 'spaceline-highlight-face-default
-  "The function that decides the highlight face.")
+  "The function that decides the highlight face.
+Superseded by `spaceline-face-func' if that variable is set.")
+
+(defvar spaceline-face-func nil
+  "The function that defines all faces.
+
+Must be a function that accepts two arguments: FACE and ACTIVE, where
+FACE is `face1', `face2' `line' or `highlight', and ACTIVE determines whether
+the window in question is active. It should return a face to use.
+
+This variable supersedes `spaceline-highlight-face-func' if set.")
+
+(defun spaceline--get-face (face active)
+  "Universal function to get the right face.
+FACE and ACTIVE have the same meanings as in `spaceline-face-func'. Delegates
+the work to `spaceline-face-func' if it is given, otherwise falls back to
+default configuration."
+  (if spaceline-face-func
+      (funcall spaceline-face-func face active)
+    (cond
+     ((eq 'face1 face) (if active 'powerline-active1 'powerline-inactive1))
+     ((eq 'face2 face) (if active 'mode-line 'mode-line-inactive))
+     ((eq 'line face) (if active 'powerline-active2 'powerline-inactive2))
+     ((eq 'highlight face) (if active
+                               (funcall spaceline-highlight-face-func)
+                             'powerline-inactive1)))))
 
 (defface spaceline-highlight-face
   `((t (:background "DarkGoldenrod2"
@@ -401,11 +426,9 @@ either of the symbols l or r.
 
 ACTIVE is true if the current window is active.  LINE-FACE is the face used to
 render the empty space in the middle of the mode-line."
-  (let* ((default-face (if active 'powerline-active1 'powerline-inactive1))
-         (other-face (if active 'mode-line 'mode-line-inactive))
-         (highlight-face (if active
-                             (funcall spaceline-highlight-face-func)
-                           default-face))
+  (let* ((default-face (spaceline--get-face 'face1 active))
+         (other-face (spaceline--get-face 'face2 active))
+         (highlight-face (spaceline--get-face 'highlight active))
 
          ;; Loop through the segments and collect the results
          (segments (cl-loop with result
@@ -468,7 +491,7 @@ render the empty space in the middle of the mode-line."
   "Prepare the modeline."
   (run-hooks 'spaceline-pre-hook)
   (let* ((active (powerline-selected-window-active))
-         (line-face (if active 'powerline-active2 'powerline-inactive2))
+         (line-face (spaceline--get-face 'line active))
          (lhs (spaceline--prepare-left active line-face))
          (rhs (spaceline--prepare-right active line-face)))
     (concat (powerline-render lhs)
