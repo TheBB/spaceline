@@ -116,8 +116,8 @@ default configuration."
              (spaceline-read-only "plum3" "Read-only buffer face.")))
   (eval `(defface ,(nth 0 s)
            `((t (:background ,(nth 1 s)
-                             :foreground "#3E3D31"
-                             :inherit 'mode-line)))
+                 :foreground "#3E3D31"
+                 :inherit 'mode-line)))
            ,(nth 2 s)
            :group 'spaceline)))
 
