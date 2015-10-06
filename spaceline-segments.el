@@ -246,9 +246,13 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
   "Set to true to enable unicode display in the `workspace-number' segment.")
 
 (spaceline-define-segment workspace-number
-  "The current workspace number.  Requires `eyebrowse-mode' to be enabled."
+  "The current workspace name or number. Requires `eyebrowse-mode' to be
+enabled."
   (let* ((num (eyebrowse--get 'current-slot))
-         (str (when num (int-to-string num))))
+         (tag (when num (nth 2 (assoc num (eyebrowse--get 'window-configs)))))
+         (str (if (and tag (< 0 (length tag)))
+                  tag
+                (when num (int-to-string num)))))
     (if spaceline-workspace-numbers-unicode
         (spaceline--unicode-number str)
       str))
