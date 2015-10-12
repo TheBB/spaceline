@@ -296,7 +296,10 @@ by `spaceline--eval-segment'."
 
 (defun spaceline--global ()
   "Return `global-mode-string' with the excluded segments removed."
-  (-difference global-mode-string spaceline--global-excludes))
+  (cond
+   ((listp global-mode-string)
+    (-difference global-mode-string spaceline--global-excludes))
+   (t global-mode-string)))
 (spaceline-define-segment global
   (powerline-raw (spaceline--global))
   :when (spaceline--mode-line-nonempty (spaceline--global)))
