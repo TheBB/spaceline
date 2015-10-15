@@ -35,6 +35,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
       :separator "|"
       :face highlight-face)
      anzu
+     auto-compile
      (buffer-modified buffer-size buffer-id remote-host)
      major-mode
      ((flycheck-error flycheck-warning flycheck-info)
