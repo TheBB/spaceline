@@ -171,6 +171,11 @@ to be enabled."
   (anzu--update-mode-line)
   :when (and active (bound-and-true-p anzu--state)))
 
+(spaceline-define-segment auto-compile
+  "Show the count of byte-compiler warnings from the auto-compile package."
+  (mode-line-auto-compile-control)
+  :when (and active (boundp 'auto-compile-warnings) (> auto-compile-warnings 0)))
+
 (spaceline-define-segment erc-track
   "Show the ERC buffers with new messages.  Requires `erc-track-mode' to be
 enabled."
