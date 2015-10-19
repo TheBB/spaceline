@@ -322,6 +322,8 @@ face or a form evaluating to a face.
 - `:tight`: Set to `t` to tell Spaceline that the segment should not have any
 padding on the right or left. Use `:tight-left` and `:tight-right` for even
 finer control.
+- `:skip-alternate`: Set to `t` to skip the regular alternating faces for this
+segment.
 
 All of the above are valid both in `spaceline-define-segment` as well as the
 more general segment specification given above.

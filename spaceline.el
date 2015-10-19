@@ -309,7 +309,8 @@ by `spaceline--eval-segment'."
   face-left
   face-right
   tight-left
-  tight-right)
+  tight-right
+  skip-alternate)
 
 (defun spaceline--eval-segment (segment-spec &rest outer-props)
   "Evaluate SEGMENT-SPEC with additional properties OUTER-PROPS.
@@ -369,7 +370,8 @@ The return vaule is a `segment' struct.  Its OBJECTS list may be nil."
                     :face-left face
                     :face-right face
                     :tight-left tight-left
-                    :tight-right tight-right)))
+                    :tight-right tight-right
+                    :skip-alternate (plist-get props :skip-alternate))))
 
       ;; Evaluate the segment based on its type
       (when condition
@@ -439,7 +441,8 @@ render the empty space in the middle of the mode-line."
                             do (setq result (spaceline--eval-segment s))
                             if (spaceline--seg-objects result)
                             collect result
-                            and do (cl-rotatef default-face other-face)))
+                            and do (unless (spaceline--seg-skip-alternate result)
+                                     (cl-rotatef default-face other-face))))
 
          (dummy (make-spaceline--seg :face-left line-face :face-right line-face))
          (separator-style (format "powerline-%S" powerline-default-separator))
