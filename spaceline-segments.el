@@ -98,8 +98,20 @@
 
 (spaceline-define-segment version-control
   "Version control information."
-  (s-trim (powerline-vc))
-  :when (powerline-vc))
+  (powerline-raw
+   (s-trim (concat vc-mode
+                   (when (buffer-file-name)
+                     (pcase (vc-state (buffer-file-name))
+                       (`up-to-date " ")
+                       (`edited " Mod")
+                       (`added " Add")
+                       (`unregistered " ??")
+                       (`removed " Del")
+                       (`needs-merge " Con")
+                       (`needs-update " Upd")
+                       (`ignored " Ign")
+                       (_ " Unk"))))))
+  :when vc-mode)
 
 (spaceline-define-segment buffer-encoding
   "The full `buffer-file-coding-system'."
