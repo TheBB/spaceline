@@ -38,6 +38,10 @@
 (require 'powerline)
 (require 'cl-lib)
 
+(defvar evil-previous-state)
+(defvar evil-state)
+(defvar evil-visual-selection)
+
 (defvar spaceline-left nil
   "A list of modeline segments to render on the left side of the modeline.
 

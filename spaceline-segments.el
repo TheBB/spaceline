@@ -30,6 +30,9 @@
 (require 'spaceline)
 (require 's)
 
+(defvar evil-state)
+(defvar evil-visual-selection)
+
 ;; Stock segments - no optional dependencies
 ;; =========================================
 
@@ -176,6 +179,18 @@ Supports both Emacs and Evil cursor conventions."
 
 ;; Segments requiring optional dependencies
 ;; ========================================
+
+(defvar erc-modified-channels-alist)
+(defvar org-pomodoro-mode-line)
+
+(declare-function anzu--update-mode-line 'anzu)
+(declare-function evil-state-property 'evil-common)
+(declare-function eyebrowse--get 'eyebrowse)
+(declare-function fancy-battery-default-mode-line 'fancy-battery)
+(declare-function fancy-battery-powerline-face 'fancy-battery)
+(declare-function mode-line-auto-compile-control 'auto-compile)
+(declare-function nyan-create 'nyan-mode)
+(declare-function window-numbering-get-number 'window-numbering)
 
 (spaceline-define-segment anzu
   "Show the current match number and the total number of matches.  Requires anzu
