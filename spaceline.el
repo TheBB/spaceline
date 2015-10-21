@@ -38,6 +38,10 @@
 (require 'powerline)
 (require 'cl-lib)
 
+(defvar evil-previous-state)
+(defvar evil-state)
+(defvar evil-visual-selection)
+
 (defvar spaceline-left nil
   "A list of modeline segments to render on the left side of the modeline.
 
@@ -280,7 +284,8 @@ by `spaceline--eval-segment'."
        (defun ,toggle-func () (interactive) (setq ,toggle-var (not ,toggle-var)))
        (defun ,toggle-func-on () (interactive) (setq ,toggle-var t))
        (defun ,toggle-func-off () (interactive) (setq ,toggle-var nil))
-       (defun ,wrapper-func (&optional props)
+       (defun ,wrapper-func (&optional props active default-face other-face
+                                       highlight-face line-face)
          ,docstring
          (when ,condition
            (let ((separator (eval (or (plist-get props :separator) " ")))
@@ -312,7 +317,9 @@ by `spaceline--eval-segment'."
   tight-right
   skip-alternate)
 
-(defun spaceline--eval-segment (segment-spec &rest outer-props)
+(defun spaceline--eval-segment (segment-spec &optional outer-props
+                                             active default-face other-face
+                                             highlight-face line-face)
   "Evaluate SEGMENT-SPEC with additional properties OUTER-PROPS.
 
 SEGMENT-SPEC may be either:
@@ -382,8 +389,10 @@ The return value is a `segment' struct.  Its OBJECTS list may be nil."
           (let ((results (cl-remove-if-not
                           'spaceline--seg-objects
                           (mapcar (lambda (s)
-                                    (apply 'spaceline--eval-segment
-                                           s nest-props))
+                                    (spaceline--eval-segment
+                                     s nest-props active
+                                     default-face other-face
+                                     highlight-face line-face))
                                   segment))))
             (when results
               (setf (spaceline--seg-objects result)
@@ -405,7 +414,9 @@ The return value is a `segment' struct.  Its OBJECTS list may be nil."
             (setf (spaceline--seg-objects result)
                   (mapcar (lambda (s)
                             (if (spaceline--imagep s) s (powerline-raw s face)))
-                          (funcall segment-symbol props)))))
+                          (funcall segment-symbol
+                                   props active default-face other-face
+                                   highlight-face line-face)))))
 
          ;; A literal value
          (t (setf (spaceline--seg-objects result)
@@ -417,8 +428,9 @@ The return value is a `segment' struct.  Its OBJECTS list may be nil."
 
        ;; Return the fallback segment, if any
        ((plist-get props :fallback)
-        (apply 'spaceline--eval-segment
-               (plist-get props :fallback) nest-props))
+        (spaceline--eval-segment (plist-get props :fallback)
+                                 nest-props active default-face other-face
+                                 highlight-face line-face))
 
        ;; No output (objects = nil)
        (t result)))))
@@ -438,7 +450,10 @@ render the empty space in the middle of the mode-line."
          ;; Loop through the segments and collect the results
          (segments (cl-loop with result
                             for s in spec
-                            do (setq result (spaceline--eval-segment s))
+                            do (setq result (spaceline--eval-segment
+                                             s nil active
+                                             default-face other-face
+                                             highlight-face line-face))
                             if (spaceline--seg-objects result)
                             collect result
                             and do (unless (spaceline--seg-skip-alternate result)
