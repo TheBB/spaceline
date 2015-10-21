@@ -494,20 +494,6 @@ render the empty space in the middle of the mode-line."
             (-zip (if (eq 'l side) segments (cons dummy segments))
                   (if (eq 'l side) (append (cdr segments) (list dummy)) segments))))))
 
-(defun spaceline--prepare-left (active line-face)
-  "Prepare the left side of the modeline.
-
-ACTIVE is true if the current window is active.  LINE-FACE is the face used to
-render the empty space in the middle of the mode-line."
-  (spaceline--prepare-any spaceline-left 'l active line-face))
-
-(defun spaceline--prepare-right (active line-face)
-  "Prepare the right side of the modeline.
-
-ACTIVE is true if the current window is active.  LINE-FACE is the face used to
-render the empty space in the middle of the mode-line."
-  (spaceline--prepare-any spaceline-right 'r active line-face))
-
 (defun spaceline--prepare (left right)
   "Prepare the modeline."
   (run-hooks 'spaceline-pre-hook)
