@@ -307,7 +307,7 @@ These are convenient to bind to keys, and they do what it says on the tin.
 
 The valid properties are
 
-- `:when`: A form that, if it evalutes to `nil`, will block this segment from
+- `:when`: A form that, if it evaluates to `nil`, will block this segment from
 being displayed.
 - `:separator`: A separator inserted between each element of the value of the
 given segment. This makes most sense for lists of segments, or segments whose
@@ -344,7 +344,7 @@ The properties which take effect for any given segment are, in order of
 priority:
 
 - the properties specified in the segment specification
-- the propreties given in the call to `spaceline-define-segment`
+- the properties given in the call to `spaceline-define-segment`
 - the properties of the parent segment
 
 The exceptions are `:when`, which must be true on *all* levels for a segment to

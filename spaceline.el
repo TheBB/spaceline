@@ -341,7 +341,7 @@ When calling nested or fallback segments, the full property list is passed as
 specified properties, as a rule, override the higher level ones.  The exception
 is `:when', which must be true at all levels.
 
-The return vaule is a `segment' struct.  Its OBJECTS list may be nil."
+The return value is a `segment' struct.  Its OBJECTS list may be nil."
 
   ;; We get a property list from SEGMENT-SPEC if it's a list with more than
   ;; one element whose second element is a keyword symbol
