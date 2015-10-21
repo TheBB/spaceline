@@ -97,6 +97,21 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
      buffer-position
      hud)))
 
+(defun spaceline-helm (source &optional force)
+  "Set up a custom helm modeline."
+  (setq spaceline--helm-current-source source
+        mode-line-format '("%e" (:eval (spaceline--prepare
+                                        '(helm-buffer-id
+                                          helm-number
+                                          helm-follow
+                                          helm-prefix-argument)
+                                        '(helm-help)))))
+  (when force (force-mode-line-update)))
+
+(defun spaceline-helm-theme ()
+  "Install a custom helm modeline."
+  (advice-add 'helm-display-mode-line :after 'spaceline-helm))
+
 (provide 'spaceline-config)
 
 ;;; spaceline-config.el ends here

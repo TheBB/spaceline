@@ -177,6 +177,64 @@ Supports both Emacs and Evil cursor conventions."
   :tight t
   :when (string-match "\%" (format-mode-line "%p")))
 
+;; Helm segments
+;; =============
+
+(declare-function helm-candidate-number-at-point 'helm)
+(declare-function helm-get-candidate-number 'helm)
+
+(defvar spaceline--helm-buffer-ids
+  '(("*helm M-x*" . "M-x"))
+  "Alist of custom helm buffer names to use.")
+(spaceline-define-segment helm-buffer-id
+  "Helm session identifier."
+  (propertize (concat "HELM "
+                      (let ((custom (cdr (assoc (buffer-name) spaceline--helm-buffer-ids)))
+                            (case-fold-search t)
+                            (name (replace-regexp-in-string "-" " " (buffer-name))))
+                        (if custom custom
+                          (string-match "\\*helm \\(mode \\)?\\([^\\*]+\\)\\*" name)
+                          (capitalize (match-string 2 name)))))
+              'face 'bold)
+  :face highlight-face
+  :when (bound-and-true-p helm-alive-p))
+
+(spaceline-define-segment helm-number
+  "Number of helm candidates."
+  (format "%d/%s (%s total)"
+          (helm-candidate-number-at-point)
+          (helm-get-candidate-number t)
+          (helm-get-candidate-number))
+  :when (bound-and-true-p helm-alive-p))
+
+(spaceline-define-segment helm-help
+  "Helm keybindings help."
+  (-interleave
+   (mapcar (lambda (s)
+             (propertize (substitute-command-keys s) 'face 'bold))
+           '("\\<helm-map>\\[helm-help]"
+             "\\<helm-map>\\[helm-select-action]"
+             "\\<helm-map>\\[helm-maybe-exit-minibuffer]/F1/F2..."))
+   '("(help)" "(actions)" "(action)"))
+  :when (bound-and-true-p helm-alive-p))
+
+(spaceline-define-segment helm-prefix-argument
+  "Helm prefix argument."
+  (let ((arg (prefix-numeric-value (or prefix-arg current-prefix-arg))))
+    (unless (= arg 1)
+      (propertize (format "%s" arg) 'face 'helm-prefarg)))
+  :when (and (bound-and-true-p helm-alive-p)
+             helm--mode-line-display-prefarg))
+
+(defvar spaceline--helm-current-source nil
+  "The currently active helm source")
+(spaceline-define-segment helm-follow
+  "Helm follow indicator."
+  "HF"
+  :when (and (bound-and-true-p helm-alive-p)
+             spaceline--helm-current-source
+             (eq 1 (cdr (assq 'follow spaceline--helm-current-source)))))
+
 ;; Segments requiring optional dependencies
 ;; ========================================
 
