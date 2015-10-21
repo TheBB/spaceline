@@ -235,7 +235,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
   (setq spaceline-left left)
   (setq spaceline-right right)
   (spaceline--update-global-excludes)
-  (setq-default mode-line-format '("%e" (:eval (spaceline--prepare)))))
+  (setq-default mode-line-format '("%e" (:eval (spaceline--prepare spaceline-left spaceline-right)))))
 
 (defmacro spaceline-define-segment (name value &rest props)
   "Define a modeline segment called NAME with value VALUE and properties PROPS.
@@ -508,13 +508,13 @@ ACTIVE is true if the current window is active.  LINE-FACE is the face used to
 render the empty space in the middle of the mode-line."
   (spaceline--prepare-any spaceline-right 'r active line-face))
 
-(defun spaceline--prepare ()
+(defun spaceline--prepare (left right)
   "Prepare the modeline."
   (run-hooks 'spaceline-pre-hook)
   (let* ((active (powerline-selected-window-active))
          (line-face (spaceline--get-face 'line active))
-         (lhs (spaceline--prepare-left active line-face))
-         (rhs (spaceline--prepare-right active line-face)))
+         (lhs (spaceline--prepare-any left 'l active line-face))
+         (rhs (spaceline--prepare-any right 'r active line-face)))
     (concat (powerline-render lhs)
             (powerline-fill line-face (powerline-width rhs))
             (powerline-render rhs))))
