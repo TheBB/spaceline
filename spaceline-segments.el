@@ -193,7 +193,7 @@ Supports both Emacs and Evil cursor conventions."
                             (case-fold-search t)
                             (name (replace-regexp-in-string "-" " " (buffer-name))))
                         (if custom custom
-                          (string-match "\\*helm \\(mode \\)?\\([^\\*]+\\)\\*" name)
+                          (string-match "\\*helm:? \\(mode \\)?\\([^\\*]+\\)\\*" name)
                           (capitalize (match-string 2 name)))))
               'face 'bold)
   :face highlight-face
