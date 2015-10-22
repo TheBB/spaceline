@@ -222,7 +222,7 @@ Supports both Emacs and Evil cursor conventions."
   "Helm prefix argument."
   (let ((arg (prefix-numeric-value (or prefix-arg current-prefix-arg))))
     (unless (= arg 1)
-      (propertize (format "%s" arg) 'face 'helm-prefarg)))
+      (propertize (format "C-u %s" arg) 'face 'helm-prefarg)))
   :when (and (bound-and-true-p helm-alive-p)
              helm--mode-line-display-prefarg))
 
