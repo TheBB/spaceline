@@ -97,6 +97,9 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
      buffer-position
      hud)))
 
+;; Helm custom mode
+;; ================
+
 (defun spaceline-helm (source &optional force)
   "Set up a custom helm modeline."
   (setq spaceline--helm-current-source source
@@ -108,9 +111,14 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
                                         '(helm-help)))))
   (when force (force-mode-line-update)))
 
-(defun spaceline-helm-theme ()
-  "Install a custom helm modeline."
-  (advice-add 'helm-display-mode-line :after 'spaceline-helm))
+(define-minor-mode spaceline-local-helm-mode
+  "Customize the mode-line in helm."
+  :init-value nil
+  (if spaceline-helm-mode
+      (advice-add 'helm-display-mode-line :after 'spaceline-helm)
+    (advice-remove 'helm-display-mode-line 'spaceline-helm)))
+
+(define-globalized-minor-mode spaceline-helm-mode spaceline-local-helm-mode spaceline-local-helm-mode)
 
 (provide 'spaceline-config)
 
