@@ -118,7 +118,9 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
       (advice-add 'helm-display-mode-line :after 'spaceline-helm)
     (advice-remove 'helm-display-mode-line 'spaceline-helm)))
 
-(define-globalized-minor-mode spaceline-helm-mode spaceline-local-helm-mode spaceline-local-helm-mode)
+(define-globalized-minor-mode spaceline-helm-mode
+  spaceline-local-helm-mode
+  spaceline-local-helm-mode)
 
 (provide 'spaceline-config)
 
