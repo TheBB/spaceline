@@ -44,12 +44,18 @@
 
 (defvar spaceline-left nil
   "A list of modeline segments to render on the left side of the modeline.
-
 See `spaceline--eval-segment' for what constitutes a segment.")
 
 (defvar spaceline-right nil
   "List of modeline segments to render on the right side of the modeline.
+See `spaceline--eval-segment' for what constitutes a segment.")
 
+(defvar spaceline-header-left nil
+  "A list of modeline segments to render on the left side of the header.
+See `spaceline--eval-segment' for what constitutes a segment.")
+
+(defvar spaceline-header-right nil
+  "List of modeline segments to render on the right side of the header.
 See `spaceline--eval-segment' for what constitutes a segment.")
 
 (defvar spaceline-pre-hook nil
@@ -178,6 +184,10 @@ An image is a list whose first element is the symbol `image'."
    ((not (cdr seq)) seq)
    (t (append (list (car seq) separator)
               (spaceline--intersperse separator (cdr seq))))))
+
+(defun spaceline--flip-cons (c)
+  "Flips a cons cell."
+  `(,(cdr c) . ,(car c)))
 
 (defun spaceline--mode-line-nonempty (seg)
   "Check whether a modeline segment SEG (classical Emacs style) is nonempty."
@@ -494,10 +504,19 @@ render the empty space in the middle of the mode-line."
             (-zip (if (eq 'l side) segments (cons dummy segments))
                   (if (eq 'l side) (append (cdr segments) (list dummy)) segments))))))
 
-(defun spaceline--prepare (left right)
-  "Prepare the modeline."
+(defun spaceline--prepare (left right &rest options)
+  "Prepare the modeline or header line.
+
+Available OPTIONS are:
+- `invert-separators': Invert all separator directions."
   (run-hooks 'spaceline-pre-hook)
-  (let* ((active (powerline-selected-window-active))
+  (let* ((spaceline-separator-dir-left (if (memq 'invert-separators options)
+                                    (spaceline--flip-cons spaceline-separator-dir-left)
+                                  spaceline-separator-dir-left))
+         (spaceline-separator-dir-right (if (memq 'invert-separators options)
+                                     (spaceline--flip-cons spaceline-separator-dir-right)
+                                   spaceline-separator-dir-right))
+         (active (powerline-selected-window-active))
          (line-face (spaceline--get-face 'line active))
          (lhs (spaceline--prepare-any left 'l active line-face))
          (rhs (spaceline--prepare-any right 'r active line-face)))

@@ -23,17 +23,28 @@
 
 (require 'spaceline-segments)
 
-(defun spaceline-spacemacs-theme (&rest additional-segments)
-  "Install the modeline used by Spacemacs.
+(defvar spaceline--spacemacs-left
+  '((workspace-number window-number)
+    :fallback evil-state
+    :separator "|"
+    :face highlight-face)
+  "Default leftmost segment for the Spacemacs theme.")
 
-ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
-`buffer-position'."
+(defvar spaceline--emacs-left
+  '((((workspace-number window-number) :separator "|")
+     buffer-modified
+     buffer-size)
+    :face highlight-face)
+  "Default leftmost segment for the Emacs theme.")
+
+(defun spaceline--theme (left additional-segments)
+  "Auxiliary function for installing the two basic themes.
+
+LEFT is the leftmost segment, and ADDITIONAL-SEGMENTS are inserted on the right,
+between `global' and `buffer-position'."
+
   (spaceline-install
-
-   '(((workspace-number window-number)
-      :fallback evil-state
-      :separator "|"
-      :face highlight-face)
+   `(,left
      anzu
      auto-compile
      (buffer-modified buffer-size buffer-id remote-host)
@@ -48,7 +59,6 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
      (org-pomodoro :when active)
      (org-clock :when active)
      nyan-cat)
-
    `((battery :when active)
      selection-info
      ((buffer-encoding-abbrev
@@ -60,42 +70,55 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
      buffer-position
      hud)))
 
-(defun spaceline-emacs-theme (&rest additional-segments)
-  "Install a modeline close to the one used by Spacemacs, but which
-looks better without third-party dependencies.
+(defun spaceline-spacemacs-theme (&rest additional-segments)
+  "Install the modeline used by Spacemacs.
 
 ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 `buffer-position'."
-  (spaceline-install
+  (spaceline--theme spaceline--spacemacs-left additional-segments))
 
-   '(((((workspace-number window-number) :separator "|")
-       buffer-modified
-       buffer-size)
-      :face highlight-face)
-     anzu
-     (buffer-id remote-host)
-     major-mode
-     ((flycheck-error flycheck-warning flycheck-info)
-      :when active)
-     (((minor-modes :separator spaceline-minor-modes-separator)
-       process)
-      :when active)
-     (erc-track :when active)
-     (version-control :when active)
-     (org-pomodoro :when active)
-     (org-clock :when active)
-     nyan-cat)
+(defun spaceline-emacs-theme (&rest additional-segments)
+  "Install the modeline used by Spacemacs.
 
-   `((battery :when active)
-     selection-info
-     ((buffer-encoding-abbrev
-       point-position
-       line-column)
-      :separator " | ")
-     (global :when active)
-     ,@additional-segments
-     buffer-position
-     hud)))
+ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
+`buffer-position'."
+  (spaceline--theme spaceline--emacs-left additional-segments))
+
+;; Header line
+;; ===========
+
+(defcustom spaceline-header-invert-separators t
+  "Set to true if the header should have inverted separators."
+  :group 'spaceline)
+
+(define-minor-mode spaceline-header-mode
+  "Header line."
+  :init-value nil
+  :global t
+  (setq-default
+   header-line-format
+   (when spaceline-header-mode
+     '("%e" (:eval (spaceline--prepare spaceline-header-left spaceline-header-right
+                                (when spaceline-header-invert-separators
+                                  'invert-separators)))))))
+
+(defun spaceline--header-install (left)
+  "Install a header theme. LEFT is the leftmost segment."
+  (setq spaceline-header-left
+        `(,left
+          ((buffer-modified
+            buffer-full-path
+            remote-host)))
+        spaceline-header-right nil)
+  (spaceline-header-mode t))
+
+(defun spaceline-spacemacs-header-theme ()
+  "Install a header theme similar to the Spacemacs theme."
+  (spaceline--header-install spaceline--spacemacs-left))
+
+(defun spaceline-emacs-header-theme ()
+  "Install a header theme similar to the Emacs theme."
+  (spaceline--header-install spaceline--emacs-left))
 
 ;; Helm custom mode
 ;; ================

@@ -85,6 +85,14 @@
   "Name of buffer."
   (powerline-buffer-id))
 
+(spaceline-define-segment buffer-full-path
+  "Full path of buffer."
+  (propertize
+   (if (buffer-file-name)
+       (abbreviate-file-name (buffer-file-name))
+     (powerline-buffer-id))
+   'face 'mode-line-buffer-id))
+
 (spaceline-define-segment remote-host
   "Hostname for remote buffers."
   (concat "@" (file-remote-p default-directory 'host))
