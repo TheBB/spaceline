@@ -184,18 +184,19 @@ Supports both Emacs and Evil cursor conventions."
 (declare-function helm-get-candidate-number 'helm)
 
 (defvar spaceline--helm-buffer-ids
-  '(("*helm M-x*" . "M-x"))
+  '(("*helm*" . "HELM")
+    ("*helm M-x*" . "HELM M-x"))
   "Alist of custom helm buffer names to use.")
 (spaceline-define-segment helm-buffer-id
   "Helm session identifier."
-  (propertize (concat "HELM "
-                      (let ((custom (cdr (assoc (buffer-name) spaceline--helm-buffer-ids)))
-                            (case-fold-search t)
-                            (name (replace-regexp-in-string "-" " " (buffer-name))))
-                        (if custom custom
-                          (string-match "\\*helm:? \\(mode \\)?\\([^\\*]+\\)\\*" name)
-                          (capitalize (match-string 2 name)))))
-              'face 'bold)
+  (propertize
+   (let ((custom (cdr (assoc (buffer-name) spaceline--helm-buffer-ids)))
+         (case-fold-search t)
+         (name (replace-regexp-in-string "-" " " (buffer-name))))
+     (if custom custom
+       (string-match "\\*helm:? \\(mode \\)?\\([^\\*]+\\)\\*" name)
+       (concat "HELM " (capitalize (match-string 2 name)))))
+   'face 'bold)
   :face highlight-face
   :when (bound-and-true-p helm-alive-p))
 
