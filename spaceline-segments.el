@@ -185,7 +185,8 @@ Supports both Emacs and Evil cursor conventions."
 
 (defvar spaceline--helm-buffer-ids
   '(("*helm*" . "HELM")
-    ("*helm M-x*" . "HELM M-x"))
+    ("*helm M-x*" . "HELM M-x")
+    ("*swiper*" . "SWIPER"))
   "Alist of custom helm buffer names to use.")
 (spaceline-define-segment helm-buffer-id
   "Helm session identifier."
