@@ -403,7 +403,7 @@ For example, this is the Spacemacs mode-line.
         :separator " | ")
        (global :when active)
        buffer-position
-       hud)))
+       hud))
 
 Spaceline will then collect data from each segment and render them in a
 beautiful manner, with powerline separators inserted between each top-level
