@@ -333,7 +333,7 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
          (str (when num (int-to-string num))))
     (if spaceline-window-numbers-unicode
         (spaceline--unicode-number str)
-      str))
+      (propertize str 'face 'bold)))
   :when (bound-and-true-p window-numbering-mode))
 
 (defvar spaceline-workspace-numbers-unicode nil
@@ -349,7 +349,7 @@ enabled."
                 (when num (int-to-string num)))))
     (if spaceline-workspace-numbers-unicode
         (spaceline--unicode-number str)
-      str))
+      (propertize str 'face 'bold)))
   :when (bound-and-true-p eyebrowse-mode))
 
 (spaceline-define-segment persp-name
@@ -357,7 +357,7 @@ enabled."
   (let ((name (persp-curr-name)))
     (if (file-directory-p name)
         (file-name-nondirectory (directory-file-name name))
-      name))
+      (propertize name 'face 'bold)))
   :when (and (bound-and-true-p persp-mode)
              (persp-curr-name)))
 
