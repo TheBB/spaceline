@@ -186,7 +186,8 @@ Supports both Emacs and Evil cursor conventions."
 (defvar spaceline--helm-buffer-ids
   '(("*helm*" . "HELM")
     ("*helm M-x*" . "HELM M-x")
-    ("*swiper*" . "SWIPER"))
+    ("*swiper*" . "SWIPER")
+    ("*Projectile Perspectives*" . "HELM Projectile Perspectives"))
   "Alist of custom helm buffer names to use.")
 (spaceline-define-segment helm-buffer-id
   "Helm session identifier."
@@ -349,6 +350,15 @@ enabled."
         (spaceline--unicode-number str)
       str))
   :when (bound-and-true-p eyebrowse-mode))
+
+(spaceline-define-segment persp-name
+  "The current perspective name."
+  (let ((name (persp-curr-name)))
+    (if (file-directory-p name)
+        (file-name-nondirectory (directory-file-name name))
+      name))
+  :when (and (bound-and-true-p persp-mode)
+             (persp-curr-name)))
 
 (defface spaceline-flycheck-error
   '((t (:foreground "#FC5C94" :distant-foreground "#A20C41")))
