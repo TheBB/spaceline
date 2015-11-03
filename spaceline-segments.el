@@ -251,7 +251,8 @@ Supports both Emacs and Evil cursor conventions."
 (declare-function fancy-battery-powerline-face 'fancy-battery)
 (declare-function mode-line-auto-compile-control 'auto-compile)
 (declare-function nyan-create 'nyan-mode)
-(declare-function persp-curr-name 'persp-mode)
+(declare-function safe-persp-name 'persp-mode)
+(declare-function get-frame-persp 'persp-mode)
 (declare-function window-numbering-get-number 'window-numbering)
 
 (spaceline-define-segment anzu
