@@ -354,13 +354,15 @@ enabled."
 
 (spaceline-define-segment persp-name
   "The current perspective name."
-  (let ((name (persp-curr-name)))
+  (let ((name (safe-persp-name (get-frame-persp))))
     (if (file-directory-p name)
         (file-name-nondirectory (directory-file-name name))
       (propertize name 'face 'bold)))
   :when (and (bound-and-true-p persp-mode)
-             (fboundp 'persp-curr-name)
-             (persp-curr-name)))
+             ;; There are multiple implementations of
+             ;; persp-mode with different APIs
+             (fboundp 'safe-persp-name)
+             (fboundp 'get-frame-persp)))
 
 (defface spaceline-flycheck-error
   '((t (:foreground "#FC5C94" :distant-foreground "#A20C41")))
