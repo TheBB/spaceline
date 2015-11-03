@@ -359,6 +359,7 @@ enabled."
         (file-name-nondirectory (directory-file-name name))
       (propertize name 'face 'bold)))
   :when (and (bound-and-true-p persp-mode)
+             (fboundp 'persp-curr-name)
              (persp-curr-name)))
 
 (defface spaceline-flycheck-error
