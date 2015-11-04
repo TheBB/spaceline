@@ -121,6 +121,39 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
       (advice-add 'helm-display-mode-line :after 'spaceline-helm)
     (advice-remove 'helm-display-mode-line 'spaceline-helm)))
 
+;; Info custom mode
+;; ================
+
+(defun spaceline-info ()
+  "Set up a custom info modeline."
+  (let* ((nodes (s-split " > " mode-line-format))
+         (topic (prog2
+                    (string-match "(\\(.+\\))\\(.+\\)" (car nodes))
+                    (propertize (concat "INFO "
+                                        (match-string 1 (car nodes)))
+                                'face 'bold)
+                  (setcar nodes (match-string 2 (car nodes))))))
+    (setq-local mode-line-format
+                `("%e" (:eval (spaceline--prepare
+                               '((,topic :face highlight-face)
+                                 ,@nodes)
+                               nil))))))
+
+(define-minor-mode spaceline-info-mode
+  "Customize the mode-line in info.
+This minor mode requires info+."
+  :init-value nil
+  :global t
+  (if spaceline-info-mode
+        (condition-case nil
+            (progn
+              (require 'info+)
+              (advice-add 'Info-set-mode-line :after 'spaceline-info))
+          (error
+           (message "info+ is not available: spaceline-info-mode not enabled")
+           (setq spaceline-info-mode nil)))
+    (advice-remove 'Info-set-mode-line 'spaceline-info)))
+
 (provide 'spaceline-config)
 
 ;;; spaceline-config.el ends here
