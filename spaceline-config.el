@@ -30,7 +30,8 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 `buffer-position'."
   (spaceline-install
 
-   '((((persp-name :fallback workspace-number)
+   '(((persp-name
+       workspace-number
        window-number)
       :fallback evil-state
       :separator "|"
