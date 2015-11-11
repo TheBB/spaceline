@@ -61,7 +61,7 @@
                                  [mode-line down-mouse-1]
                                  (powerline-mouse 'minor 'menu lighter))
                                (define-key map
-                                 [mode-line down-mouse-2]
+                                 [mode-line mouse-2]
                                  (powerline-mouse 'minor 'help lighter))
                                (define-key map
                                  [mode-line down-mouse-3]
