@@ -1,0 +1,31 @@
+(defun spaceline--type (obj)
+  (if (listp obj)
+      (if (and (cdr obj)
+               (keywordp (cadr obj)))
+          'propertized
+        'list)
+    'single))
+
+(defun spaceline--index (obj index)
+  (if (not index)
+      obj
+    (let ((type (spaceline--type obj)))
+      (cond
+       ((eq 'propertized type)
+        (spaceline--index (car obj) index))
+       ((eq 'list type)
+        (spaceline--index (nth (car index) obj) (cdr index)))
+       (t (error "Segment is not a list: %S" obj))))))
+
+(defun spaceline--index-cons (obj index)
+  (let* ((reversed (reverse index))
+         (last (car reversed))
+         (parent-index (nreverse (cdr reversed)))
+         (parent (spaceline--index obj parent-index))
+         (type (spaceline--type parent)))
+    (while (eq 'propertized type)
+      (setq parent (car parent))
+      (setq type (spaceline--type parent)))
+    (if (eq 'list type)
+        (nthcdr last parent)
+      (error "Segment is not a list: %S" parent))))
