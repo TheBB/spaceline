@@ -408,7 +408,7 @@ enabled."
   :when (bound-and-true-p evil-local-mode))
 
 (defface spaceline-python-venv
-  '((t (:inherit font-lock-builtin-face)))
+  '((t (:foreground "plum1" :distant-foreground "DarkMagenta")))
   "Face for highlighting the python venv."
   :group 'spaceline)
 
