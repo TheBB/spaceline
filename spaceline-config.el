@@ -23,19 +23,11 @@
 
 (require 'spaceline-segments)
 
-(defun spaceline-spacemacs-theme (&rest additional-segments)
-  "Install the modeline used by Spacemacs.
-
-ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
-`buffer-position'."
+(defun spaceline--theme (left &rest additional-segments)
+  "Convenience function for the spacemacs and emacs themes."
   (spaceline-install
 
-   '(((persp-name
-       workspace-number
-       window-number)
-      :fallback evil-state
-      :separator "|"
-      :face highlight-face)
+   `(,left
      anzu
      auto-compile
      (buffer-modified buffer-size buffer-id remote-host)
@@ -63,44 +55,33 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
      buffer-position
      hud)))
 
+(defun spaceline-spacemacs-theme (&rest additional-segments)
+  "Install the modeline used by Spacemacs.
+
+ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
+`buffer-position'."
+  (apply 'spaceline--theme
+         '((persp-name
+            workspace-number
+            window-number)
+           :fallback evil-state
+           :separator "|"
+           :face highlight-face)
+         additional-segments))
+
 (defun spaceline-emacs-theme (&rest additional-segments)
   "Install a modeline close to the one used by Spacemacs, but which
 looks better without third-party dependencies.
 
 ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 `buffer-position'."
-  (spaceline-install
-
-   '((((((persp-name :fallback workspace-number)
-         window-number) :separator "|")
-       buffer-modified
-       buffer-size)
-      :face highlight-face)
-     anzu
-     (buffer-id remote-host)
-     major-mode
-     ((flycheck-error flycheck-warning flycheck-info)
-      :when active)
-     (((minor-modes :separator spaceline-minor-modes-separator)
-       process)
-      :when active)
-     (erc-track :when active)
-     (version-control :when active)
-     (org-pomodoro :when active)
-     (org-clock :when active)
-     nyan-cat)
-
-   `((battery :when active)
-     (python-pyvenv :fallback python-pyenv)
-     selection-info
-     ((buffer-encoding-abbrev
-       point-position
-       line-column)
-      :separator " | ")
-     (global :when active)
-     ,@additional-segments
-     buffer-position
-     hud)))
+  (apply 'spaceline--theme
+         '(((((persp-name :fallback workspace-number)
+              window-number) :separator "|")
+            buffer-modified
+            buffer-size)
+           :face highlight-face)
+         additional-segments))
 
 ;; Helm custom mode
 ;; ================
