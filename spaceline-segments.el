@@ -413,7 +413,7 @@ enabled."
   :group 'spaceline)
 
 (spaceline-define-segment python-pyvenv
-  "The current python venv.  Works woth `pyvenv'."
+  "The current python venv.  Works with `pyvenv'."
   (propertize pyvenv-virtual-env-name
               'face 'spaceline-python-venv
               'help-echo (format "Virtual environment (via pyvenv): %s"
@@ -423,7 +423,7 @@ enabled."
              (bound-and-true-p pyvenv-virtual-env-name)))
 
 (spaceline-define-segment python-pyenv
-  "The current python venv.  Works woth `pyenv'."
+  "The current python venv.  Works with `pyenv'."
   (let ((name (pyenv-mode-version)))
     (propertize name
                 'face 'spaceline-python-venv
