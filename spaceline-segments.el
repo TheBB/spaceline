@@ -243,6 +243,8 @@ Supports both Emacs and Evil cursor conventions."
 
 (defvar erc-modified-channels-alist)
 (defvar org-pomodoro-mode-line)
+(defvar pyvenv-virtual-env)
+(defvar pyvenv-virtual-env-name)
 
 (declare-function anzu--update-mode-line 'anzu)
 (declare-function evil-state-property 'evil-common)
@@ -254,6 +256,8 @@ Supports both Emacs and Evil cursor conventions."
 (declare-function safe-persp-name 'persp-mode)
 (declare-function get-frame-persp 'persp-mode)
 (declare-function window-numbering-get-number 'window-numbering)
+(declare-function pyenv-mode-version 'pyenv-mode)
+(declare-function pyenv-mode-full-path 'pyenv-mode)
 
 (spaceline-define-segment anzu
   "Show the current match number and the total number of matches.  Requires anzu
@@ -402,6 +406,33 @@ enabled."
   "The current evil state.  Requires `evil-mode' to be enabled."
   (s-trim (evil-state-property evil-state :tag t))
   :when (bound-and-true-p evil-local-mode))
+
+(defface spaceline-python-venv
+  '((t (:inherit font-lock-builtin-face)))
+  "Face for highlighting the python venv."
+  :group 'spaceline)
+
+(spaceline-define-segment python-pyvenv
+  "The current python venv.  Works woth `pyvenv'."
+  (propertize pyvenv-virtual-env-name
+              'face 'spaceline-python-venv
+              'help-echo (format "Virtual environment (via pyvenv): %s"
+                                 pyvenv-virtual-env))
+  :when (and active
+             (eq 'python-mode major-mode)
+             (bound-and-true-p pyvenv-virtual-env-name)))
+
+(spaceline-define-segment python-pyenv
+  "The current python venv.  Works woth `pyenv'."
+  (let ((name (pyenv-mode-version)))
+    (propertize name
+                'face 'spaceline-python-venv
+                'help-echo (format "Virtual environment (via pyenv): %s"
+                                   (pyenv-mode-full-path name))))
+  :when (and active
+             (eq 'python-mode major-mode)
+             (fboundp 'pyenv-mode-version)
+             (pyenv-mode-version)))
 
 (provide 'spaceline-segments)
 

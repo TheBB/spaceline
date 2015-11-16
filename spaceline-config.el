@@ -52,6 +52,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
      nyan-cat)
 
    `((battery :when active)
+     (python-pyvenv :fallback python-pyenv)
      selection-info
      ((buffer-encoding-abbrev
        point-position
@@ -90,6 +91,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
      nyan-cat)
 
    `((battery :when active)
+     (python-pyvenv :fallback python-pyenv)
      selection-info
      ((buffer-encoding-abbrev
        point-position
