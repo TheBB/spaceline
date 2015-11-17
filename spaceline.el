@@ -61,17 +61,20 @@ See `spaceline--eval-segment' for what constitutes a segment.")
 This list is populated by `spacemacs-install' by investigating the
 `:global-override' properties of all the included segments.")
 
-(defvar spaceline-separator-dir-left
-  powerline-default-separator-dir
+(defvar spaceline-separator-dir-left nil
   "The separator directions to use for the left side.
+Cons of the form (DIR . DIR) where DIR is one of left and right, or nil, in
+which case the best separators are chosen depending on the separator style.")
 
-Cons of the form (DIR . DIR) where DIR is one of left and right.")
+(defvar spaceline-separator-dir-right nil
+  "The separator directions to use for the right side.
+Cons of the form (DIR . DIR) where DIR is one of left and right, or nil, in
+which case the best separators are chosen depending on the separator style.")
 
-(defvar spaceline-separator-dir-right
-  powerline-default-separator-dir
-  "The separator directions to use for the left side.
-
-Cons of the form (DIR . DIR) where DIR is one of left and right.")
+(defvar spaceline-directed-separators '(arrow arrow-fade brace butt curve roundstub utf-8)
+  "List of separators for which spaceline will choose different separator
+directions on the left and right side, if not explicitly set in
+`spaceline-separator-dir-left' or `spaceline-separator-dir-right'.")
 
 (defvar spaceline-highlight-face-func 'spaceline-highlight-face-default
   "The function that decides the highlight face.
@@ -435,6 +438,20 @@ The return value is a `segment' struct.  Its OBJECTS list may be nil."
        ;; No output (objects = nil)
        (t result)))))
 
+(defun spaceline--get-separator-dirs (side)
+  "Gets the preconfigured separator directions for SIDE, or the \"best\" ones,
+if not specified."
+  (let ((cfg (if (eq 'l side)
+                 spaceline-separator-dir-left
+               spaceline-separator-dir-right)))
+    (or (if (eq 'l side)
+            spaceline-separator-dir-left
+          spaceline-separator-dir-right)
+        (cond
+         ((memq powerline-default-separator spaceline-directed-separators)
+          (if (eq 'l side) '(left . left) '(right . right)))
+         (t '(left . right))))))
+
 (defun spaceline--prepare-any (spec side active line-face)
   "Prepare one side of the modeline.
 
@@ -461,9 +478,7 @@ render the empty space in the middle of the mode-line."
 
          (dummy (make-spaceline--seg :face-left line-face :face-right line-face))
          (separator-style (format "powerline-%S" powerline-default-separator))
-         (dirs (if (eq 'l side)
-                   spaceline-separator-dir-left
-                 spaceline-separator-dir-right))
+         (dirs (spaceline--get-separator-dirs side))
          (default-separator (intern (format "%s-%S" separator-style (car dirs))))
          (other-separator (intern (format "%s-%S" separator-style (cdr dirs)))))
 
