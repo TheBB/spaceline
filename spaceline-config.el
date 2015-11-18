@@ -23,14 +23,14 @@
 
 (require 'spaceline-segments)
 
-(defun spaceline--theme (left &rest additional-segments)
+(defun spaceline--theme (left second-left &rest additional-segments)
   "Convenience function for the spacemacs and emacs themes."
   (spaceline-install
 
    `(,left
      anzu
      auto-compile
-     (buffer-modified buffer-size buffer-id remote-host)
+     ,second-left
      major-mode
      ((flycheck-error flycheck-warning flycheck-info)
       :when active)
@@ -67,6 +67,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
            :fallback evil-state
            :separator "|"
            :face highlight-face)
+         '(buffer-modified buffer-size buffer-id remote-host)
          additional-segments))
 
 (defun spaceline-emacs-theme (&rest additional-segments)
@@ -81,6 +82,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
             buffer-modified
             buffer-size)
            :face highlight-face)
+         '(buffer-id remote-host)
          additional-segments))
 
 ;; Helm custom mode
