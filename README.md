@@ -53,7 +53,7 @@ load based on what you want to do.
 the modeline. It defines no segments by itself except the `global` segment. (See
 below.)
 - `spaceline-segments.el`: Defines all the segments used by the default
-Spacemacs theme, but doesn't do anything with them.
+Spacemacs theme, but doesn’t do anything with them.
 - `spaceline-config.el`: Defines the default Spacemacs theme.
 
 ## The Spacemacs mode-line theme
@@ -106,10 +106,10 @@ There are a number of reasons why Spaceline might look different on your setup
 compared to Spacemacs proper. Some of the more important ones are addressed
 here.
 
-- You're missing an optional dependency. Spacemacs includes packages that
+- You’re missing an optional dependency. Spacemacs includes packages that
 display information in the mode-line. The leftmost segment is invisible if
 `eyebrowse-mode`, `persp-mode`, `window-numbering-mode` and `evil` are all not
-present. If you don't wish to use these packages, there is a theme provided
+present. If you don’t wish to use these packages, there is a theme provided
 called `spaceline-emacs-theme` which is supposed to look good regardless.
 
 - Consider setting or increasing the value of `powerline-height` to give your
@@ -119,7 +119,7 @@ mode-line some room to breathe.
 should try out various settings of `powerline-default-separator` to find the one
 that works for you.
 
-- If you're using `eyebrowse-mode` or `window-numbering-mode`, consider setting
+- If you’re using `eyebrowse-mode` or `window-numbering-mode`, consider setting
 `spaceline-workspace-numbers-unicode` and `spaceline-window-numbers-unicode` to
 `t` to get the nice-looking unicode numbers seen in the screenshot.
 
@@ -249,7 +249,7 @@ set to override this, for example:
 
 ### Hooks
 
-The hook `spaceline-pre-hook` is executed before rendering the modeline. Don't
+The hook `spaceline-pre-hook` is executed before rendering the modeline. Don’t
 put any performance-intensive functions here!
 
 ### Unicode numbers
@@ -293,7 +293,7 @@ These are all valid segments, provided `my-segment` has been defined:
     (my-segment 89)
 
 Segments may also have properties associated with them. Spaceline supports a
-variety of properties. They can be applied as follows, for a 'singleton'
+variety of properties. They can be applied as follows, for a ‘singleton’
 segment:
 
     (my-segment :prop-a value-a :prop-b value-b ...)
@@ -382,11 +382,11 @@ following bindings are available for convenience.
 - `active`: Whether the current window is active or not. Many segments use
 `:when active` to only show in the current window.
 - `default-face`: The face with which the current segment *should* be rendered.
-If you don't define a `:face`, this is what you get. For best results, stick to
+If you don’t define a `:face`, this is what you get. For best results, stick to
 the default face as often as you can.
 - `other-face`: The alternating default face. Spaceline switches `default-face`
 and `other-face` for each top-level segment.
-- `highlight-face`: The face used to highlight 'important' parts, whatever that
+- `highlight-face`: The face used to highlight ‘important’ parts, whatever that
 may be. This may be customized.
 - `line-face`: The face with which the empty part in the middle of the mode-line
 will be rendered.
