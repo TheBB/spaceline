@@ -441,16 +441,13 @@ The return value is a `segment' struct.  Its OBJECTS list may be nil."
 (defun spaceline--get-separator-dirs (side)
   "Gets the preconfigured separator directions for SIDE, or the \"best\" ones,
 if not specified."
-  (let ((cfg (if (eq 'l side)
-                 spaceline-separator-dir-left
-               spaceline-separator-dir-right)))
-    (or (if (eq 'l side)
-            spaceline-separator-dir-left
-          spaceline-separator-dir-right)
-        (cond
-         ((memq powerline-default-separator spaceline-directed-separators)
-          (if (eq 'l side) '(left . left) '(right . right)))
-         (t '(left . right))))))
+  (or (if (eq 'l side)
+          spaceline-separator-dir-left
+        spaceline-separator-dir-right)
+      (cond
+       ((memq powerline-default-separator spaceline-directed-separators)
+        (if (eq 'l side) '(left . left) '(right . right)))
+       (t '(left . right)))))
 
 (defun spaceline--prepare-any (spec side active line-face)
   "Prepare one side of the modeline.
