@@ -75,8 +75,12 @@ third-party packages, which you may consider installing for added benefit:
 
 - [`eyebrowse`](https://github.com/wasamasa/eyebrowse): a simple workspace-like
 package.
+- [`persp-mode`](https://github.com/Bad-ptr/persp-mode.el): a more complex
+workspace-like package.
 - [`window-numbering`](https://github.com/nschum/window-numbering.el): gives
 each visible window a number.
+- [`auto-compile`](https://github.com/tarsius/auto-compile): automatically
+compile `.el` files.
 - [`anzu`](https://github.com/syohex/emacs-anzu): shows the current match and
 the total number of matches while searching.
 - [`flycheck`](https://github.com/flycheck/flycheck/): shows the number of
@@ -86,6 +90,9 @@ messages if you have `erc-track` turned on.
 - [`org`](http://orgmode.org/): shows the currently clocking task.
 - [`org-pomodoro`](https://github.com/lolownia/org-pomodoro): kind of like
 clocks in org, only with a tomato.
+- [`pyenv-mode`](https://github.com/proofit404/pyenv-mode) and
+[`pyvenv`](https://github.com/jorgenschaefer/pyvenv): support for Python
+virtual environments
 - [`nyan-mode`](https://github.com/TeMPOraL/nyan-mode): shows the current
 position in the buffer with kittens and rainbows.
 - [`fancy-battery`](https://github.com/lunaryorn/fancy-battery.el): shows
@@ -101,9 +108,9 @@ here.
 
 - You're missing an optional dependency. Spacemacs includes packages that
 display information in the mode-line. The leftmost segment is invisible if
-`eyebrowse-mode`, `window-numbering-mode` and `evil` are all not present. If you
-don't wish to use these packages, there is a theme provided called
-`spaceline-emacs-theme` which is supposed to look good regardless.
+`eyebrowse-mode`, `persp-mode`, `window-numbering-mode` and `evil` are all not
+present. If you don't wish to use these packages, there is a theme provided
+called `spaceline-emacs-theme` which is supposed to look good regardless.
 
 - Consider setting or increasing the value of `powerline-height` to give your
 mode-line some room to breathe.
@@ -138,10 +145,12 @@ You can bind these to whichever keys you like.
 
 The full list of segments available, from left to right:
 
+- `persp-name`: integrates with `persp-mode`.
 - `workspace-number`: integrates with `eyebrowse`.
 - `window-number`: integrates with `window-numbering`.
 - `evil-state`: shows the current evil state, integrates with `evil`.
 - `anzu`: integrates with `anzu`.
+- `auto-compile`: integrats with `auto-compile`.
 - `buffer-modified`: the standard marker denoting whether the buffer is modified
 or not.
 - `buffer-size`: the size of the buffer.
@@ -160,10 +169,14 @@ can be tweaked with [`diminish`](https://github.com/emacsmirror/diminish).
 - `org-clock`: the current org clock, integrates with `org`.
 - `nyan-cat`: integrates with `nyan-mode`.
 - `battery`: integrates with `fancy-battery-mode`.
+- `python-pyvenv`: integrates with `pyvenv`.
+- `python-pyenv`: integrates with `pyenv`.
 - `selection-info`: information about the currently active selection, if any.
 - `buffer-encoding-abbrev`: the line ending convention used in the current
 buffer (`unix`, `dos` or `mac`).
 - `point-position`: the value of point, this is disabled by default.
+- `line`: current line.
+- `column`: current line.
 - `line-column`: current line and column.
 - `global`: meta-segment used by third-party packages.
 - `buffer-position`: shows the current position in the buffer as a percentage.
@@ -207,6 +220,17 @@ And in inactive windows:
 - `powerline-inactive2`
 - `mode-line-inactive`
 
+To override this, you can set the variable `spaceline-face-func`. This should be
+a function that accepts two arguments and returns a face symbol. The arguments
+are:
+
+- `face`: either of `face1`, `face2`, `line` and `highlight`
+- `active`: a boolean determining whether the window is active or not
+
+If this function is not set, Spaceline delegates the highlight face to
+`spaceline-highlight-face-func`, and picks the others according to the above
+scheme.
+
 ### Powerline separators
 
 Set `powerline-default-separator` to configure this. The docstring for that
@@ -216,13 +240,12 @@ Each separator comes in two directions: left and right. The variables
 `spaceline-separator-dir-left` and `spaceline-separator-dir-right` specify which
 directions to alternate between on the left and right side, respectively.
 
-For example, to use only one direction on each side (looks good with the `arrow`
-separator style), you can use
+By default these variables are set to `nil`, which means Spaceline will choose
+the directions that look best for your chosen separator style. However, you can
+set to override this, for example:
 
     (setq spaceline-separator-dir-left '(left . left))
     (setq spaceline-separator-dir-right '(right . right))
-
-By default, the directions alternate between each segment.
 
 ### Hooks
 
@@ -377,11 +400,12 @@ For example, this is the Spacemacs mode-line.
 
     (spaceline-install
 
-     '(((workspace-number window-number)
+     '(((persp-name workspace-number window-number)
        :fallback evil-state
        :separator "|"
        :face highlight-face)
       anzu
+      auto-compile
       (buffer-modified buffer-size buffer-id remote-host)
       major-mode
       ((flycheck-error flycheck-warning flycheck-info)
@@ -395,7 +419,7 @@ For example, this is the Spacemacs mode-line.
       (org-clock :when active)
       nyan-cat)
 
-     `((battery :when active)
+     '((battery :when active)
        selection-info
        ((buffer-encoding-abbrev
          point-position
