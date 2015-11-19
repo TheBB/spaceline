@@ -70,8 +70,17 @@ There are two themes currently:
 - `spaceline-emacs-theme`: A similar theme designed to look good with no other
 packages installed.
 
-It should work out of the box. This theme integrates with the following
-third-party packages, which you may consider installing for added benefit:
+In addition, Spaceline supports custom themes for Info and Helm. These are
+enabled through global minor modes:
+
+- `spaceline-helm-mode`
+- `spaceline-info-mode` (requires the
+[`info+`](http://www.emacswiki.org/emacs/InfoPlus) package)
+
+All themes *should* work out of the box (with the `info+` exception).
+
+The main Spacemacs theme integrates with the following third-party packages,
+which you may consider installing for added benefit:
 
 - [`eyebrowse`](https://github.com/wasamasa/eyebrowse): a simple workspace-like
 package.
