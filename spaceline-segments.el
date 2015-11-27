@@ -187,7 +187,8 @@ Supports both Emacs and Evil cursor conventions."
   '(("*helm*" . "HELM")
     ("*helm M-x*" . "HELM M-x")
     ("*swiper*" . "SWIPER")
-    ("*Projectile Perspectives*" . "HELM Projectile Perspectives"))
+    ("*Projectile Perspectives*" . "HELM Projectile Perspectives")
+    ("*Projectile Layouts*" . "HELM Projectile Layouts"))
   "Alist of custom helm buffer names to use.")
 (spaceline-define-segment helm-buffer-id
   "Helm session identifier."
