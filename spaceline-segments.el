@@ -361,9 +361,11 @@ enabled."
 (spaceline-define-segment persp-name
   "The current perspective name."
   (let ((name (safe-persp-name (get-frame-persp))))
-    (if (file-directory-p name)
-        (file-name-nondirectory (directory-file-name name))
-      (propertize name 'face 'bold)))
+    (propertize
+     (if (file-directory-p name)
+         (file-name-nondirectory (directory-file-name name))
+       name)
+     'face 'bold))
   :when (and (bound-and-true-p persp-mode)
              ;; There are multiple implementations of
              ;; persp-mode with different APIs
