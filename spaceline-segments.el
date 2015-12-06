@@ -428,8 +428,7 @@ enabled."
   (let ((name (pyenv-mode-version)))
     (propertize name
                 'face 'spaceline-python-venv
-                'help-echo (format "Virtual environment (via pyenv): %s"
-                                   (pyenv-mode-full-path name))))
+                'help-echo "Virtual environment (via pyenv)"))
   :when (and active
              (eq 'python-mode major-mode)
              (fboundp 'pyenv-mode-version)
