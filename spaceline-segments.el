@@ -248,10 +248,9 @@ Supports both Emacs and Evil cursor conventions."
 (defvar pyvenv-virtual-env-name)
 
 (defcustom spaceline-projectile-segment-fence
-  '(right " ⟩")
-  "Text to show on either side of the projectile root."
-  :options '(left right)
-  :type '(plist :value-type string)
+  '("" " ⟩")
+  "Text to display on either side of the current projectile root."
+  :type '(list (string :tag " Left") (string :tag "Right"))
   :group 'projectile)
 
 (declare-function projectile-project-p 'projectile)
@@ -271,9 +270,9 @@ Supports both Emacs and Evil cursor conventions."
 
 (spaceline-define-segment projectile-root
   "Show the current projectile root."
-  (concat (plist-get spaceline-projectile-segment-fence 'left)
+  (concat (car spaceline-projectile-segment-fence)
           (projectile-project-name)
-          (plist-get spaceline-projectile-segment-fence 'right))
+          (cadr spaceline-projectile-segment-fence))
   :when (and (fboundp 'projectile-project-p)
              (stringp (projectile-project-p))
              (not (string-equal (projectile-project-name) (buffer-name))))
