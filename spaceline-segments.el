@@ -247,6 +247,15 @@ Supports both Emacs and Evil cursor conventions."
 (defvar pyvenv-virtual-env)
 (defvar pyvenv-virtual-env-name)
 
+(defcustom spaceline-projectile-segment-fence
+  '(right " ⟩")
+  "Text to show on either side of the projectile root."
+  :options '(left right)
+  :type '(plist :value-type string)
+  :group 'projectile)
+
+(declare-function projectile-project-p 'projectile)
+(declare-function projectile-project-name 'projectile)
 (declare-function anzu--update-mode-line 'anzu)
 (declare-function evil-state-property 'evil-common)
 (declare-function eyebrowse--get 'eyebrowse)
@@ -259,6 +268,16 @@ Supports both Emacs and Evil cursor conventions."
 (declare-function window-numbering-get-number 'window-numbering)
 (declare-function pyenv-mode-version 'pyenv-mode)
 (declare-function pyenv-mode-full-path 'pyenv-mode)
+
+(spaceline-define-segment projectile-root
+  "Show the current projectile root."
+  (concat (plist-get spaceline-projectile-segment-fence 'left)
+          (projectile-project-name)
+          (plist-get spaceline-projectile-segment-fence 'right))
+  :when (and (fboundp 'projectile-project-p)
+             (stringp (projectile-project-p))
+             (not (string-equal (projectile-project-name) (buffer-name))))
+  :global-override projectile-mode-line)
 
 (spaceline-define-segment anzu
   "Show the current match number and the total number of matches.  Requires anzu
