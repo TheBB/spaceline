@@ -286,6 +286,14 @@ a function that returns a name to use.")
 (defvar which-func-current)
 (defvar which-func-keymap)
 
+(defcustom spaceline-projectile-segment-fence
+  '("" " ⟩")
+  "Text to display on either side of the current projectile root."
+  :type '(list (string :tag " Left") (string :tag "Right"))
+  :group 'projectile)
+
+(declare-function projectile-project-p 'projectile)
+(declare-function projectile-project-name 'projectile)
 (declare-function anzu--update-mode-line 'anzu)
 (declare-function evil-state-property 'evil-common)
 (declare-function eyebrowse--get 'eyebrowse)
@@ -296,6 +304,16 @@ a function that returns a name to use.")
 (declare-function window-numbering-get-number 'window-numbering)
 (declare-function pyenv-mode-version 'pyenv-mode)
 (declare-function pyenv-mode-full-path 'pyenv-mode)
+
+(spaceline-define-segment projectile-root
+  "Show the current projectile root."
+  (concat (car spaceline-projectile-segment-fence)
+          (projectile-project-name)
+          (cadr spaceline-projectile-segment-fence))
+  :when (and (fboundp 'projectile-project-p)
+             (stringp (projectile-project-p))
+             (not (string-equal (projectile-project-name) (buffer-name))))
+  :global-override projectile-mode-line)
 
 (spaceline-define-segment anzu
   "Show the current match number and the total number of matches.  Requires anzu
