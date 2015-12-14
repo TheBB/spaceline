@@ -243,6 +243,8 @@ Supports both Emacs and Evil cursor conventions."
 ;; ========================================
 
 (defvar erc-modified-channels-alist)
+(defvar fancy-battery-last-status)
+(defvar fancy-battery-show-percentage)
 (defvar org-pomodoro-mode-line)
 (defvar pyvenv-virtual-env)
 (defvar pyvenv-virtual-env-name)
@@ -250,8 +252,6 @@ Supports both Emacs and Evil cursor conventions."
 (declare-function anzu--update-mode-line 'anzu)
 (declare-function evil-state-property 'evil-common)
 (declare-function eyebrowse--get 'eyebrowse)
-(declare-function fancy-battery-default-mode-line 'fancy-battery)
-(declare-function fancy-battery-powerline-face 'fancy-battery)
 (declare-function mode-line-auto-compile-control 'auto-compile)
 (declare-function nyan-create 'nyan-mode)
 (declare-function safe-persp-name 'persp-mode)
@@ -278,12 +278,49 @@ enabled."
           erc-modified-channels-alist)
   :when (bound-and-true-p erc-track-mode))
 
+(defun spaceline--fancy-battery-percentage ()
+  "Return the load percentage or an empty string."
+  (let ((p (cdr (assq ?p fancy-battery-last-status))))
+    (if (and fancy-battery-show-percentage
+             p (not (string= "N/A" p))) (concat " " p "%%") "")))
+
+(defun spaceline--fancy-battery-time ()
+  "Return the remaining time complete load or discharge."
+  (let ((time (cdr (assq ?t fancy-battery-last-status))))
+    (cond
+     ((string= "0:00" time) "")
+     ((string= "N/A" time) "")
+     ((string-empty-p time) "")
+     (t (concat " (" time ")")))))
+
+(defun spaceline--fancy-battery-mode-line ()
+  "Assemble a mode line string for Fancy Battery Mode."
+  (when fancy-battery-last-status
+    (let* ((type (cdr (assq ?L fancy-battery-last-status)))
+           (percentage (spaceline--fancy-battery-percentage))
+           (time (spaceline--fancy-battery-time)))
+      (cond
+       ((string= "on-line" type) " No Battery")
+       ((string-empty-p type) " No Battery")
+       (t (concat (if (string= "AC" type) " AC" "") percentage time))))))
+
+(defun spaceline--fancy-battery-face ()
+  "Return a face appropriate for powerline"
+  (let ((type (cdr (assq ?L fancy-battery-last-status))))
+    (if (and type (string= "AC" type))
+        'fancy-battery-charging
+      (pcase (cdr (assq ?b fancy-battery-last-status))
+        ("!"  'fancy-battery-critical)
+        ("+"  'fancy-battery-charging)
+        ("-"  'fancy-battery-discharging)
+        (_ 'fancy-battery-discharging)))))
+
 (spaceline-define-segment battery
   "Show battery information.  Requires `fancy-battery-mode' to be enabled.
 
 This segment overrides the modeline functionality of `fancy-battery-mode'."
-  (powerline-raw (s-trim (fancy-battery-default-mode-line))
-                 (fancy-battery-powerline-face))
+  (powerline-raw (s-trim (spaceline--fancy-battery-mode-line))
+                 (spaceline--fancy-battery-face))
   :when (bound-and-true-p fancy-battery-mode)
   :global-override fancy-battery-mode-line)
 
