@@ -395,6 +395,9 @@ enabled."
       (propertize str 'face 'bold)))
   :when (bound-and-true-p eyebrowse-mode))
 
+(defvar spaceline-display-default-perspective nil
+  "If non-nil, the default perspective name is displayed in the mode-line.")
+
 (spaceline-define-segment persp-name
   "The current perspective name."
   (let ((name (safe-persp-name (get-frame-persp))))
@@ -403,11 +406,15 @@ enabled."
          (file-name-nondirectory (directory-file-name name))
        name)
      'face 'bold))
-  :when (and (bound-and-true-p persp-mode)
+  :when (and active
+             (bound-and-true-p persp-mode)
              ;; There are multiple implementations of
              ;; persp-mode with different APIs
              (fboundp 'safe-persp-name)
-             (fboundp 'get-frame-persp)))
+             (fboundp 'get-frame-persp)
+             ;; Display the nil persp only if specified
+             (or (not (string= persp-nil-name (safe-persp-name (get-frame-persp))))
+                 spaceline-display-default-perspective)))
 
 (defface spaceline-flycheck-error
   '((t (:foreground "#FC5C94" :distant-foreground "#A20C41")))
