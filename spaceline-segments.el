@@ -290,7 +290,7 @@ enabled."
     (cond
      ((string= "0:00" time) "")
      ((string= "N/A" time) "")
-     ((string-empty-p time) "")
+     ((string= time "") "")
      (t (concat " (" time ")")))))
 
 (defun spaceline--fancy-battery-mode-line ()
@@ -301,7 +301,7 @@ enabled."
            (time (spaceline--fancy-battery-time)))
       (cond
        ((string= "on-line" type) " No Battery")
-       ((string-empty-p type) " No Battery")
+       ((string= type "") " No Battery")
        (t (concat (if (string= "AC" type) " AC" "") percentage time))))))
 
 (defun spaceline--fancy-battery-face ()
