@@ -46,6 +46,7 @@
    `((battery :when active)
      (python-pyvenv :fallback python-pyenv)
      selection-info
+     input-method
      ((buffer-encoding-abbrev
        point-position
        line-column)
