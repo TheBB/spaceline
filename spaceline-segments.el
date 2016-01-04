@@ -188,17 +188,23 @@ Supports both Emacs and Evil cursor conventions."
     ("*helm M-x*" . "HELM M-x")
     ("*swiper*" . "SWIPER")
     ("*Projectile Perspectives*" . "HELM Projectile Perspectives")
-    ("*Projectile Layouts*" . "HELM Projectile Layouts"))
-  "Alist of custom helm buffer names to use.")
+    ("*Projectile Layouts*" . "HELM Projectile Layouts")
+    ("*helm-ag*" . (lambda ()
+                     (format "HELM Ag: Using %s"
+                             (car (split-string helm-ag-base-command))))))
+  "Alist of custom helm buffer names to use. The cdr can also be
+a function that returns a name to use.")
 (spaceline-define-segment helm-buffer-id
   "Helm session identifier."
   (propertize
    (let ((custom (cdr (assoc (buffer-name) spaceline--helm-buffer-ids)))
          (case-fold-search t)
          (name (replace-regexp-in-string "-" " " (buffer-name))))
-     (if custom custom
-       (string-match "\\*helm:? \\(mode \\)?\\([^\\*]+\\)\\*" name)
-       (concat "HELM " (capitalize (match-string 2 name)))))
+     (cond ((stringp custom) custom)
+           ((functionp custom) (funcall custom))
+           (t
+            (string-match "\\*helm:? \\(mode \\)?\\([^\\*]+\\)\\*" name)
+            (concat "HELM " (capitalize (match-string 2 name))))))
    'face 'bold)
   :face highlight-face
   :when (bound-and-true-p helm-alive-p))
