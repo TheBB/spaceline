@@ -138,7 +138,7 @@
 
 (spaceline-define-segment column
   "The current column number."
-  "%l")
+  "%2c")
 
 (spaceline-define-segment line-column
   "The current line and column numbers."
