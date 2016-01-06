@@ -171,6 +171,34 @@ Supports both Emacs and Evil cursor conventions."
             (and (bound-and-true-p evil-local-mode)
                  (eq 'visual evil-state))))
 
+(defcustom spaceline-show-default-input-method nil
+  "Whether to show the default input method in `input-method'.
+
+When non-nil, show the default input method in the `input-method'
+segment.  Otherwise only show the active input method, if any."
+  :type 'boolean
+  :group 'spaceline
+  :risky t)
+
+(spaceline-define-segment input-method
+  "The current input method, or the default input method."
+  (cond
+   (current-input-method
+    (propertize current-input-method-title 'face 'bold))
+   ;; `evil-input-method' is where evil remembers the input method while in
+   ;; normal state.  The input method is not active in normal state, but Evil
+   ;; will enable this input method again when switching to insert/emacs state.
+   ((and (bound-and-true-p evil-mode) (bound-and-true-p evil-input-method))
+    (nth 3 (assoc default-input-method input-method-alist)))
+   ((and spaceline-show-default-input-method default-input-method)
+     (propertize (nth 3 (assoc default-input-method input-method-alist))
+                 'face 'italic)))
+  :when (or current-input-method
+            (and (bound-and-true-p evil-mode)
+                 (bound-and-true-p evil-input-method))
+            (and spaceline-show-default-input-method
+                 default-input-method)))
+
 (spaceline-define-segment hud
   "A HUD that shows which part of the buffer is currently visible."
   (powerline-hud highlight-face default-face)
