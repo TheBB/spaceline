@@ -159,7 +159,7 @@ The full list of segments available, from left to right:
 - `window-number`: integrates with `window-numbering`.
 - `evil-state`: shows the current evil state, integrates with `evil`.
 - `anzu`: integrates with `anzu`.
-- `auto-compile`: integrats with `auto-compile`.
+- `auto-compile`: integrates with `auto-compile`.
 - `buffer-modified`: the standard marker denoting whether the buffer is modified
 or not.
 - `buffer-size`: the size of the buffer.
@@ -185,7 +185,7 @@ can be tweaked with [`diminish`](https://github.com/emacsmirror/diminish).
 buffer (`unix`, `dos` or `mac`).
 - `point-position`: the value of point, this is disabled by default.
 - `line`: current line.
-- `column`: current line.
+- `column`: current column.
 - `line-column`: current line and column.
 - `global`: meta-segment used by third-party packages.
 - `buffer-position`: shows the current position in the buffer as a percentage.
