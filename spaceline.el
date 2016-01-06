@@ -4,9 +4,9 @@
 ;;
 ;; Author: Eivind Fonn <evfonn@gmail.com>
 ;; URL: https://github.com/TheBB/spaceline
-;; Version: 1.0
+;; Version: 1.1.0
 ;; Keywords: mode-line powerline spacemacs
-;; Package-Requires: ((emacs "24") (cl-lib "0.5") (powerline "2.3") (dash "2.11.0") (s "1.10.0"))
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5") (powerline "2.3") (dash "2.11.0") (s "1.10.0"))
 
 ;; This file is not part of GNU Emacs.
 
