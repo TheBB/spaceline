@@ -282,6 +282,8 @@ a function that returns a name to use.")
 (defvar org-pomodoro-mode-line)
 (defvar pyvenv-virtual-env)
 (defvar pyvenv-virtual-env-name)
+(defvar which-func-current)
+(defvar which-func-keymap)
 
 (declare-function anzu--update-mode-line 'anzu)
 (declare-function evil-state-property 'evil-common)
@@ -513,6 +515,20 @@ enabled."
              (eq 'python-mode major-mode)
              (fboundp 'pyenv-mode-version)
              (pyenv-mode-version)))
+
+(spaceline-define-segment which-function
+  (let* ((current (format-mode-line which-func-current)))
+    (when (string-match "{\\(.*\\)}" current)
+      (setq current (match-string 1 current)))
+    (propertize current
+                'local-map which-func-keymap
+                'face 'which-func
+                'mouse-face 'mode-line-highlight
+                'help-echo "mouse-1: go to beginning\n\
+mouse-2: toggle rest visibility\n\
+mouse-3: go to end"))
+  :when (and active
+             (bound-and-true-p which-function-mode)))
 
 (provide 'spaceline-segments)
 

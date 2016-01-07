@@ -43,8 +43,9 @@
      (org-clock :when active)
      nyan-cat)
 
-   `((battery :when active)
+   `(which-function
      (python-pyvenv :fallback python-pyenv)
+     (battery :when active)
      selection-info
      input-method
      ((buffer-encoding-abbrev
