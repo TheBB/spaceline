@@ -295,6 +295,7 @@ a function that returns a name to use.")
 (declare-function window-numbering-get-number 'window-numbering)
 (declare-function pyenv-mode-version 'pyenv-mode)
 (declare-function pyenv-mode-full-path 'pyenv-mode)
+(declare-function mu4e-alert-mode-line 'mu4e-alert)
 
 (spaceline-define-segment anzu
   "Show the current match number and the total number of matches.  Requires anzu
@@ -529,6 +530,12 @@ mouse-2: toggle rest visibility\n\
 mouse-3: go to end"))
   :when (and active
              (bound-and-true-p which-function-mode)))
+
+(spaceline-define-segment mu4e-alert-segment
+  "Show the number of unread mails using mu. Requires mu4e-alert"
+  mu4e-alert-mode-line
+  :when (and active
+             (bound-and-true-p mu4e-alert-max-messages-to-process)))
 
 (provide 'spaceline-segments)
 

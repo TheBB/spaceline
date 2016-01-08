@@ -37,6 +37,7 @@
      (((minor-modes :separator spaceline-minor-modes-separator)
        process)
       :when active)
+     (mu4e-alert-segment :when active)
      (erc-track :when active)
      (version-control :when active)
      (org-pomodoro :when active)
