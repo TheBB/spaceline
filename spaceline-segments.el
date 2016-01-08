@@ -533,11 +533,10 @@ mouse-3: go to end"))
 
 (spaceline-define-segment mu4e-alert-segment
   "Show the number of unread mails using mu. Requires mu4e-alert"
-  (progn
-    (mu4e-alert-disable-mode-line-display)
-    mu4e-alert-mode-line)
+  mu4e-alert-mode-line
   :when (and active
-             (featurep 'mu4e-alert)))
+             (featurep 'mu4e-alert))
+  :global-override ((:eval mu4e-alert-mode-line)))
 
 (provide 'spaceline-segments)
 
