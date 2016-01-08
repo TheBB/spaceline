@@ -535,7 +535,7 @@ mouse-3: go to end"))
   "Show the number of unread mails using mu. Requires mu4e-alert"
   mu4e-alert-mode-line
   :when (and active
-             (bound-and-true-p mu4e-alert-max-messages-to-process)))
+             (featurep 'mu4e-alert)))
 
 (provide 'spaceline-segments)
 
