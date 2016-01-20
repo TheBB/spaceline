@@ -101,7 +101,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 ;;                                         '(helm-help)))))
 ;;   (when force (force-mode-line-update)))
 
-(defadvice helm-display-mode-line (around spaceline-helm)
+(defadvice helm-display-mode-line (after spaceline-helm)
   "Set up a custom helm modeline."
   (setq spaceline--helm-current-source source
         mode-line-format '("%e" (:eval (spaceline--prepare
