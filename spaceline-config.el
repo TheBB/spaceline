@@ -32,10 +32,10 @@
      auto-compile
      ,second-left
      major-mode
+     (process :when active)
      ((flycheck-error flycheck-warning flycheck-info)
       :when active)
-     (((minor-modes :separator spaceline-minor-modes-separator)
-       process)
+     ((minor-modes :separator spaceline-minor-modes-separator)
       :when active)
      (mu4e-alert-segment :when active)
      (erc-track :when active)

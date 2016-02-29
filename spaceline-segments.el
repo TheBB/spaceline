@@ -96,7 +96,7 @@
 
 (spaceline-define-segment process
   "The process associated with this buffer, if any."
-  (powerline-raw mode-line-process)
+  (powerline-raw (s-trim mode-line-process))
   :when (spaceline--mode-line-nonempty mode-line-process))
 
 (spaceline-define-segment version-control
