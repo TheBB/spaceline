@@ -279,6 +279,7 @@ a function that returns a name to use.")
 (defvar erc-modified-channels-alist)
 (defvar fancy-battery-last-status)
 (defvar fancy-battery-show-percentage)
+(defvar mu4e-alert-mode-line)
 (defvar org-pomodoro-mode-line)
 (defvar pyvenv-virtual-env)
 (defvar pyvenv-virtual-env-name)
@@ -295,7 +296,6 @@ a function that returns a name to use.")
 (declare-function window-numbering-get-number 'window-numbering)
 (declare-function pyenv-mode-version 'pyenv-mode)
 (declare-function pyenv-mode-full-path 'pyenv-mode)
-(declare-function mu4e-alert-mode-line 'mu4e-alert)
 
 (spaceline-define-segment anzu
   "Show the current match number and the total number of matches.  Requires anzu
