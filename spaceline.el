@@ -461,6 +461,9 @@ render the empty space in the middle of the mode-line."
          (other-face (spaceline--get-face 'face2 active))
          (highlight-face (spaceline--get-face 'highlight active))
 
+         ;; Hack to propertize right side from the right
+         (spec (if (eq 'r side) (reverse spec) spec))
+
          ;; Loop through the segments and collect the results
          (segments (cl-loop with result
                             for s in spec
@@ -472,6 +475,9 @@ render the empty space in the middle of the mode-line."
                             collect result
                             and do (unless (spaceline--seg-skip-alternate result)
                                      (cl-rotatef default-face other-face))))
+
+         ;; Hack to propertize right side from the right
+         (segments (if (eq 'r side) (reverse segments) segments))
 
          (dummy (make-spaceline--seg :face-left line-face :face-right line-face))
          (separator-style (format "powerline-%S" powerline-default-separator))
