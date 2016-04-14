@@ -486,7 +486,7 @@ enabled."
                    (or flycheck-current-errors
                        (eq 'running flycheck-last-status-change)))))))
 
-(spaceline-define-segment evil-state
+(spaceline-define-segment evil-current-state
   "The current evil state.  Requires `evil-mode' to be enabled."
   (s-trim (evil-state-property evil-state :tag t))
   :when (bound-and-true-p evil-local-mode))

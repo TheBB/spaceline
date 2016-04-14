@@ -136,7 +136,7 @@ that works for you.
 of the minor modes segment.
 
 - To get the mode-line highlight to change color depending on the evil state,
-set `spaceline-highlight-face-func` to `spaceline-highlight-face-evil-state`. 
+set `spaceline-highlight-face-func` to `spaceline-highlight-face-evil-state`.
 
 ## Medium tweaking
 
@@ -157,7 +157,7 @@ The full list of segments available, from left to right:
 - `persp-name`: integrates with `persp-mode`.
 - `workspace-number`: integrates with `eyebrowse`.
 - `window-number`: integrates with `window-numbering`.
-- `evil-state`: shows the current evil state, integrates with `evil`.
+- `evil-current-state`: shows the current evil state, integrates with `evil`.
 - `anzu`: integrates with `anzu`.
 - `auto-compile`: integrates with `auto-compile`.
 - `buffer-modified`: the standard marker denoting whether the buffer is modified
@@ -410,7 +410,7 @@ For example, this is the Spacemacs mode-line.
     (spaceline-install
 
      '(((persp-name workspace-number window-number)
-       :fallback evil-state
+       :fallback evil-current-state
        :separator "|"
        :face highlight-face)
       anzu
