@@ -487,8 +487,13 @@ enabled."
                        (eq 'running flycheck-last-status-change)))))))
 
 (spaceline-define-segment evil-state
-  "The current evil state.  Requires `evil-mode' to be enabled."
+  "The current evil state as a tag. (e.g. <N>)  Requires `evil-mode' to be enabled."
   (s-trim (evil-state-property evil-state :tag t))
+  :when (bound-and-true-p evil-local-mode))
+
+(spaceline-define-segment evil-state-full-word
+  "The current evil state as a full word. (e.g. NORMAL)  Requires `evil-mode' to be enabled."
+  (upcase (format "%s" evil-state))
   :when (bound-and-true-p evil-local-mode))
 
 (defface spaceline-python-venv
