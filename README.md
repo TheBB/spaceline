@@ -136,7 +136,7 @@ that works for you.
 of the minor modes segment.
 
 - To get the mode-line highlight to change color depending on the evil state,
-set `spaceline-highlight-face-func` to `spaceline-highlight-face-evil-state`. 
+set `spaceline-highlight-face-func` to `spaceline-highlight-face-evil-state`.
 
 ## Medium tweaking
 
@@ -158,6 +158,7 @@ The full list of segments available, from left to right:
 - `workspace-number`: integrates with `eyebrowse`.
 - `window-number`: integrates with `window-numbering`.
 - `evil-state`: shows the current evil state, integrates with `evil`.
+- `evil-state-full-word`: shows the current evil state as a full word, integrates with `evil`.
 - `anzu`: integrates with `anzu`.
 - `auto-compile`: integrates with `auto-compile`.
 - `buffer-modified`: the standard marker denoting whether the buffer is modified
