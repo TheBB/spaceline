@@ -233,12 +233,50 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
   (spaceline--update-global-excludes-from-list spaceline-left)
   (spaceline--update-global-excludes-from-list spaceline-right))
 
+(defun spaceline--gen-segment (segment-spec &optional outer-props deep)
+  (spaceline--parse-segment-spec segment-spec
+    (let* ((props (append props outer-props))
+           (nest-props (append '(:fallback nil) input-props outer-props))
+           (explicit-condition (if (plist-member props :when)
+                                   (plist-get props :when)
+                                 t))
+           (face (or (plist-get props :face) 'default-face))
+           (face (if (memq face '(default-face other-face highlight-face))
+                     face `(quote ,face)))
+           (separator `(powerline-raw ,(or (plist-get props :separator) " ") ,face))
+           (tight-left (or (plist-get props :tight)
+                           (plist-get props :tight-left)))
+           (tight-right (or (plist-get props :tight)
+                            (plist-get props :tight-right)))
+           (elements
+            (cond
+             ((listp segment) nil)
+             ((symbolp segment) nil)
+             (t `((powerline-raw (format "%s" ,segment) ,face))))))
+      `(let ((res (list
+                   ,@(unless tight-left `((propertize " " 'face ,face)))
+                   ,@elements
+                   ,@(unless tight-right `((propertize " " 'face ,face))))))
+         (when (cddr res)
+           (cl-rotatef default-face other-face))
+         res)
+      )))
+
 (defmacro spaceline-install (left right)
   "Install a modeline given by the lists of segment specs LEFT and RIGHT."
-  `(progn
-     (defun spaceline--eval ()
-       "Hi")
-     (setq-default mode-line-format '("%e" (:eval (spaceline--eval))))))
+  (let ((left-code
+         `(let ((default-face face1)
+                (other-face face2))
+            (append ,@(mapcar 'spaceline--gen-segment left)))))
+    `(progn
+       (defun spaceline--eval ()
+         (let* ((active (powerline-selected-window-active))
+                (line-face (spaceline--get-face 'line active))
+                (highlight-face (spaceline--get-face 'highlight active))
+                (face1 (spaceline--get-face 'face1 active))
+                (face2 (spaceline--get-face 'face2 active)))
+           ,left-code))
+       (setq-default mode-line-format '("%e" (:eval (spaceline--eval)))))))
 
 (defvar spaceline-segments nil
   "Alist of segments. Each segment is an alist with keys:
