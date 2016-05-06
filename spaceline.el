@@ -233,12 +233,12 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
   (spaceline--update-global-excludes-from-list spaceline-left)
   (spaceline--update-global-excludes-from-list spaceline-right))
 
-(defun spaceline-install (left right)
+(defmacro spaceline-install (left right)
   "Install a modeline given by the lists of segment specs LEFT and RIGHT."
-  (setq spaceline-left left)
-  (setq spaceline-right right)
-  (spaceline--update-global-excludes)
-  (setq-default mode-line-format '("%e" (:eval (spaceline--prepare spaceline-left spaceline-right)))))
+  `(progn
+     (defun spaceline--eval ()
+       "Hi")
+     (setq-default mode-line-format '("%e" (:eval (spaceline--eval))))))
 
 (defvar spaceline-segments nil
   "Alist of segments. Each segment is an alist with keys:

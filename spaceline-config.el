@@ -25,38 +25,39 @@
 
 (defun spaceline--theme (left second-left &rest additional-segments)
   "Convenience function for the spacemacs and emacs themes."
-  (spaceline-install
+  (eval
+   `(spaceline-install
 
-   `(,left
-     anzu
-     auto-compile
-     ,second-left
-     major-mode
-     (process :when active)
-     ((flycheck-error flycheck-warning flycheck-info)
-      :when active)
-     ((minor-modes :separator spaceline-minor-modes-separator)
-      :when active)
-     (mu4e-alert-segment :when active)
-     (erc-track :when active)
-     (version-control :when active)
-     (org-pomodoro :when active)
-     (org-clock :when active)
-     nyan-cat)
+     (,left
+      anzu
+      auto-compile
+      ,second-left
+      major-mode
+      (process :when active)
+      ((flycheck-error flycheck-warning flycheck-info)
+       :when active)
+      ((minor-modes :separator spaceline-minor-modes-separator)
+       :when active)
+      (mu4e-alert-segment :when active)
+      (erc-track :when active)
+      (version-control :when active)
+      (org-pomodoro :when active)
+      (org-clock :when active)
+      nyan-cat)
 
-   `(which-function
-     (python-pyvenv :fallback python-pyenv)
-     (battery :when active)
-     selection-info
-     input-method
-     ((buffer-encoding-abbrev
-       point-position
-       line-column)
-      :separator " | ")
-     (global :when active)
-     ,@additional-segments
-     buffer-position
-     hud)))
+     (which-function
+      (python-pyvenv :fallback python-pyenv)
+      (battery :when active)
+      selection-info
+      input-method
+      ((buffer-encoding-abbrev
+        point-position
+        line-column)
+       :separator " | ")
+      (global :when active)
+      ,@additional-segments
+      buffer-position
+      hud))))
 
 (defun spaceline-spacemacs-theme (&rest additional-segments)
   "Install the modeline used by Spacemacs.
