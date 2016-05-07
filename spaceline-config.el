@@ -26,17 +26,17 @@
 (defun spaceline--theme (left second-left &rest additional-segments)
   "Convenience function for the spacemacs and emacs themes."
   (spaceline-install
-
    ((("a" "lel"
       (("q" "w" "e")
        :separator "~")
       "rofl" "mao")
-     :separator "*")
+     :separator "*"
+     :face highlight-face)
     "b"
     "c"
     "def")
-
    nil)
+  (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main))))
   ;; (eval
   ;;  `(spaceline-install
 

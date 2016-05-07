@@ -236,6 +236,15 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
   (spaceline--update-global-excludes-from-list spaceline-left)
   (spaceline--update-global-excludes-from-list spaceline-right))
 
+(defun spaceline--gen-produce (face)
+  `((setq produced t)
+    (when needs-sep
+      (push (funcall default-sep prev-face ,face) result)
+      (cl-rotatef default-sep other-sep)
+      (setq needs-sep nil))
+    (when prior (push prior result))
+    (setq prev-face ,face)))
+
 (defun spaceline--gen-segment (segment-spec &optional outer-props deep)
   (spaceline--parse-segment-spec segment-spec
     (let* ((props (append props outer-props))
@@ -253,7 +262,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                             (plist-get props :tight-right))))
 
       `(,@(unless (or deep tight-left)
-            `((push (propertize " " 'face ,face) result)))
+            `((setq prior (propertize " " 'face ,face))))
         ,@(unless deep
             `((setq produced nil)))
         ,@(cond
@@ -265,34 +274,48 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                               `((setq prior ,separator))))
                            segment)))
            (t
-            `((when prior (push (propertize prior 'face ,face) result))
-              (push (powerline-raw (format "%s" ,segment) ,face) result)
-              (setq produced t))))
+            `(,@(spaceline--gen-produce face)
+              (push (powerline-raw (format "%s" ,segment) ,face) result))))
         ,@(unless deep
             `((if (not produced)
                   (pop result)
-                (push (propertize " " 'face ,face) result)
+                ,@(unless tight-right `((push (propertize " " 'face ,face) result)))
                 (cl-rotatef default-face other-face))
-              (setq prior nil)))
+              (setq prior nil)
+              (setq needs-sep t)))
             ))))
 
-(defmacro spaceline-install (left right)
+(defmacro spaceline-install (&rest args)
   "Install a modeline given by the lists of segment specs LEFT and RIGHT."
-  (let ((left-code
-         `(let ((default-face face1)
-                (other-face face2)
-                prior produced result)
-            ,@(apply 'append (mapcar 'spaceline--gen-segment left))
-            (reverse result))))
+  (let* ((nargs (length args))
+         (target (if (oddp nargs) (pop args) 'main))
+         (left-var (intern (format "spaceline-ml-%s-left" target)))
+         (right-var (intern (format "spaceline-ml-%s-right" target)))
+         (left-segs (if (> nargs 1) (pop args) (symbol-value left-var)))
+         (right-segs (if (> nargs 1) (pop args) (symbol-value right-var)))
+         (target-func (intern (format "spaceline-ml-%s" target)))
+
+         (sep-style (format "powerline-%s" powerline-default-separator))
+         (sep-dirs (spaceline--get-separator-dirs 'l))
+         (left-code
+          `(let ((default-face face1)
+                 (other-face face2)
+                 (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
+                 (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+                 prior produced needs-sep prev-face result)
+             ,@(apply 'append (mapcar 'spaceline--gen-segment left-segs))
+             ,@(spaceline--gen-produce 'line-face)
+             (reverse result))))
     `(progn
-       (defun spaceline--eval ()
+       (setq ,left-var ',left-segs)
+       (setq ,right-var ',right-segs)
+       (defun ,target-func ()
          (let* ((active (powerline-selected-window-active))
                 (line-face (spaceline--get-face 'line active))
                 (highlight-face (spaceline--get-face 'highlight active))
                 (face1 (spaceline--get-face 'face1 active))
                 (face2 (spaceline--get-face 'face2 active)))
-           ,left-code))
-       (setq-default mode-line-format '("%e" (:eval (spaceline--eval)))))))
+           (powerline-render ,left-code))))))
 
 (defvar spaceline-segments nil
   "Alist of segments. Each segment is an alist with keys:
