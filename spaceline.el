@@ -248,19 +248,29 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                            (plist-get props :tight-left)))
            (tight-right (or (plist-get props :tight)
                             (plist-get props :tight-right)))
+           (nonempty-fcn
+            (cond ((and tight-left tight-right) 'identity)
+                  ((or tight-left tight-right) 'cdr)
+                  (t 'cddr)))
            (elements
             (cond
-             ((listp segment) nil)
+             ((listp segment)
+              (apply 'append
+                     (spaceline--intersperse
+                      (list separator)
+                      (mapcar (lambda (s) (spaceline--gen-segment s nest-props t))
+                              segment))))
              ((symbolp segment) nil)
              (t `((powerline-raw (format "%s" ,segment) ,face))))))
-      `(let ((res (list
-                   ,@(unless tight-left `((propertize " " 'face ,face)))
-                   ,@elements
-                   ,@(unless tight-right `((propertize " " 'face ,face))))))
-         (when (cddr res)
-           (cl-rotatef default-face other-face))
-         res)
-      )))
+      (if deep
+          elements
+        `(let ((res (list
+                     ,@(unless tight-left `((propertize " " 'face ,face)))
+                     ,@elements
+                     ,@(unless tight-right `((propertize " " 'face ,face))))))
+           (when (,nonempty-fcn res)
+             (cl-rotatef default-face other-face)
+             res))))))
 
 (defmacro spaceline-install (left right)
   "Install a modeline given by the lists of segment specs LEFT and RIGHT."

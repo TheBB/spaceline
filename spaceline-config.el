@@ -27,7 +27,8 @@
   "Convenience function for the spacemacs and emacs themes."
   (spaceline-install
 
-   ("a"
+   ((("a" "lel" 2.3)
+     :separator "~")
     "b"
     "c"
     "def"
