@@ -273,12 +273,26 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                               (spaceline--gen-segment s nest-props 'deep)
                               `((setq prior ,separator))))
                            segment)))
+           ((symbolp segment)
+            `((when ,sym-cond
+                (-when-let (value ,sym-form)
+                  ,@(spaceline--gen-produce face)
+                  (cond
+                   ((spaceline--imagep value) (push value result))
+                   ((listp value)
+                    (setq result
+                          (append
+                           (mapcar (lambda (s)
+                                     (if (spaceline--imagep s) s (powerline-raw s ,face)))
+                                   (spaceline--intersperse ,separator value))
+                           result)))
+                   ((and (stringp value) (= 0 (length value))))
+                   (t (push (powerline-raw value ,face) result)))))))
            (t
             `(,@(spaceline--gen-produce face)
               (push (powerline-raw (format "%s" ,segment) ,face) result))))
         ,@(unless deep
-            `((if (not produced)
-                  (pop result)
+            `((when produced
                 ,@(unless tight-right `((push (propertize " " 'face ,face) result)))
                 (cl-rotatef default-face other-face))
               (setq prior nil)
@@ -310,13 +324,14 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
              (setq ,left-var ',left-segs)
              (setq ,right-var ',right-segs)
              (defun ,target-func ()
+               (run-hooks 'spaceline-pre-hook)
                (let* ((active (powerline-selected-window-active))
                       (line-face (spaceline--get-face 'line active))
                       (highlight-face (spaceline--get-face 'highlight active))
                       (face1 (spaceline--get-face 'face1 active))
                       (face2 (spaceline--get-face 'face2 active)))
                  (powerline-render ,left-code)))
-             (byte-compile ',target-func)
+             ;; (byte-compile ',target-func)
              ))))
 
 (defvar spaceline-segments nil
@@ -389,7 +404,8 @@ by `spaceline--eval-segment'."
                     nil)
                    (t (list value))))))
        (setplist ',wrapper-func ',props)
-       (push '((code . ,value)
+       (push '(,name
+               (code . ,value)
                (condition . ,condition)
                (docstring . ,docstring)
                (global-override . ,global-override))
