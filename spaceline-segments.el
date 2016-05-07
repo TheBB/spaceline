@@ -408,7 +408,7 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
    ((string= "3" str) "➌")
    ((string= "4" str) "➍")
    ((string= "5" str) "➎")
-   ((string= "6" str) "❻")
+   ((string= "6" str) "➏")
    ((string= "7" str) "➐")
    ((string= "8" str) "➑")
    ((string= "9" str) "➒")
