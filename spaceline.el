@@ -285,8 +285,8 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
               (setq needs-sep t)))
             ))))
 
-(defmacro spaceline-install (&rest args)
-  "Install a modeline given by the lists of segment specs LEFT and RIGHT."
+(defun spaceline-install (&rest args)
+  (interactive)
   (let* ((nargs (length args))
          (target (if (oddp nargs) (pop args) 'main))
          (left-var (intern (format "spaceline-ml-%s-left" target)))
@@ -306,16 +306,18 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
              ,@(apply 'append (mapcar 'spaceline--gen-segment left-segs))
              ,@(spaceline--gen-produce 'line-face)
              (reverse result))))
-    `(progn
-       (setq ,left-var ',left-segs)
-       (setq ,right-var ',right-segs)
-       (defun ,target-func ()
-         (let* ((active (powerline-selected-window-active))
-                (line-face (spaceline--get-face 'line active))
-                (highlight-face (spaceline--get-face 'highlight active))
-                (face1 (spaceline--get-face 'face1 active))
-                (face2 (spaceline--get-face 'face2 active)))
-           (powerline-render ,left-code))))))
+    (eval `(progn
+             (setq ,left-var ',left-segs)
+             (setq ,right-var ',right-segs)
+             (defun ,target-func ()
+               (let* ((active (powerline-selected-window-active))
+                      (line-face (spaceline--get-face 'line active))
+                      (highlight-face (spaceline--get-face 'highlight active))
+                      (face1 (spaceline--get-face 'face1 active))
+                      (face2 (spaceline--get-face 'face2 active)))
+                 (powerline-render ,left-code)))
+             (byte-compile ',target-func)
+             ))))
 
 (defvar spaceline-segments nil
   "Alist of segments. Each segment is an alist with keys:
