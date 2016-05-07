@@ -242,7 +242,9 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
       (push (funcall default-sep prev-face ,face) result)
       (cl-rotatef default-sep other-sep)
       (setq needs-sep nil))
-    (when prior (push prior result))
+    (when prior
+      (push prior result))
+    (setq prior next-prior)
     (setq prev-face ,face)))
 
 (defun spaceline--gen-segment (segment-spec &optional outer-props deep)
@@ -267,12 +269,11 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
             `((setq produced nil)))
         ,@(cond
            ((listp segment)
-            (apply 'append
-                   (mapcar (lambda (s)
-                             (append
-                              (spaceline--gen-segment s nest-props 'deep)
-                              `((setq prior ,separator))))
-                           segment)))
+            `((let ((next-prior ,separator))
+                ,@(apply 'append
+                         (mapcar (lambda (s)
+                                   (spaceline--gen-segment s nest-props 'deep))
+                                 segment)))))
            ((symbolp segment)
             `((when ,sym-cond
                 (-when-let (value ,sym-form)
@@ -316,7 +317,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                  (other-face face2)
                  (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
                  (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
-                 prior produced needs-sep prev-face result)
+                 prior next-prior produced needs-sep prev-face result)
              ,@(apply 'append (mapcar 'spaceline--gen-segment left-segs))
              ,@(spaceline--gen-produce 'line-face)
              (reverse result))))
