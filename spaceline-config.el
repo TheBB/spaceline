@@ -27,12 +27,14 @@
   "Convenience function for the spacemacs and emacs themes."
   (spaceline-install
 
-   ((("a" "lel" 2.3)
-     :separator "~")
+   ((("a" "lel"
+      (("q" "w" "e")
+       :separator "~")
+      "rofl" "mao")
+     :separator "*")
     "b"
     "c"
-    "def"
-    )
+    "def")
 
    nil)
   ;; (eval

@@ -209,6 +209,9 @@ The following bindings are available in BODY:
           (segment (car input))
           (segment-symbol (when (symbolp segment)
                             (intern (format "spaceline--segment-%S" segment))))
+          (sym-def (when (symbolp segment) (cdr (assq segment spaceline-segments))))
+          (sym-cond (when (symbolp segment) (cdr (assq 'condition sym-def))))
+          (sym-form (when (symbolp segment) (cdr (assq 'code sym-def))))
           (input-props (cdr input))
           (props (append input-props
                          (when (symbolp segment)
@@ -247,37 +250,40 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
            (tight-left (or (plist-get props :tight)
                            (plist-get props :tight-left)))
            (tight-right (or (plist-get props :tight)
-                            (plist-get props :tight-right)))
-           (nonempty-fcn
-            (cond ((and tight-left tight-right) 'identity)
-                  ((or tight-left tight-right) 'cdr)
-                  (t 'cddr)))
-           (elements
-            (cond
-             ((listp segment)
-              (apply 'append
-                     (spaceline--intersperse
-                      (list separator)
-                      (mapcar (lambda (s) (spaceline--gen-segment s nest-props t))
-                              segment))))
-             ((symbolp segment) nil)
-             (t `((powerline-raw (format "%s" ,segment) ,face))))))
-      (if deep
-          elements
-        `(let ((res (list
-                     ,@(unless tight-left `((propertize " " 'face ,face)))
-                     ,@elements
-                     ,@(unless tight-right `((propertize " " 'face ,face))))))
-           (when (,nonempty-fcn res)
-             (cl-rotatef default-face other-face)
-             res))))))
+                            (plist-get props :tight-right))))
+
+      `(,@(unless (or deep tight-left)
+            `((push (propertize " " 'face ,face) result)))
+        ,@(unless deep
+            `((setq produced nil)))
+        ,@(cond
+           ((listp segment)
+            (apply 'append
+                   (mapcar (lambda (s)
+                             (append
+                              (spaceline--gen-segment s nest-props 'deep)
+                              `((setq prior ,separator))))
+                           segment)))
+           (t
+            `((when prior (push (propertize prior 'face ,face) result))
+              (push (powerline-raw (format "%s" ,segment) ,face) result)
+              (setq produced t))))
+        ,@(unless deep
+            `((if (not produced)
+                  (pop result)
+                (push (propertize " " 'face ,face) result)
+                (cl-rotatef default-face other-face))
+              (setq prior nil)))
+            ))))
 
 (defmacro spaceline-install (left right)
   "Install a modeline given by the lists of segment specs LEFT and RIGHT."
   (let ((left-code
          `(let ((default-face face1)
-                (other-face face2))
-            (append ,@(mapcar 'spaceline--gen-segment left)))))
+                (other-face face2)
+                prior produced result)
+            ,@(apply 'append (mapcar 'spaceline--gen-segment left))
+            (reverse result))))
     `(progn
        (defun spaceline--eval ()
          (let* ((active (powerline-selected-window-active))
