@@ -263,42 +263,43 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
            (tight-right (or (plist-get props :tight)
                             (plist-get props :tight-right))))
 
-      `(,@(unless (or deep tight-left)
-            `((setq prior (propertize " " 'face ,face))))
-        ,@(unless deep
-            `((setq produced nil)))
-        ,@(cond
-           ((listp segment)
-            `((let ((next-prior ,separator))
-                ,@(apply 'append
-                         (mapcar (lambda (s)
-                                   (spaceline--gen-segment s nest-props 'deep))
-                                 segment)))))
-           ((symbolp segment)
-            `((when ,sym-cond
-                (-when-let (value ,sym-form)
-                  ,@(spaceline--gen-produce face)
-                  (cond
-                   ((spaceline--imagep value) (push value result))
-                   ((listp value)
-                    (setq result
-                          (append
+      `((when ,explicit-condition
+          ,@(unless (or deep tight-left)
+              `((setq prior (propertize " " 'face ,face))))
+          ,@(unless deep
+              `((setq produced nil)))
+          ,@(cond
+             ((listp segment)
+              `((let ((next-prior ,separator))
+                  ,@(apply 'append
                            (mapcar (lambda (s)
-                                     (if (spaceline--imagep s) s (powerline-raw s ,face)))
-                                   (spaceline--intersperse ,separator value))
-                           result)))
-                   ((and (stringp value) (= 0 (length value))))
-                   (t (push (powerline-raw value ,face) result)))))))
-           (t
-            `(,@(spaceline--gen-produce face)
-              (push (powerline-raw (format "%s" ,segment) ,face) result))))
-        ,@(unless deep
-            `((when produced
-                ,@(unless tight-right `((push (propertize " " 'face ,face) result)))
-                (cl-rotatef default-face other-face))
-              (setq prior nil)
-              (setq needs-sep t)))
-            ))))
+                                     (spaceline--gen-segment s nest-props 'deep))
+                                   segment)))))
+             ((symbolp segment)
+              `((when ,sym-cond
+                  (-when-let (value ,sym-form)
+                    ,@(spaceline--gen-produce face)
+                    (cond
+                     ((spaceline--imagep value) (push value result))
+                     ((listp value)
+                      (setq result
+                            (append
+                             (mapcar (lambda (s)
+                                       (if (spaceline--imagep s) s (powerline-raw s ,face)))
+                                     (spaceline--intersperse ,separator value))
+                             result)))
+                     ((and (stringp value) (= 0 (length value))))
+                     (t (push (powerline-raw value ,face) result)))))))
+             (t
+              `(,@(spaceline--gen-produce face)
+                (push (powerline-raw (format "%s" ,segment) ,face) result))))
+          ,@(unless deep
+              `((when produced
+                  ,@(unless tight-right `((push (propertize " " 'face ,face) result)))
+                  (cl-rotatef default-face other-face))
+                (setq prior nil)
+                (setq needs-sep t)))
+          )))))
 
 (defun spaceline-install (&rest args)
   (interactive)
