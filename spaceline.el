@@ -236,10 +236,12 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
   (spaceline--update-global-excludes-from-list spaceline-left)
   (spaceline--update-global-excludes-from-list spaceline-right))
 
-(defun spaceline--gen-produce (face)
+(defun spaceline--gen-produce (face side)
   `((setq produced t)
     (when needs-sep
-      (push (funcall default-sep prev-face ,face) result)
+      ,(if (eq 'l side)
+           `(push (funcall default-sep prev-face ,face) result)
+         `(push (funcall default-sep ,face prev-face) result))
       (cl-rotatef default-sep other-sep)
       (setq needs-sep nil))
     (when prior
@@ -247,7 +249,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
     (setq prior next-prior)
     (setq prev-face ,face)))
 
-(defun spaceline--gen-segment (segment-spec &optional outer-props deep)
+(defun spaceline--gen-segment (segment-spec side &optional outer-props deep)
   (spaceline--parse-segment-spec segment-spec
     (let* ((props (append props outer-props))
            (nest-props (append '(:fallback nil) input-props outer-props))
@@ -273,12 +275,12 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
               `((let ((next-prior ,separator))
                   ,@(apply 'append
                            (mapcar (lambda (s)
-                                     (spaceline--gen-segment s nest-props 'deep))
-                                   segment)))))
+                                     (spaceline--gen-segment s side nest-props 'deep))
+                                   (if (eq 'r side) (reverse segment) segment))))))
              ((symbolp segment)
               `((when ,sym-cond
                   (-when-let (value ,sym-form)
-                    ,@(spaceline--gen-produce face)
+                    ,@(spaceline--gen-produce face side)
                     (cond
                      ((spaceline--imagep value) (push value result))
                      ((listp value)
@@ -291,7 +293,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                      ((and (stringp value) (= 0 (length value))))
                      (t (push (powerline-raw value ,face) result)))))))
              (t
-              `(,@(spaceline--gen-produce face)
+              `(,@(spaceline--gen-produce face side)
                 (push (powerline-raw (format "%s" ,segment) ,face) result))))
           ,@(unless deep
               `((when produced
@@ -312,6 +314,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
          (target-func (intern (format "spaceline-ml-%s" target)))
 
          (sep-style (format "powerline-%s" powerline-default-separator))
+
          (sep-dirs (spaceline--get-separator-dirs 'l))
          (left-code
           `(let ((default-face face1)
@@ -319,9 +322,21 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                  (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
                  (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
                  prior next-prior produced needs-sep prev-face result)
-             ,@(apply 'append (mapcar 'spaceline--gen-segment left-segs))
-             ,@(spaceline--gen-produce 'line-face)
-             (reverse result))))
+             ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'l)) left-segs))
+             ,@(spaceline--gen-produce 'line-face 'l)
+             (reverse result)))
+
+         (sep-dirs (spaceline--get-separator-dirs 'l))
+         (right-code
+          `(let ((default-face face1)
+                 (other-face face2)
+                 (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
+                 (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+                 prior next-prior produced needs-sep prev-face result)
+             ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'r)) (reverse right-segs)))
+             ,@(spaceline--gen-produce 'line-face 'r)
+             result))
+         )
     (eval `(progn
              (setq ,left-var ',left-segs)
              (setq ,right-var ',right-segs)
@@ -331,8 +346,12 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                       (line-face (spaceline--get-face 'line active))
                       (highlight-face (spaceline--get-face 'highlight active))
                       (face1 (spaceline--get-face 'face1 active))
-                      (face2 (spaceline--get-face 'face2 active)))
-                 (powerline-render ,left-code)))
+                      (face2 (spaceline--get-face 'face2 active))
+                      (lhs ,left-code)
+                      (rhs ,right-code))
+                 (concat (powerline-render lhs)
+                         (powerline-fill line-face (powerline-width rhs))
+                         (powerline-render rhs))))
              ;; (byte-compile ',target-func)
              ))))
 
