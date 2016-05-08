@@ -355,7 +355,8 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                          (powerline-fill line-face (powerline-width rhs))
                          (powerline-render rhs))))
              (when spaceline-byte-compile
-               (byte-compile ',target-func))))))
+               (let ((byte-compile-warnings nil))
+                 (byte-compile ',target-func)))))))
 
 (defvar spaceline-segments nil
   "Alist of segments. Each segment is an alist with keys:
