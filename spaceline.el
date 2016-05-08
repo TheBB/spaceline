@@ -42,6 +42,9 @@
 (defvar evil-state)
 (defvar evil-visual-selection)
 
+(defvar spaceline-byte-compile t
+  "Whether to byte-compile the modeline.")
+
 (defvar spaceline-left nil
   "A list of modeline segments to render on the left side of the modeline.
 
@@ -335,8 +338,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                  prior next-prior produced needs-sep prev-face result)
              ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'r)) (reverse right-segs)))
              ,@(spaceline--gen-produce 'line-face 'r)
-             result))
-         )
+             result)))
     (eval `(progn
              (setq ,left-var ',left-segs)
              (setq ,right-var ',right-segs)
@@ -352,8 +354,8 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                  (concat (powerline-render lhs)
                          (powerline-fill line-face (powerline-width rhs))
                          (powerline-render rhs))))
-             ;; (byte-compile ',target-func)
-             ))))
+             (when spaceline-byte-compile
+               (byte-compile ',target-func))))))
 
 (defvar spaceline-segments nil
   "Alist of segments. Each segment is an alist with keys:
