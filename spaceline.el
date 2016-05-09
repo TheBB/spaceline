@@ -239,18 +239,20 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
   (spaceline--update-global-excludes-from-list spaceline-left)
   (spaceline--update-global-excludes-from-list spaceline-right))
 
-(defun spaceline--gen-produce (face side)
-  `((setq produced t)
-    (when needs-sep
+(defun spaceline--gen-separator (face side)
+  `((when needs-separator
       ,(if (eq 'l side)
-           `(push (funcall default-sep prev-face ,face) result)
-         `(push (funcall default-sep ,face prev-face) result))
+           `(push (funcall default-sep separator-face ,face) result)
+         `(push (funcall default-sep ,face separator-face) result))
       (cl-rotatef default-sep other-sep)
-      (setq needs-sep nil))
+      (setq needs-separator nil))))
+
+(defun spaceline--gen-produce (face side)
+  `(,@(spaceline--gen-separator face side)
     (when prior
       (push prior result))
     (setq prior next-prior)
-    (setq prev-face ,face)))
+    (setq separator-face ,face)))
 
 (defun spaceline--gen-segment (segment-spec side &optional outer-props deep)
   (spaceline--parse-segment-spec segment-spec
@@ -266,50 +268,50 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
            (tight-left (or (plist-get props :tight)
                            (plist-get props :tight-left)))
            (tight-right (or (plist-get props :tight)
-                            (plist-get props :tight-right))))
+                            (plist-get props :tight-right)))
 
-      `((when ,explicit-condition
+           (prev-res-var (make-symbol "prev-res")))
+
+      `((let ((,prev-res-var result))
           ,@(unless (or deep tight-left)
               `((setq prior (propertize " " 'face ,face))))
-          ,@(unless deep
-              `((setq produced nil)))
-          ,@(cond
-             ((listp segment)
-              `((let ((next-prior ,separator))
-                  ,@(apply 'append
-                           (mapcar (lambda (s)
-                                     (spaceline--gen-segment s side nest-props 'deep))
-                                   (if (eq 'r side) (reverse segment) segment))))))
-             ((symbolp segment)
-              `((when ,sym-cond
-                  (-when-let (value ,sym-form)
-                    ,@(spaceline--gen-produce face side)
-                    (cond
-                     ((spaceline--imagep value) (push value result))
-                     ((listp value)
-                      (setq result
-                            (append
+          (when ,explicit-condition
+            ,@(cond
+               ((listp segment)
+                `((let ((next-prior ,separator))
+                    ,@(apply 'append
                              (mapcar (lambda (s)
-                                       (if (spaceline--imagep s) s (powerline-raw s ,face)))
-                                     (spaceline--intersperse ,separator value))
-                             result)))
-                     ((and (stringp value) (= 0 (length value))))
-                     (t (push (powerline-raw value ,face) result)))))))
-             (t
-              `(,@(spaceline--gen-produce face side)
-                (push (powerline-raw (format "%s" ,segment) ,face) result))))
+                                       (spaceline--gen-segment s side nest-props 'deep))
+                                     (if (eq 'r side) (reverse segment) segment))))
+                  (setq prior next-prior)))
+               ((symbolp segment)
+                `((when ,sym-cond
+                    (-when-let (value ,sym-form)
+                      ,@(spaceline--gen-produce face side)
+                      (cond
+                       ((spaceline--imagep value) (push value result))
+                       ((listp value)
+                        (setq result
+                              (append
+                               (mapcar (lambda (s)
+                                         (if (spaceline--imagep s) s (powerline-raw s ,face)))
+                                       (spaceline--intersperse ,separator value))
+                               result)))
+                       ((and (stringp value) (= 0 (length value))))
+                       (t (push (powerline-raw value ,face) result)))))))
+               (t
+                `(,@(spaceline--gen-produce face side)
+                  (push (powerline-raw (format "%s" ,segment) ,face) result)))))
           ,@(unless deep
-              `((when produced
+              `((unless (eq ,prev-res-var result)
                   ,@(unless tight-right `((push (propertize " " 'face ,face) result)))
                   (cl-rotatef default-face other-face))
-                (setq prior nil)
-                (setq needs-sep t)))
-          )))))
+                (setq needs-separator t))))))))
 
 (defun spaceline-install (&rest args)
   (interactive)
   (let* ((nargs (length args))
-         (target (if (oddp nargs) (pop args) 'main))
+         (target (if (cl-oddp nargs) (pop args) 'main))
          (left-var (intern (format "spaceline-ml-%s-left" target)))
          (right-var (intern (format "spaceline-ml-%s-right" target)))
          (left-segs (if (> nargs 1) (pop args) (symbol-value left-var)))
@@ -320,25 +322,24 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
 
          (sep-dirs (spaceline--get-separator-dirs 'l))
          (left-code
-          `(let ((default-face face1)
-                 (other-face face2)
+          `(let ((default-face face1) (other-face face2)
                  (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
                  (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
-                 prior next-prior produced needs-sep prev-face result)
+                 prior next-prior produced needs-separator separator-face result)
              ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'l)) left-segs))
-             ,@(spaceline--gen-produce 'line-face 'l)
+             ,@(spaceline--gen-separator 'line-face 'l)
              (reverse result)))
 
          (sep-dirs (spaceline--get-separator-dirs 'l))
          (right-code
-          `(let ((default-face face1)
-                 (other-face face2)
+          `(let ((default-face face1) (other-face face2)
                  (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
                  (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
-                 prior next-prior produced needs-sep prev-face result)
+                 prior next-prior needs-separator separator-face result)
              ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'r)) (reverse right-segs)))
-             ,@(spaceline--gen-produce 'line-face 'r)
+             ,@(spaceline--gen-separator 'line-face 'r)
              result)))
+
     (eval `(progn
              (setq ,left-var ',left-segs)
              (setq ,right-var ',right-segs)
