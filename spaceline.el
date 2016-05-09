@@ -213,8 +213,9 @@ The following bindings are available in BODY:
           (segment-symbol (when (symbolp segment)
                             (intern (format "spaceline--segment-%S" segment))))
           (sym-def (when (symbolp segment) (cdr (assq segment spaceline-segments))))
-          (sym-cond (when (symbolp segment) (cdr (assq 'condition sym-def))))
           (sym-form (when (symbolp segment) (cdr (assq 'code sym-def))))
+          (sym-sep (when (symbolp segment) (cdr (assq 'separator sym-def))))
+          (sym-fallback (when (symbolp segment) (cdr (assq 'fallback sym-def))))
           (input-props (cdr input))
           (props (append input-props
                          (when (symbolp segment)
@@ -257,15 +258,14 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
 (defun spaceline--gen-segment (segment-spec side &optional outer-props deep)
   (spaceline--parse-segment-spec segment-spec
     (let* ((props (append props outer-props))
-           (fallback (plist-get props :fallback))
+           (fallback (or (plist-get props :fallback) sym-fallback))
            (nest-props (append '(:fallback nil) input-props outer-props))
-           (explicit-condition (if (plist-member props :when)
-                                   (plist-get props :when)
-                                 t))
+           (condition (if (plist-member props :when)
+                          (plist-get props :when) t))
            (face (or (plist-get props :face) 'default-face))
            (face (if (memq face '(default-face other-face highlight-face))
                      face `(quote ,face)))
-           (separator `(powerline-raw ,(or (plist-get props :separator) " ") ,face))
+           (separator `(powerline-raw ,(or (plist-get props :separator) sym-sep " ") ,face))
            (tight-left (or (plist-get props :tight)
                            (plist-get props :tight-left)))
            (tight-right (or (plist-get props :tight)
@@ -284,7 +284,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
         (let ((,prev-res-var result))
           ,@(unless (or deep tight-left)
               `((setq prior (propertize " " 'face ,face))))
-          (when ,explicit-condition
+          (when ,condition
             ,@(cond
                ((listp segment)
                 `((let ((next-prior ,separator))
@@ -294,18 +294,17 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                                      (if (eq 'r side) (reverse segment) segment))))
                   (setq prior next-prior)))
                ((symbolp segment)
-                `((when ,sym-cond
-                    (-when-let (value ,sym-form)
-                      ,@(spaceline--gen-produce face side)
-                      (cond
-                       ((spaceline--imagep value) (push value result))
-                       ((listp value)
-                        (dolist (r ,(if (eq 'l side)
-                                        `(spaceline--intersperse ,separator value)
-                                      `(reverse (spaceline--intersperse ,separator value))))
-                          (push (if (spaceline--imagep r) r (powerline-raw r ,face)) result)))
-                       ((and (stringp value) (= 0 (length value))))
-                       (t (push (powerline-raw value ,face) result)))))))
+                `((-when-let (value ,sym-form)
+                    ,@(spaceline--gen-produce face side)
+                    (cond
+                     ((spaceline--imagep value) (push value result))
+                     ((listp value)
+                      (dolist (r ,(if (eq 'l side)
+                                      `(spaceline--intersperse ,separator value)
+                                    `(reverse (spaceline--intersperse ,separator value))))
+                        (push (if (spaceline--imagep r) r (powerline-raw r ,face)) result)))
+                     ((and (stringp value) (= 0 (length value))))
+                     (t (push (powerline-raw value ,face) result))))))
                (t
                 `(,@(spaceline--gen-produce face side)
                   (push (powerline-raw (format "%s" ,segment) ,face) result)))))
@@ -411,13 +410,10 @@ by `spaceline--eval-segment'."
                       (prog1 value
                         (setq value (car props)
                               props (cdr props)))))
+         (value `(when ,toggle-var ,value))
          (enabled (if (plist-member props :enabled)
                       (plist-get props :enabled)
                     t))
-         (condition `(and ,toggle-var
-                          ,(if (plist-member props :when)
-                               (plist-get props :when)
-                             t)))
          (global-override (plist-get props :global-override))
          (global-override (if (listp global-override)
                               global-override
@@ -428,25 +424,12 @@ by `spaceline--eval-segment'."
        (defun ,toggle-func () (interactive) (setq ,toggle-var (not ,toggle-var)))
        (defun ,toggle-func-on () (interactive) (setq ,toggle-var t))
        (defun ,toggle-func-off () (interactive) (setq ,toggle-var nil))
-       (defun ,wrapper-func (&optional props active default-face other-face
-                                       highlight-face line-face)
-         ,docstring
-         (when ,condition
-           (let ((separator (eval (or (plist-get props :separator) " ")))
-                 (value ,value))
-             (cond ((spaceline--imagep value) (list value))
-                   ((listp value)
-                    (spaceline--intersperse separator value))
-                   ((and (stringp value)
-                         (= 0 (length value)))
-                    nil)
-                   (t (list value))))))
-       (setplist ',wrapper-func ',props)
        (push '(,name
                (code . ,value)
-               (condition . ,condition)
                (docstring . ,docstring)
-               (global-override . ,global-override))
+               (global-override . ,global-override)
+               (separator . ,(or (plist-get props :separator) " "))
+               (fallback . ,(plist-get props :fallback)))
              spaceline-segments))))
 
 (defun spaceline--global ()
