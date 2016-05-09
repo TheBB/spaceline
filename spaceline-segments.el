@@ -273,6 +273,20 @@ a function that returns a name to use.")
              spaceline--helm-current-source
              (eq 1 (cdr (assq 'follow spaceline--helm-current-source)))))
 
+;; Info segments
+;; =============
+
+(defvar spaceline--info-topic nil
+  "Topic for the info modeline.")
+(spaceline-define-segment info-topic
+  "Topic for the info modeline."
+  spaceline--info-topic)
+(defvar spaceline--info-nodes nil
+  "Breadcrumbs for the info modeline.")
+(spaceline-define-segment info-nodes
+  "Breadcrumbs for the info modeline."
+  spaceline--info-nodes)
+
 ;; Segments requiring optional dependencies
 ;; ========================================
 
