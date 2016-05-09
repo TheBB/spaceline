@@ -257,6 +257,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
 (defun spaceline--gen-segment (segment-spec side &optional outer-props deep)
   (spaceline--parse-segment-spec segment-spec
     (let* ((props (append props outer-props))
+           (fallback (plist-get props :fallback))
            (nest-props (append '(:fallback nil) input-props outer-props))
            (explicit-condition (if (plist-member props :when)
                                    (plist-get props :when)
@@ -270,7 +271,11 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
            (tight-right (or (plist-get props :tight)
                             (plist-get props :tight-right)))
 
-           (prev-res-var (make-symbol "prev-res")))
+           (prev-res-var (make-symbol "prev-res"))
+
+           (clean-up-code `(,@(unless tight-right `((push (propertize " " 'face ,face) result)))
+                            (cl-rotatef default-face other-face)
+                            (setq needs-separator t))))
 
       `((let ((,prev-res-var result))
           ,@(unless (or deep tight-left)
@@ -302,11 +307,17 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                (t
                 `(,@(spaceline--gen-produce face side)
                   (push (powerline-raw (format "%s" ,segment) ,face) result)))))
-          ,@(unless deep
+          ,@(cond
+             ((and fallback deep)
               `((unless (eq ,prev-res-var result)
-                  ,@(unless tight-right `((push (propertize " " 'face ,face) result)))
-                  (cl-rotatef default-face other-face))
-                (setq needs-separator t))))))))
+                  ,@(spaceline--gen-segment fallback side nest-props deep))))
+             ((and fallback (not deep))
+              `((if (eq ,prev-res-var result)
+                    (progn ,@(spaceline--gen-segment fallback side nest-props deep))
+                  ,@clean-up-code)))
+             ((and (not fallback) (not deep))
+              `((unless (eq ,prev-res-var result)
+                  ,@clean-up-code)))))))))
 
 (defun spaceline-install (&rest args)
   (interactive)
