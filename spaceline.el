@@ -272,12 +272,16 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                             (plist-get props :tight-right)))
 
            (prev-res-var (make-symbol "prev-res"))
+           clean-up-code)
 
-           (clean-up-code `(,@(unless tight-right `((push (propertize " " 'face ,face) result)))
-                            (cl-rotatef default-face other-face)
-                            (setq needs-separator t))))
+      (when (eq 'r side) (cl-rotatef tight-left tight-right))
+      (setq clean-up-code
+            `(,@(unless tight-right `((push (propertize " " 'face ,face) result)))
+              (cl-rotatef default-face other-face)
+              (setq needs-separator ,(not tight-right))))
 
-      `((let ((,prev-res-var result))
+      `(,@(when tight-left `((setq needs-separator nil)))
+        (let ((,prev-res-var result))
           ,@(unless (or deep tight-left)
               `((setq prior (propertize " " 'face ,face))))
           (when ,explicit-condition
@@ -296,12 +300,10 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                       (cond
                        ((spaceline--imagep value) (push value result))
                        ((listp value)
-                        (setq result
-                              (append
-                               (mapcar (lambda (s)
-                                         (if (spaceline--imagep s) s (powerline-raw s ,face)))
-                                       (spaceline--intersperse ,separator value))
-                               result)))
+                        (dolist (r ,(if (eq 'l side)
+                                        `(spaceline--intersperse ,separator value)
+                                      `(reverse (spaceline--intersperse ,separator value))))
+                          (push (if (spaceline--imagep r) r (powerline-raw r ,face)) result)))
                        ((and (stringp value) (= 0 (length value))))
                        (t (push (powerline-raw value ,face) result)))))))
                (t
@@ -341,7 +343,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
              ,@(spaceline--gen-separator 'line-face 'l)
              (reverse result)))
 
-         (sep-dirs (spaceline--get-separator-dirs 'l))
+         (sep-dirs (spaceline--get-separator-dirs 'r))
          (right-code
           `(let ((default-face face1) (other-face face2)
                  (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
