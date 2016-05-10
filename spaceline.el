@@ -295,7 +295,8 @@ Returns a list of forms."
             `(;; Add padding unless the segment is tight
               ,@(unless tight-right `((push (propertize " " 'face ,face) result)))
               ;; Rotate the faces for the next top level segment
-              (cl-rotatef default-face other-face)
+              ,@(unless (plist-get props :skip-alternate)
+                  '((cl-rotatef default-face other-face)))
               ;; We need a new separator at the next producing segment
               (setq needs-separator ,(not tight-right))))
 
