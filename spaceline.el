@@ -45,15 +45,8 @@
 (defvar spaceline-byte-compile t
   "Whether to byte-compile the modeline.")
 
-(defvar spaceline-left nil
-  "A list of modeline segments to render on the left side of the modeline.
-
-See `spaceline--eval-segment' for what constitutes a segment.")
-
-(defvar spaceline-right nil
-  "List of modeline segments to render on the right side of the modeline.
-
-See `spaceline--eval-segment' for what constitutes a segment.")
+(defvar spaceline-mode-lines nil
+  "Alist of modelines.")
 
 (defvar spaceline-pre-hook nil
   "Hook run before the modeline is rendered.")
@@ -317,40 +310,43 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
 
 (defun spaceline-install (&rest args)
   (interactive)
-  (let* ((nargs (length args))
-         (target (if (cl-oddp nargs) (pop args) 'main))
-         (left-var (intern (format "spaceline-ml-%s-left" target)))
-         (right-var (intern (format "spaceline-ml-%s-right" target)))
-         (left-segs (if (> nargs 1) (pop args) (symbol-value left-var)))
-         (right-segs (if (> nargs 1) (pop args) (symbol-value right-var)))
-         (target-func (intern (format "spaceline-ml-%s" target)))
+  (if (and (eq 1 (length args)) (eq 'all (car args)))
+      (dolist (target spaceline-mode-lines)
+        (spaceline-install (car target)))
+    (let* ((nargs (length args))
+           (target (if (cl-oddp nargs) (pop args) 'main))
+           (left-segs (if (> nargs 1) (pop args)
+                        (cadr (assq target spaceline-mode-lines))))
+           (right-segs (if (> nargs 1) (pop args)
+                         (cddr (assq target spaceline-mode-lines))))
+           (target-func (intern (format "spaceline-ml-%s" target)))
+           (sep-style (format "powerline-%s" powerline-default-separator))
 
-         (sep-style (format "powerline-%s" powerline-default-separator))
+           (sep-dirs (spaceline--get-separator-dirs 'l))
+           (left-code
+            `(let ((default-face face1) (other-face face2)
+                   (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
+                   (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+                   prior next-prior produced needs-separator separator-face result)
+               ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'l)) left-segs))
+               ,@(spaceline--gen-separator 'line-face 'l)
+               (reverse result)))
 
-         (sep-dirs (spaceline--get-separator-dirs 'l))
-         (left-code
-          `(let ((default-face face1) (other-face face2)
-                 (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
-                 (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
-                 prior next-prior produced needs-separator separator-face result)
-             ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'l)) left-segs))
-             ,@(spaceline--gen-separator 'line-face 'l)
-             (reverse result)))
+           (sep-dirs (spaceline--get-separator-dirs 'r))
+           (right-code
+            `(let ((default-face face1) (other-face face2)
+                   (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
+                   (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+                   prior next-prior needs-separator separator-face result)
+               ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'r)) (reverse right-segs)))
+               ,@(spaceline--gen-separator 'line-face 'r)
+               result)))
 
-         (sep-dirs (spaceline--get-separator-dirs 'r))
-         (right-code
-          `(let ((default-face face1) (other-face face2)
-                 (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
-                 (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
-                 prior next-prior needs-separator separator-face result)
-             ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'r)) (reverse right-segs)))
-             ,@(spaceline--gen-separator 'line-face 'r)
-             result)))
+      (unless (assq target spaceline-mode-lines)
+        (push `(,target) spaceline-mode-lines))
+      (setcdr (assq target spaceline-mode-lines) `(,left-segs . ,right-segs))
 
-    (eval `(progn
-             (setq ,left-var ',left-segs)
-             (setq ,right-var ',right-segs)
-             (defun ,target-func ()
+      (eval `(defun ,target-func ()
                (run-hooks 'spaceline-pre-hook)
                (let* ((active (powerline-selected-window-active))
                       (line-face (spaceline--get-face 'line active))
@@ -361,10 +357,10 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                       (rhs ,right-code))
                  (concat (powerline-render lhs)
                          (powerline-fill line-face (powerline-width rhs))
-                         (powerline-render rhs))))
-             (when spaceline-byte-compile
-               (let ((byte-compile-warnings nil))
-                 (byte-compile ',target-func)))))))
+                         (powerline-render rhs)))))
+      (when spaceline-byte-compile
+        (let ((byte-compile-warnings nil))
+          (byte-compile target-func))))))
 
 (defmacro spaceline-define-segment (name value &rest props)
   "Define a modeline segment called NAME with value VALUE and properties PROPS.
