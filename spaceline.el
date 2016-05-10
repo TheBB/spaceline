@@ -42,39 +42,37 @@
 (defvar evil-state)
 (defvar evil-visual-selection)
 
-(defvar spaceline-left nil
-  "A list of modeline segments to render on the left side of the modeline.
+(defvar spaceline-byte-compile t
+  "Whether to byte compile the modeline.")
 
-See `spaceline--eval-segment' for what constitutes a segment.")
-
-(defvar spaceline-right nil
-  "List of modeline segments to render on the right side of the modeline.
-
-See `spaceline--eval-segment' for what constitutes a segment.")
+(defvar spaceline--mode-lines nil
+  "Alist of modelines.
+Each CAR is a symbol naming the modeline, and the CDR is a cons
+cell (LEFT . RIGHT) where LEFT and RIGHT are lists of segments.
+See `spaceline-compile' for a description of segments.")
 
 (defvar spaceline-pre-hook nil
   "Hook run before the modeline is rendered.")
 
-(defvar spaceline--global-excludes nil
-  "List of symbols that will be excluded from `global-mode-string'.
-
-This list is populated by `spacemacs-install' by investigating the
-`:global-override' properties of all the included segments.")
-
 (defvar spaceline-separator-dir-left nil
   "The separator directions to use for the left side.
-Cons of the form (DIR . DIR) where DIR is one of left and right, or nil, in
-which case the best separators are chosen depending on the separator style.")
+Cons of the form (DIR . DIR) where DIR is one of left and right,
+or nil, in which case the best separators are chosen depending on
+the separator style.")
 
 (defvar spaceline-separator-dir-right nil
   "The separator directions to use for the right side.
-Cons of the form (DIR . DIR) where DIR is one of left and right, or nil, in
-which case the best separators are chosen depending on the separator style.")
+Cons of the form (DIR . DIR) where DIR is one of left and right,
+or nil, in which case the best separators are chosen depending on
+the separator style.")
 
 (defvar spaceline-directed-separators '(arrow arrow-fade brace butt curve roundstub utf-8)
-  "List of separators for which spaceline will choose different separator
-directions on the left and right side, if not explicitly set in
-`spaceline-separator-dir-left' or `spaceline-separator-dir-right'.")
+  "List of directed powerline separators.
+Unless the directions are explicitly set in
+`spaceline-separator-dir-left' or
+`spaceline-separator-dir-right', these are the separators for
+which Spaceline will choose different directions on the left and
+right sides.")
 
 (defvar spaceline-highlight-face-func 'spaceline-highlight-face-default
   "The function that decides the highlight face.
@@ -82,17 +80,29 @@ Superseded by `spaceline-face-func' if that variable is set.")
 
 (defvar spaceline-face-func nil
   "The function that defines all faces.
-
-Must be a function that accepts two arguments: FACE and ACTIVE, where
-FACE is `face1', `face2' `line' or `highlight', and ACTIVE determines whether
-the window in question is active. It should return a face to use.
+Must be a function that accepts two arguments: FACE and ACTIVE,
+where FACE is `face1', `face2' `line' or `highlight', and ACTIVE
+determines whether the window in question is active.  It should
+return a face to use.
 
 This variable supersedes `spaceline-highlight-face-func' if set.")
 
+(defun spaceline--get-separator-dirs (side)
+  "Gets the preconfigured separator directions for SIDE, or the \"best\" ones,
+if not specified."
+  (or (if (eq 'l side)
+          spaceline-separator-dir-left
+        spaceline-separator-dir-right)
+      (cond
+       ((memq powerline-default-separator spaceline-directed-separators)
+        (if (eq 'l side) '(left . left) '(right . right)))
+       (t '(left . right)))))
+
 (defun spaceline--get-face (face active)
   "Universal function to get the right face.
-FACE and ACTIVE have the same meanings as in `spaceline-face-func'. Delegates
-the work to `spaceline-face-func' if it is given, otherwise falls back to
+FACE and ACTIVE have the same meanings as in
+`spaceline-face-func'.  It delegates the work to
+`spaceline-face-func' if it is given, otherwise falls back to
 default configuration."
   (if spaceline-face-func
       (funcall spaceline-face-func face active)
@@ -130,9 +140,8 @@ default configuration."
 
 (defun spaceline-highlight-face-default ()
   "The default highlight face function.
-
-Set `spaceline-highlight-face-func' to `spaceline-highlight-face-default' to use
-this."
+Set `spaceline-highlight-face-func' to
+`spaceline-highlight-face-default' to use this."
   'spaceline-highlight-face)
 
 (defvar spaceline-evil-state-faces
@@ -147,9 +156,8 @@ Is used by `spaceline-highlight-face-evil-state'.")
 
 (defun spaceline-highlight-face-evil-state ()
   "Set the highlight face depending on the evil state.
-
-Set `spaceline-highlight-face-func' to `spaceline-highlight-face-evil-state' to
-use this."
+Set `spaceline-highlight-face-func' to
+`spaceline-highlight-face-evil-state' to use this."
   (if (bound-and-true-p evil-local-mode)
       (let* ((state (if (eq 'operator evil-state) evil-previous-state evil-state))
              (face (assq state spaceline-evil-state-faces)))
@@ -158,9 +166,8 @@ use this."
 
 (defun spaceline-highlight-face-modified ()
   "Set the highlight face depending on the buffer modified status.
-
-Set `spaceline-highlight-face-func' to `spaceline-highlight-face-modified' to
-use this."
+Set `spaceline-highlight-face-func' to
+`spaceline-highlight-face-modified' to use this."
   (cond
    (buffer-read-only 'spaceline-read-only)
    ((buffer-modified-p) 'spaceline-modified)
@@ -168,14 +175,14 @@ use this."
 
 (defun spaceline--imagep (object)
   "Test whether the given OBJECT is an image.
-
 An image is a list whose first element is the symbol `image'."
   (and (listp object)
        object
        (eq 'image (car object))))
 
 (defun spaceline--intersperse (separator seq)
-  "Intersperses SEPARATOR between each element of SEQ."
+  "Intersperses SEPARATOR between each element of SEQ.
+This function does not run in-place.  It returns a new list."
   (cond
    ((not seq) nil)
    ((not (cdr seq)) seq)
@@ -183,7 +190,7 @@ An image is a list whose first element is the symbol `image'."
               (spaceline--intersperse separator (cdr seq))))))
 
 (defun spaceline--mode-line-nonempty (seg)
-  "Check whether a modeline segment SEG (classical Emacs style) is nonempty."
+  "Check whether a modeline segment SEG is nonempty."
   (let ((val (format-mode-line seg)))
     (cond ((listp val) val)
           ((stringp val) (< 0 (length val)))
@@ -191,15 +198,16 @@ An image is a list whose first element is the symbol `image'."
 
 (defmacro spaceline--parse-segment-spec (spec &rest body)
   "Destructure the segment specification SPEC and then run BODY.
-
 The following bindings are available in BODY:
-
-- `segment': The segment itself, either a symbol or a literal value, or a list
-  of such.
-- `segment-symbol': The function that evaluates `segment', if it is a symbol.
+- `segment': The segment itself, either a symbol or a literal
+  value, or a list of such.
+- `segment-symbol': The function that evaluates `segment', if it
+  is a symbol.
+- `sym-form': The form that evaluates the segment, if it is a
+  symbol.
 - `input-props': The property list part of SPEC, if present.
-- `props': The full property list (including those bound to `segment-symbol', if
-  applicable)."
+- `props': The full property list (including those bound to the
+  symbol, if applicable)."
   (declare (indent 1))
   `(let* ((input (if (and (listp ,spec)
                           (cdr ,spec)
@@ -207,60 +215,309 @@ The following bindings are available in BODY:
                      ,spec
                    (cons ,spec nil)))
           (segment (car input))
-          (segment-symbol (when (symbolp segment)
-                            (intern (format "spaceline--segment-%S" segment))))
+          (sym (when (symbolp segment) (intern (format "spaceline-%s-p" segment))))
+          (sym-form (when (symbolp segment) (get sym :code)))
           (input-props (cdr input))
           (props (append input-props
-                         (when (symbolp segment)
-                           (symbol-plist segment-symbol)))))
+                         (when (symbolp segment) (symbol-plist sym)))))
      ,@body))
 
-(defun spaceline--update-global-excludes-from-list (segments)
-  "Add global overrides from the segment list SEGMENTS."
-  (when segments
-    (spaceline--parse-segment-spec (car segments)
-      (let* ((exclude (plist-get props :global-override))
-             (excludes (if (listp exclude) exclude (list exclude))))
-        (dolist (e excludes)
-          (add-to-list 'spaceline--global-excludes e))))
-    (spaceline--update-global-excludes-from-list (cdr segments))))
+(defun spaceline--gen-separator (face side)
+  "Generate the code for producing a separator, if needed.
+Generates a separator with faces SEPARATOR-FACE (should be bound
+where the code runs) and FACE.  SIDE is l or r."
+  `((when needs-separator
+      ,(if (eq 'l side)
+           `(push (funcall default-sep separator-face ,face) result)
+         `(push (funcall default-sep ,face separator-face) result))
+      (cl-rotatef default-sep other-sep)
+      (setq needs-separator nil))))
 
-(defun spaceline--update-global-excludes ()
-  "Populate the list `spacemacs--global-excludes'.
+(defun spaceline--gen-produce (face side)
+  "Generate pre-production code.
+This code must run immediately before any segment produces
+output, if and only if it actually produces output.  This will
+1. Generate a separator with the correct FACE and SIDE.
+   (see `spaceline--gen-separator')
+2. Output the value of PRIOR, if given.
+3. Reset the value of PRIOR to NEXT-PRIOR.
+4. Set SEPARATOR-FACE for the next separator."
+  `(,@(spaceline--gen-separator face side)
+    (when prior
+      (push prior result))
+    (setq prior next-prior)
+    (setq separator-face ,face)))
 
-Depends on the values of `spaceline-left' and `spaceline-right',"
-  (setq spaceline--global-excludes nil)
-  (spaceline--update-global-excludes-from-list spaceline-left)
-  (spaceline--update-global-excludes-from-list spaceline-right))
+(defun spaceline--gen-segment (segment-spec side &optional outer-props deep)
+  "Generate the code for evaluating a segment.
+SEGMENT-SPEC is a valid Spaceline segment.  See
+`spaceline-compile'.  SIDE is either l or r. OUTER-PROPS is a
+property list with properties inherited from parent segments.
+DEEP is true if this segment is not a top level segment.
 
-(defun spaceline-install (left right)
-  "Install a modeline given by the lists of segment specs LEFT and RIGHT."
-  (setq spaceline-left left)
-  (setq spaceline-right right)
-  (spaceline--update-global-excludes)
-  (setq-default mode-line-format '("%e" (:eval (spaceline--prepare spaceline-left spaceline-right)))))
+This function should only be called from outside code with
+OUTER-PROPS and DEEP set to nil.
+
+Returns a list of forms."
+  (spaceline--parse-segment-spec segment-spec
+    (let* (;; Assemble the properties in the correct order
+           (props (append props outer-props))
+
+           ;; Explicitly set the fallback property for child segments to nil,
+           ;; as it should not be inherited
+           (fallback (plist-get props :fallback))
+           (nest-props (append '(:fallback nil) input-props outer-props))
+
+           (condition (if (plist-member props :when)
+                          (plist-get props :when) t))
+           (face (or (plist-get props :face) 'default-face))
+           (face (if (memq face '(default-face other-face highlight-face))
+                     face `(quote ,face)))
+           (separator `(powerline-raw ,(or (plist-get props :separator) " ") ,face))
+           (tight-left (or (plist-get props :tight)
+                           (plist-get props :tight-left)))
+           (tight-right (or (plist-get props :tight)
+                            (plist-get props :tight-right)))
+
+           ;; A temporary variable to check whether this segment has produced
+           ;; output. It is uninterned to prevent it from clashing with those
+           ;; of children or parent segments.
+           (prev-res-var (make-symbol "prev-res"))
+
+           clean-up-code)
+
+      ;; On the right we output we produce output in the reverse direction,
+      ;; so the meanings of left and right are interchanged
+      (when (eq 'r side) (cl-rotatef tight-left tight-right))
+
+      ;; The clean-up-code runs for top level segments which produced output
+      (setq clean-up-code
+            `(;; Add padding unless the segment is tight
+              ,@(unless tight-right `((push (propertize " " 'face ,face) result)))
+              ;; Rotate the faces for the next top level segment
+              ,@(unless (plist-get props :skip-alternate)
+                  '((cl-rotatef default-face other-face)))
+              ;; We need a new separator at the next producing segment
+              (setq needs-separator ,(not tight-right))))
+
+      `(;; Don't produce a separator if the segment is tight
+        ,@(when tight-left `((setq needs-separator nil)))
+
+        ;; Store the current result pointer in the temp variable
+        (let ((,prev-res-var result))
+
+          ;; Top-level non-tight segments need padding
+          ,@(unless (or deep tight-left)
+              `((setq prior (propertize " " 'face ,face))))
+
+          ;; Evaluate the segment
+          (when ,condition
+            ,@(cond
+               ((listp segment)
+                ;; List segments can potentially have a new separator between
+                ;; their elements, but not before the first one; therefore we
+                ;; set NEXT-PRIOR but leave PRIOR alone
+                `((let ((next-prior ,separator))
+                    ,@(apply 'append
+                             (mapcar (lambda (s)
+                                       (spaceline--gen-segment s side nest-props 'deep))
+                                     (if (eq 'r side) (reverse segment) segment))))
+                  ;; Since PRIOR may have been disrupted, we reset it here
+                  (setq prior next-prior)))
+               ((symbolp segment)
+                `((-when-let (value ,sym-form)
+                    ;; Symbol segments are assumed to not produce output unless
+                    ;; they evaluate to nil or an empty string
+                    (unless (and (stringp value) (string= "" value))
+                      ,@(spaceline--gen-produce face side))
+                    (cond
+                     ;; Images are lists, so they must be treated first
+                     ((spaceline--imagep value) (push value result))
+                     ((listp value)
+                      (dolist (r ,(if (eq 'l side)
+                                      `(spaceline--intersperse ,separator value)
+                                    `(reverse (spaceline--intersperse ,separator value))))
+                        (push (if (spaceline--imagep r) r (powerline-raw r ,face)) result)))
+                     ((and (stringp value) (string= "" value)))
+                     (t (push (powerline-raw value ,face) result))))))
+               (t
+                ;; Literal segments are assumed to always produce; no check for
+                ;; empty string here
+                `(,@(spaceline--gen-produce face side)
+                  (push (powerline-raw (format "%s" ,segment) ,face) result)))))
+          ;; At this point, if prev-res-var is `eq' to result, the segment did
+          ;; not produce output
+          ,@(cond
+             ;; For deep segments (not top level) with fallback, we call the
+             ;; fallback if they failed to produce
+             ((and fallback deep)
+              `((unless (eq ,prev-res-var result)
+                  ,@(spaceline--gen-segment fallback side nest-props deep))))
+             ;; For top level segments with fallbacks, we call the fallback if
+             ;; they failed to produce, or clean up if they did
+             ((and fallback (not deep))
+              `((if (eq ,prev-res-var result)
+                    (progn ,@(spaceline--gen-segment fallback side nest-props deep))
+                  ,@clean-up-code)))
+             ;; For top level segments without fallbacks, we clean up if they produced
+             ((and (not fallback) (not deep))
+              `((unless (eq ,prev-res-var result)
+                  ,@clean-up-code)))))))))
+
+(defun spaceline-compile (&rest args)
+  "Compile a modeline.
+
+This function accepts a number of calling conventions:
+- With three arguments, TARGET, LEFT and RIGHT, it compiles a
+  modeline named TARGET, with segment lists LEFT and RIGHT for
+  the left and right sides respectively.
+- With two arguments, LEFT and RIGHT, the target takes the
+  default value `main'.
+- With one argument, TARGET, it recompiles the modeline named
+  TARGET with the same segments as it was originally compiled.
+- With no arguments, it recompiles all existing modelines with
+  the same segments as they were originally compiled.
+
+In all cases, a function called `spaceline-ml-TARGET' is defined,
+which evaluates the modeline. It can then be used as a modeline
+by setting `mode-line-format' to
+
+    (\"%e\" (:eval (spaceline-ml-TARGET)))
+
+If `spaceline-byte-compile' is non-nil, this function will be
+byte-compiled. This is recommended for regular usage as it
+improves performance significantly.
+
+Each element in LEFT and RIGHT must be a valid segment. Namely,
+- A literal string, integer or floating point number; or
+- a symbol, which has been defined with
+  `spaceline-define-segment'; or
+- a list of segments; or
+- a list where the first element is a segment, and the rest of
+  the list is a plist.
+
+The supported properties are
+- `:when', a form that must evaluate to non-nil for the segment to
+  show (default t)
+- `:face', the face with which to render the segment; may either
+  be a fixed face or one of the variables `default-face',
+  `other-face' or `highlight-face' (default `default-face')
+- `:separator', a string inserted between each element in a list
+  segment (default \" \")
+- `:tight-left', non-nil if the segment should have no padding on
+  the left side (default nil)
+- `:tight-right', non-nil if the segment should have no padding on
+  the right side (default nil)
+- `:tight', non-nil if the segment should have no padding on
+  either side (default nil)
+- `:fallback', another segment that will be called if no output
+  is produced"
+  (interactive)
+  (if (not args)
+      ;; Recompile all modelines
+      (dolist (target spaceline--mode-lines)
+        (spaceline-install (car target)))
+    (let* (;; Handle the different calling conventions
+           (nargs (length args))
+           (target (if (cl-oddp nargs) (pop args) 'main))
+           (left-segs (if (> nargs 1) (pop args)
+                        (cadr (assq target spaceline--mode-lines))))
+           (right-segs (if (> nargs 1) (pop args)
+                         (cddr (assq target spaceline--mode-lines))))
+           (target-func (intern (format "spaceline-ml-%s" target)))
+
+           ;; Special support for the global segment: compile list of excludes
+           (global-excludes (append (spaceline--global-excludes left-segs)
+                                    (spaceline--global-excludes right-segs)))
+
+
+           (sep-style (format "powerline-%s" powerline-default-separator))
+
+           ;; Generate code for the left hand side; some of the bindings needed
+           ;; for the code generated by the `spaceline--gen' functions are let-bound
+           ;; here
+           (sep-dirs (spaceline--get-separator-dirs 'l))
+           (left-code
+            `(let ((default-face face1) (other-face face2)
+                   (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
+                   (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+                   (global-excludes ',global-excludes)
+                   prior next-prior produced needs-separator separator-face result)
+               ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'l)) left-segs))
+               ,@(spaceline--gen-separator 'line-face 'l)
+               ;; Output is pushed onto the result in the wrong order, so we
+               ;; reverse it here
+               (reverse result)))
+
+           ;; The right side works the same as the left, except all the segments
+           ;; are reversed (here and deeper in the tree) while the output is not
+           (sep-dirs (spaceline--get-separator-dirs 'r))
+           (right-code
+            `(let ((default-face face1) (other-face face2)
+                   (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
+                   (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+                   (global-excludes ',global-excludes)
+                   prior next-prior needs-separator separator-face result)
+               ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'r)) (reverse right-segs)))
+               ,@(spaceline--gen-separator 'line-face 'r)
+               result)))
+
+      ;; Update the stored segments so that recompilation will work
+      (unless (assq target spaceline--mode-lines)
+        (push `(,target) spaceline--mode-lines))
+      (setcdr (assq target spaceline--mode-lines) `(,left-segs . ,right-segs))
+
+      ;; Define the modeline evaluation function. This part runs the hook, and
+      ;; let-binds all the variables which don't depend on the side (left or
+      ;; right).
+      (eval `(defun ,target-func ()
+               (run-hooks 'spaceline-pre-hook)
+               (let* ((active (powerline-selected-window-active))
+                      (line-face (spaceline--get-face 'line active))
+                      (highlight-face (spaceline--get-face 'highlight active))
+                      (face1 (spaceline--get-face 'face1 active))
+                      (face2 (spaceline--get-face 'face2 active))
+                      (lhs ,left-code)
+                      (rhs ,right-code))
+                 (concat (powerline-render lhs)
+                         (powerline-fill line-face (powerline-width rhs))
+                         (powerline-render rhs)))))
+
+      ;; Possibly byte compile the output
+      (when spaceline-byte-compile
+        (let ((byte-compile-warnings nil))
+          (byte-compile target-func))))))
+
+(defalias 'spaceline-install 'spaceline-compile)
 
 (defmacro spaceline-define-segment (name value &rest props)
   "Define a modeline segment called NAME with value VALUE and properties PROPS.
 
-Its value is computed by the form VALUE.  The optional keyword argument `:when'
-defines a condition required for the segment to be shown.
+Its value is computed by the form VALUE. The segment will not
+produce output if VALUE evaluates to nil or an empty string. All
+other values are assumed truthy.
 
-This macro defines a function `spaceline--segment-NAME' which returns a list of
-modeline objects (strings or images).  If the form VALUE does not result in a
-list, the return value will be wrapped as a singleton list.
+This macro defines a variable `spaceline--NAME-p' whose value can
+be used to switch the segment on or off. Its initial value is
+given by the optional keyword argument `:enabled', which defaults
+to true.
 
-Also defined is a variable `spaceline--NAME-p' whose value can be used to switch
-the segment on or off.  Its initial value is given by the optional keyword
-argument `:enabled', which defaults to true.
+If the segment is intended as a replacement for data which is
+otherwise inserted into `global-mode-string' (typically by
+another package), you can use the keyword argument
+`:global-override' to disable that. Its value is a single element
+or a list of elements which will be removed from
+`global-mode-string' before evaluation of the `global' segment.
+For modelines that do not use the `global' segment, this has no
+effect.
 
-If the segment is intended as a replacement for data which is otherwise inserted
-into `global-mode-string' (typically by another package), you can use the
-keyword argument `GLOBAL-OVERRIDE' to disable that.
+All properties accepted in `spaceline-compile' are also accepted
+here. They are stored in a plist attached to the symbol
+`spaceline--NAME-p' to be inspected at compilation time by
+`spaceline-compile'.
 
-All properties listed in `spaceline--eval-segment' are also accepted here.  They
-are stored in a plist attached to the symbol, to be inspected at evaluation time
-by `spaceline--eval-segment'."
+When a segment is redefined, the modelines must be recompiled for
+the changes to take effect."
   (declare (indent 1)
            (doc-string 2))
   (let* ((wrapper-func (intern (format "spaceline--segment-%S" name)))
@@ -272,256 +529,50 @@ by `spaceline--eval-segment'."
                       (prog1 value
                         (setq value (car props)
                               props (cdr props)))))
-         (docstring (concat "A modeline segment generated by `spaceline-define-segment'.\n\n"
-                            docstring))
+         (value `(when ,toggle-var ,value))
          (enabled (if (plist-member props :enabled)
                       (plist-get props :enabled)
                     t))
-         (condition `(and ,toggle-var
-                          ,(if (plist-member props :when)
-                               (plist-get props :when)
-                             t))))
+         (global-override (plist-get props :global-override))
+         (global-override (if (listp global-override)
+                              global-override
+                            (list global-override))))
     `(progn
        (defvar ,toggle-var ,enabled
          ,(format "True if modeline segment %S is enabled." name))
+       ;; In case the segment is redefined, we explicitly set the toggle
+       (setq ,toggle-var ,enabled)
+
        (defun ,toggle-func () (interactive) (setq ,toggle-var (not ,toggle-var)))
        (defun ,toggle-func-on () (interactive) (setq ,toggle-var t))
        (defun ,toggle-func-off () (interactive) (setq ,toggle-var nil))
-       (defun ,wrapper-func (&optional props active default-face other-face
-                                       highlight-face line-face)
-         ,docstring
-         (when ,condition
-           (let ((separator (eval (or (plist-get props :separator) " ")))
-                 (value ,value))
-             (cond ((spaceline--imagep value) (list value))
-                   ((listp value)
-                    (spaceline--intersperse separator value))
-                   ((and (stringp value)
-                         (= 0 (length value)))
-                    nil)
-                   (t (list value))))))
-       (setplist ',wrapper-func ',props))))
 
-(defun spaceline--global ()
-  "Return `global-mode-string' with the excluded segments removed."
-  (cond
-   ((listp global-mode-string)
-    (-difference global-mode-string spaceline--global-excludes))
-   (t global-mode-string)))
+       ;; Explicitly set the plist, in case the segment is redefined
+       (let ((doc (get ',toggle-var 'variable-documentation)))
+         (setplist ',toggle-var ',props)
+         (put ',toggle-var 'variable-documentation doc))
+
+       ;; These properties must be explicitly set
+       (put ',toggle-var :code ',value)
+       (put ',toggle-var :global-override ',global-override))))
+
+(defun spaceline--global-excludes (segments)
+  "Compute global overrides from the segment list SEGMENTS."
+  (let (excludes)
+    (dolist (s-spec segments)
+      (spaceline--parse-segment-spec s-spec
+        (setq excludes (append (plist-get props :global-override) excludes))
+        (when (listp segment)
+          (setq excludes (append (spaceline--global-excludes segment) excludes)))))
+    excludes))
+
 (spaceline-define-segment global
-  (powerline-raw (spaceline--global))
-  :when (spaceline--mode-line-nonempty (spaceline--global)))
-
-(cl-defstruct spaceline--seg
-  objects
-  face-left
-  face-right
-  tight-left
-  tight-right
-  skip-alternate)
-
-(defun spaceline--eval-segment (segment-spec &optional outer-props
-                                             active default-face other-face
-                                             highlight-face line-face)
-  "Evaluate SEGMENT-SPEC with additional properties OUTER-PROPS.
-
-SEGMENT-SPEC may be either:
-- A literal value (number or string, for example)
-- A symbol previously defined by `spaceline-define-segment'
-- A list whose car is a segment-spec and whose cdr is a plist of properties
-- A list of segment-specs
-
-The properties applied are, in order of priority:
-- Those given by SEGMENT-SPEC, if applicable
-- The properties attached to the segment symbol, if applicable
-- OUTER-PROPS
-
-Valid properties are:
-- `:tight-left' => if true, the segment should be rendered with no padding or
-  separator on its left side
-- `:tight-right' => corresponding option for the right side
-- `:tight' => shorthand option to set both `:tight-left' and `:tight-right'
-- `:when' => condition that determines whether this segment is shown
-- `:fallback' => segment to evaluate if this segment produces no output
-- `:separator' => string with which to separate nested segments
-- `:face' => the face with which to render the segment
-
-When calling nested or fallback segments, the full property list is passed as
-`OUTER-PROPS', with the exception of `:fallback'.  This means that more deeply
-specified properties, as a rule, override the higher level ones.  The exception
-is `:when', which must be true at all levels.
-
-The return value is a `segment' struct.  Its OBJECTS list may be nil."
-
-  ;; We get a property list from SEGMENT-SPEC if it's a list with more than
-  ;; one element whose second element is a keyword symbol
-  (spaceline--parse-segment-spec segment-spec
-    (let* (;; Assemble the properties in the correct order
-           (props (append props outer-props))
-
-           ;; Property list to be passed to nested or fallback segments
-           (nest-props (append '(:fallback nil) input-props outer-props))
-
-           ;; Parse property list
-           (condition (if (plist-member props :when)
-                          (eval (plist-get props :when))
-                        t))
-           (face (let ((face-spec (or (plist-get props :face) 'default-face)))
-                   (if (facep face-spec) face-spec (eval face-spec))))
-           (separator (powerline-raw (eval (or (plist-get props :separator) " ")) face))
-           (tight-left (or (plist-get props :tight)
-                           (plist-get props :tight-left)))
-           (tight-right (or (plist-get props :tight)
-                            (plist-get props :tight-right)))
-
-           ;; Final output
-           (result (make-spaceline--seg
-                    :objects nil
-                    :face-left face
-                    :face-right face
-                    :tight-left tight-left
-                    :tight-right tight-right
-                    :skip-alternate (plist-get props :skip-alternate))))
-
-      ;; Evaluate the segment based on its type
-      (when condition
-        (cond
-
-         ;; A list of segments
-         ((listp segment)
-          (let ((results (cl-remove-if-not
-                          'spaceline--seg-objects
-                          (mapcar (lambda (s)
-                                    (spaceline--eval-segment
-                                     s nest-props active
-                                     default-face other-face
-                                     highlight-face line-face))
-                                  segment))))
-            (when results
-              (setf (spaceline--seg-objects result)
-                    (apply 'append (spaceline--intersperse
-                                    (list separator)
-                                    (mapcar 'spaceline--seg-objects results))))
-              (setf (spaceline--seg-face-left result)
-                    (spaceline--seg-face-left (car results)))
-              (setf (spaceline--seg-face-right result)
-                    (spaceline--seg-face-right (car (last results))))
-              (setf (spaceline--seg-tight-left result)
-                    (spaceline--seg-tight-left (car results)))
-              (setf (spaceline--seg-tight-right result)
-                    (spaceline--seg-tight-right (car (last results)))))))
-
-         ;; A single symbol
-         ((symbolp segment)
-          (when (fboundp segment-symbol)
-            (setf (spaceline--seg-objects result)
-                  (mapcar (lambda (s)
-                            (if (spaceline--imagep s) s (powerline-raw s face)))
-                          (funcall segment-symbol
-                                   props active default-face other-face
-                                   highlight-face line-face)))))
-
-         ;; A literal value
-         (t (setf (spaceline--seg-objects result)
-                  (list (powerline-raw (format "%s" segment) face))))))
-
-      (cond
-       ;; This segment produced output, so return it
-       ((spaceline--seg-objects result) result)
-
-       ;; Return the fallback segment, if any
-       ((plist-get props :fallback)
-        (spaceline--eval-segment (plist-get props :fallback)
-                                 nest-props active default-face other-face
-                                 highlight-face line-face))
-
-       ;; No output (objects = nil)
-       (t result)))))
-
-(defun spaceline--get-separator-dirs (side)
-  "Gets the preconfigured separator directions for SIDE, or the \"best\" ones,
-if not specified."
-  (or (if (eq 'l side)
-          spaceline-separator-dir-left
-        spaceline-separator-dir-right)
-      (cond
-       ((memq powerline-default-separator spaceline-directed-separators)
-        (if (eq 'l side) '(left . left) '(right . right)))
-       (t '(left . right)))))
-
-(defun spaceline--prepare-any (spec side active line-face)
-  "Prepare one side of the modeline.
-
-SPEC is a list of segment specs (see `spaceline--eval-segment'), and SIDE is
-either of the symbols l or r.
-
-ACTIVE is true if the current window is active.  LINE-FACE is the face used to
-render the empty space in the middle of the mode-line."
-  (let* ((default-face (spaceline--get-face 'face1 active))
-         (other-face (spaceline--get-face 'face2 active))
-         (highlight-face (spaceline--get-face 'highlight active))
-
-         ;; Hack to propertize right side from the right
-         (spec (if (eq 'r side) (reverse spec) spec))
-
-         ;; Loop through the segments and collect the results
-         (segments (cl-loop with result
-                            for s in spec
-                            do (setq result (spaceline--eval-segment
-                                             s nil active
-                                             default-face other-face
-                                             highlight-face line-face))
-                            if (spaceline--seg-objects result)
-                            collect result
-                            and do (unless (spaceline--seg-skip-alternate result)
-                                     (cl-rotatef default-face other-face))))
-
-         ;; Hack to propertize right side from the right
-         (segments (if (eq 'r side) (reverse segments) segments))
-
-         (dummy (make-spaceline--seg :face-left line-face :face-right line-face))
-         (separator-style (format "powerline-%S" powerline-default-separator))
-         (dirs (spaceline--get-separator-dirs side))
-         (default-separator (intern (format "%s-%S" separator-style (car dirs))))
-         (other-separator (intern (format "%s-%S" separator-style (cdr dirs)))))
-
-    ;; Collect all segment values and add separators
-    (apply 'append
-           (mapcar
-            (lambda (pair)
-              (let* ((lhs (car pair))
-                     (rhs (cdr pair))
-                     (objs (if (eq 'l side) lhs rhs))
-                     (add-sep (not (or (spaceline--seg-tight-right lhs)
-                                       (spaceline--seg-tight-left rhs)))))
-                (cl-rotatef default-separator other-separator)
-                (append
-                 (when (and (eq 'r side) add-sep)
-                   (list (funcall default-separator
-                                  (spaceline--seg-face-right lhs)
-                                  (spaceline--seg-face-left rhs))))
-                 (unless (spaceline--seg-tight-left objs)
-                   (list (powerline-raw " " (spaceline--seg-face-left objs))))
-                 (spaceline--seg-objects objs)
-                 (unless (spaceline--seg-tight-right objs)
-                   (list (powerline-raw " " (spaceline--seg-face-right objs))))
-                 (when (and (eq 'l side) add-sep)
-                   (list (funcall default-separator
-                                  (spaceline--seg-face-right lhs)
-                                  (spaceline--seg-face-left rhs)))))))
-            (-zip (if (eq 'l side) segments (cons dummy segments))
-                  (if (eq 'l side) (append (cdr segments) (list dummy)) segments))))))
-
-(defun spaceline--prepare (left right)
-  "Prepare the modeline."
-  (run-hooks 'spaceline-pre-hook)
-  (let* ((active (powerline-selected-window-active))
-         (line-face (spaceline--get-face 'line active))
-         (lhs (spaceline--prepare-any left 'l active line-face))
-         (rhs (spaceline--prepare-any right 'r active line-face)))
-    (concat (powerline-render lhs)
-            (powerline-fill line-face (powerline-width rhs))
-            (powerline-render rhs))))
+  (let* ((global-excludes (bound-and-true-p global-excludes))
+         (global (if (listp global-mode-string)
+                     (-difference global-mode-string global-excludes)
+                   global-mode-string)))
+    (when (spaceline--mode-line-nonempty global)
+      (powerline-raw global))))
 
 (provide 'spaceline)
 

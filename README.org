@@ -1,0 +1,488 @@
+#+TITLE: Spaceline
+
+[[https://melpa.org/#/spaceline][http://melpa.org/packages/spaceline-badge.svg]] [[https://stable.melpa.org/#/spaceline][https://stable.melpa.org/packages/spaceline-badge.svg]]
+
+* Contents                                                           :TOC_2_org:
+ - [[Introduction][Introduction]]
+ - [[The default themes][The default themes]]
+   - [[Optional dependencies][Optional dependencies]]
+   - [[Troubleshooting][Troubleshooting]]
+ - [[Moderate configuration][Moderate configuration]]
+   - [[Turning segments on and off][Turning segments on and off]]
+   - [[The highlight face][The highlight face]]
+   - [[Other faces][Other faces]]
+   - [[Powerline separators][Powerline separators]]
+   - [[Hooks][Hooks]]
+   - [[Unicode numbers][Unicode numbers]]
+   - [[Minor modes separator][Minor modes separator]]
+   - [[Org clock][Org clock]]
+ - [[Deep configuration][Deep configuration]]
+   - [[Segments][Segments]]
+   - [[Defining a segment][Defining a segment]]
+   - [[Properties][Properties]]
+   - [[Bindings][Bindings]]
+   - [[Compiling a mode-line][Compiling a mode-line]]
+
+* Introduction
+This is the package that provides [[http://spacemacs.org/][Spacemacs]] with its famous mode-line theme. It
+has been extracted as an independent package for general fun and profit.
+
+This package provides features for three kinds of users.
+
+1. You just want to use the Spacemacs mode-line theme and forget about it.
+2. You want to use something similar to the Spacemacs mode-line theme, but with
+   a handful of easy tweaks.
+3. You want an easy-to-use library for building your own mode-line from scratch,
+   and you think the Spacemacs theme looks good.
+
+The functionality for each are described in the following sections.
+
+The files in this package are organized as follows. Choose which you want to
+load based on what you want to do.
+
+- =spaceline.el=: Contains the core library used to define segments and render
+  the modeline. It defines no segments by itself except the =global= segment.
+  (See below.)
+- =spaceline-segments.el=: Defines all the segments used by the default
+  Spacemacs theme, but doesn’t do anything with them.
+- =spaceline-config.el=: Defines the default themes.
+
+* The default themes
+To install it, just load =spaceline-config= and call the theme function you
+want. E.g.
+
+#+BEGIN_SRC emacs-lisp
+  (require 'spaceline-config)
+  (spaceline-spacemacs-theme)
+#+END_SRC
+
+The package comes bundled with two themes:
+
+- =spaceline-spacemacs-theme=: The theme used by Spacemacs
+- =spaceline-emacs-theme=: A theme which is similar to the one used by
+  Spacemacs, but which has been designed to look good without the dependencies
+  that the Spacemacs theme needs.
+
+In addition, Spaceline supports custom themes for Info+ and Helm. These can be
+enabled through global minor modes:
+
+- =spaceline-helm-mode=
+- =spaceline-info-mode= (requires the [[http://www.emacswiki.org/emacs/InfoPlus][info+]] package)
+
+These are also defined in =spaceline-config.el=.
+
+** Optional dependencies
+These themes include several segments that depend on third-party packages. If
+these packages are not installed, these segments will be invisible and not show
+any output. As such, they can be considered /optional/ dependencies.
+
+Here follows a brief list of these dependencies. For more information consult
+the upstream sources.
+
+*** Persp-mode
+[[https://github.com/Bad-ptr/persp-mode.el][Persp-mode]] is a powerful workspace-like package. Spaceline shows the current
+workspace name.
+
+*** Eyebrowse
+[[https://github.com/wasamasa/eyebrowse][Eyebrowse]] is a simpler workspace-like package. If it is installed, The Spacemacs
+theme will show the current workspace number. The Emacs theme uses the workspace
+number as a fallback for the perspective name: thus if persp-mode is installed,
+the Eyebrowse workspace will not be shown.
+
+*** Window-numbering
+[[https://github.com/nschum/window-numbering.el][Window-numbering]] shows a number for each window, and it works with both themes.
+
+To make this package work, you have to override its own modeline display
+function:
+
+#+BEGIN_SRC emacs-lisp
+  (defun window-numbering-install-mode-line (&optional position)
+    "Do nothing.")
+#+END_SRC
+
+*** Auto-compile
+[[https://github.com/tarsius/auto-compile][Auto-compile]] automatically compiles Emacs Lisp files on save if there is an
+older byte-compiled file. Spaceline shows warnings when they occur.
+
+*** Anzu
+[[https://github.com/syohex/emacs-anzu][Anzu]] shows the current match and the total number of matches while searching.
+
+Note that Anzu inserts itself in the modeline, therefore make sure to initialize
+Spaceline /after/ Anzu.
+
+*** Flycheck
+[[https://github.com/flycheck/flycheck/][Flycheck]] is a powerful syntax-checking package. Spaceline shows errors, warnings
+and notifications from it.
+
+*** ERC
+[[http://www.emacswiki.org/emacs/ERC][ERC]] is an IRC client built in to Emacs. Spaceline shows channels with new
+messages if you have =erc-track= turned on.
+
+*** Org
+Spaceline shows the currently clocking [[http://orgmode.org/][org-mode]] task.
+
+*** Org-pomodoro
+Spaceline integrates with [[HTtps://github.com/lolownia/org-pomodoro][org-pomodoro]] by showing its clocks.
+
+*** Python virtual environments
+The currently active environments as reported by [[https://github.com/proofit404/pyenv-mode][pyenv-mode]] or [[https://github.com/jorgenschaefer/pyvenv][pyvenv]] are shown
+in Spaceline.
+
+*** Nyan cat
+[[https://github.com/TeMPOraL/nyan-mode][Nyan-mode]] shows the current position in the buffer with kittens and rainbows.
+
+*** Fancy battery
+[[https://github.com/lunaryorn/fancy-battery.el][Fancy-battery]] shows battery information in the modeline.
+
+*** Evil
+[[https://bitbucket.org/lyro/evil/wiki/Home][Evil]] makes Emacs behave like Vim. The first segment in the Spacemacs theme shows
+the current Evil state if all the other dependencies do not report information
+(i.e. no perspective, workspace or window number). The Emacs theme does not
+include any information from Evil.
+
+You can color the modeline according to the current Evil state by setting
+=spaceline-higlight-face-func= to =spaceline-highlight-face-evil-state=.
+
+** Troubleshooting
+There are a number of reasons why Spaceline might look different on your setup
+compared to Spacemacs proper. Some of the most important ones are addressed here.
+
+- You’re missing an optional dependency. Spacemacs includes packages that
+  display information in the mode-line. The leftmost segment is invisible if
+  =eyebrowse-mode=, =persp-mode=, =window-numbering-mode= and =evil= are all not
+  present. If you don’t wish to use these packages, consider using the Emacs
+  theme.
+
+- Consider setting or increasing the value of =powerline-height= to give your
+  mode-line some room to breathe.
+
+- The default powerline separator is =arrow=, but Spacemacs uses =wave=. You
+  should try out various settings of =powerline-default-separator= to find the
+  one that works for you. Note that you need to recompile the modeline with =M-x
+  spaceline-compile= after setting this variable.
+
+- If you’re using =eyebrowse-mode= or =window-numbering-mode=, consider setting
+  =spaceline-workspace-numbers-unicode= and =spaceline-window-numbers-unicode=
+  to =t= to get the nice-looking unicode numbers seen in the screenshot.
+
+- Use [[https://github.com/emacsmirror/diminish][Diminish]] to tweak the output of the minor modes segment.
+
+- To get the mode-line highlight to change color depending on the evil state,
+  set =spaceline-highlight-face-func= to =spaceline-highlight-face-evil-state=.
+
+* Moderate configuration
+
+** Turning segments on and off
+Each segment has a variable =spaceline-NAME-p= that can switch the segment off
+by setting it to =nil=. There are also three convenient interactive functions
+for toggling:
+
+- =spaceline-toggle-<name>=
+- =spaceline-toggle-<name>-on=
+- =spaceline-toggle-<name>-off=
+
+These can be bound to whichever keys you like.
+
+Here is a complete list of segments bundled with Spacemacs.
+
+- =persp-name=: integrates with =persp-mode=.
+- =workspace-number=: integrates with =eyebrowse=.
+- =window-number=: integrates with =window-numbering=.
+- =evil-state=: shows the current evil state, integrates with =evil=.
+- =anzu=: integrates with =anzu=.
+- =auto-compile=: integrates with =auto-compile=.
+- =buffer-modified=: the standard marker denoting whether the buffer is modified
+  or not.
+- =buffer-size=: the size of the buffer.
+- =buffer-id=: the name of the buffer.
+- =remote-host=: the host for remote buffers.
+- =major-mode=: the current major mode.
+- =flycheck-error=: number of flycheck errors, integrates with =flycheck=.
+- =flycheck-warning=: number of flycheck warnings, integrates with =flycheck=.
+- =flycheck-info=: number of flycheck notifications, integrates with =flycheck=.
+- =minor-modes=: the currently enabled minor modes. The output of this segment
+  can be tweaked with [`diminish`](https://github.com/emacsmirror/diminish).
+- =process=: the background process associated with the buffer, if any.
+- =erc-track=: IRC channels with new messages, integrates with =erc=.
+- =version-control=: version control information.
+- =org-pomodoro=: integrates with =org-pomodoro=.
+- =org-clock=: the current org clock, integrates with =org=.
+- =nyan-cat=: integrates with =nyan-mode=.
+- =battery=: integrates with =fancy-battery-mode=.
+- =which-function=: integrates with =which-function-mode=.
+- =python-pyvenv=: integrates with =pyvenv=.
+- =python-pyenv=: integrates with =pyenv=.
+- =selection-info=: information about the currently active selection, if any.
+- =input-method=: shows the current active input method, if any.
+- =buffer-encoding-abbrev=: the line ending convention used in the current
+  buffer (unix, dos or mac).
+- =point-position=: the value of point (disabled by default).
+- =line-column=: current line and column.
+- =global=: meta-segment used by third-party packages.
+- =buffer-position=: shows the current position in the buffer as a percentage.
+- =hud=: shows the currently visible part of the buffer.
+
+In addition, the following segments are defined, but are not used in the default
+themes.
+
+- =line=: current line.
+- =column=: current column.
+- =projectile-root=: root of current projectile project, integrates with
+  =projectile=.
+- =buffer-encoding=: like =buffer-encoding=, but not abbreviated.
+
+For the custom helm modeline, the following segments are used.
+
+- =helm-buffer-id=: the name of the current helm session.
+- =helm-number=: number of helm candidates.
+- =helm-help=: a brief help string.
+- =helm-prefix-argument=: shows the prefix argument, if any.
+- =helm-follow=: shows whether =helm-follow= is turned on.
+
+For the custom info modeline, the following segments are used.
+
+- =info-topic=: the current topic.
+- =info-nodes=: breadcrumbs.
+
+** The highlight face
+The highlight face is the face that (by default) is a sharp orange, used e.g. by
+the HUD segment on the far right, and the first segment on the left (note that
+it may be invisible if you are using the Spacemacs theme but not some of its
+optional dependencies). The actual face used as a highlight face is determined
+by a function, which can be configured by setting the value of
+=spaceline-highlight-face-func=. Spaceline comes with three choices, but of
+course you can write your own:
+
+- =spaceline-highlight-face-default=: Uses the orange, all the time. This is the
+  default.
+- =spaceline-highlight-face-evil-state=: Chooses a face determined by the
+  current evil state. The face corresponding to each state is determined by the
+  association list `spaceline-evil-state-faces`, which contains default values
+  for the standard evil states. (Spacemacs has a few more.)
+- =spaceline-highlight-face-modified=: Chooses a face determined by the status
+  of the current buffer (modified, unmodified or read-only).
+
+Note that the highlight face is only used in the active window.
+
+** Other faces
+In the active window, the mode-line will use these faces:
+
+- =powerline-active1=
+- =powerline-active2=
+- =mode-line=
+
+And in inactive windows:
+
+- =powerline-inactive1=
+- =powerline-inactive2=
+- =mode-line-inactive=
+
+To override this, you can set the variable =spaceline-face-func=. This should be
+a function that accepts two arguments and returns a face symbol. The arguments
+are:
+
+- =face=: either of =face1=, =face2=, =line= and =highlight=.
+- =active=: a boolean determining whether the window is active or not.
+
+If this function is not set, Spaceline delegates the highlight face to
+=spaceline-highlight-face-func= (see above), and picks the others according to
+the above scheme.
+
+** Powerline separators
+Set =powerline-default-separator= to configure this. The docstring for that
+variable enumerates the choices.
+
+Each separator comes in two directions: left and right. The variables
+=spaceline-separator-dir-left= and =spaceline-separator-dir-right= specify which
+directions to alternate between on the left and right side, respectively.
+
+By default these variables are set to =nil=, which means Spaceline will choose
+the directions that look best for your chosen separator style. However, you can
+set to override this, for example:
+
+#+BEGIN_SRC emacs-lisp
+  (setq spaceline-separator-dir-left '(left . left))
+  (setq spaceline-separator-dir-right '(right . right))
+#+END_SRC
+
+Note that you must recompile the modelines after changing the separators, by
+calling =M-x spaceline-compile=.
+
+** Hooks
+The hook =spaceline-pre-hook= is executed before rendering the modeline. Don’t
+put any performance-intensive functions here!
+
+** Unicode numbers
+By default, Spacemacs displays window numbers and workspace numbers in nice
+unicode symbols. To do this in Spaceline, set =spaceline-window-numbers-unicode=
+or =spaceline-workspace-numbers-unicode= to true, respectively.
+
+Spacemacs also does this with most minor modes. This is a feature that has not
+been ported to Spaceline. To do this, use [[https://github.com/emacsmirror/diminish][Diminish]].
+
+** Minor modes separator
+To configure the separator between the minor modes, use
+=spaceline-minor-modes-separator=.
+
+** Org clock
+The displayed value of the =org-clock= segment is determined by the function
+=org-clock-get-clock-string= by default. To configure another function, use
+=spaceline-org-clock-format-function=.
+
+* Deep configuration
+To understand how to do this, we must first understand how Spaceline constructs
+a mode-line.
+
+** Segments
+A /segment/ is any part of the mode-line that produces some kind of visible
+output. Typically, segments have been defined ahead of time using
+=spaceline-define-segment=, in which case the segment is referred to by a
+symbol, but segments may also be literals (strings or numbers, say) or lists of
+other segments.
+
+These are all valid segments, provided =my-segment= has been defined:
+
+#+BEGIN_SRC emacs-lisp
+  my-segment
+  "alfa"
+  (my-segment 89)
+#+END_SRC
+
+Segments may also have properties associated with them. Spaceline supports a
+variety of properties. They can be applied as follows, for a ‘singleton’
+segment:
+
+#+BEGIN_SRC emacs-lisp
+  (my-segment :prop-a value-a :prop-b value-b)
+#+END_SRC
+
+Or for a list of segments:
+
+#+BEGIN_SRC emacs-lisp
+  ((my-segment 89)
+   :prop-a value-a
+   :prop-b value-b)
+#+END_SRC
+
+** Defining a segment
+Use =spaceline-define-segment= to define a segment and associate it to a symbol.
+
+#+BEGIN_SRC emacs-lisp
+  (spaceline-define-segment name
+    "Docstring"
+    ;; A single form whose value is the value of the segment.
+    ;; It may return a string, an image or a list of such.
+    (when condition
+       output)
+
+    ;; Additional keyword properties go here
+    :prop-a value-a
+    :prop-b value-b)
+#+END_SRC
+
+In addition to storing the segment, this macro produces a variable called
+=spaceline-NAME-p= whose value may be set to switch the segment off or on
+manually. Three interactive functions are also defined:
+
+- =spaceline-toggle-NAME=
+- =spaceline-toggle-NAME-on=
+- =spaceline-toggle-NAME-off=
+
+These are convenient to bind to keys, and they do what it says on the tin.
+
+Note that if you redefine a segment, you more than likely have to recompile the
+modelines with =M-x spaceline-compile= for the changes to take effect.
+
+** Properties
+The valid properties are
+
+- =:when=: A form that, if it evaluates to =nil=, will prevent the segment from
+  showing. Note that in =spaceline-define-segment= you might just as well use an
+  ordinary =when= form. Therefore this only makes sense to use in a segment
+  spec.
+- =:separator=: A separator inserted between each element of the value of the
+  given segment. This makes most sense for lists of segments, or segments whose
+  values are typically lists (such as =minor-modes=).
+- =:fallback=: A segment which will be displayed in place of the current segment
+  if it should produce no output (either due to a nil =:when= condition or
+  because the return value of the segment itself is =nil= or the empty string).
+- =:face=: The face in which to render the segment. It may be better to use this
+  than (or in addition) to propertizing the output directly, since Spaceline
+  needs to know the faces to propertize the separators correctly. This may be
+  either a face or a form evaluating to a face. In particular, you can use
+  =highlight-face= here to use the highlight face.
+- =:tight=: Set to =t= to tell Spaceline that the segment should not have any
+  padding on the right or left. Use =:tight-left= and =:tight-right= for even
+  finer control.
+- =:skip-alternate=: Set to =t= to skip the regular alternating faces for this
+  segment.
+
+All of these are valid both in =spaceline-define-segment= as well as directly in
+the segment spec, with the excption of =:when=.
+
+Additionally, =spaceline-define-segment= allows two additional properties.
+
+- =:enabled=: Sets the initial value of the toggle variable.
+- =:global-override=: Many third-party packages provide mode-line information by
+  inserting a segment in the list =global-mode-string=. Sometimes you might like
+  to write your own segment for this, in which case you have to prevent the
+  package from using =global-mode-string=, or you will end up with duplicate
+  information and a crowded mode-line. To do this, set =:global-override= to the
+  symbol (or list of symbols) which you want to exclude from
+  =global-mode-string=. This setting will be honored by the =global= segment,
+  which is defined by Spaceline core in =spaceline.el=.
+
+The properties which take effect for any given segment are, in order of
+priority:
+
+- the properties specified in the segment specification
+- the properties given in the call to =spaceline-define-segment=
+- the properties of the parent segment
+
+The exceptions are =:when=, which must be true on *all* levels for a segment to
+be displayed, and =:fallback= which does *not* pass through from the parent
+segment.
+
+** Bindings
+When evaluating a segment, its =:when= condition or its =:face= property, the
+following bindings are available for convenience.
+
+- =active=: Whether the current window is active or not. Many segments use
+  =:when active= to only show in the current window.
+- =default-face=: The face with which the current segment /should/ be rendered.
+  If you don’t define a =:face=, this is what you get. For best results, stick
+  to the default face as often as you can.
+- =other-face=: The alternating default face. Spaceline switches =default-face=
+  and `other-face` for each top-level segment.
+- =highlight-face=: The face used to highlight ‘important’ parts, whatever that
+  may be. This may be customized.
+- =line-face=: The face with which the empty part in the middle of the mode-line
+  will be rendered.
+
+Note that the segment code runs in an environment with many local variables,
+therefore it’s a good idea to write segments as pure functions that do not
+change state.
+
+** Compiling a mode-line
+Finally, call the function =spaceline-compile=. It accepts three arguments: a
+modeline name, and two lists of segments, for the left and right sides.
+
+This produces a function =spaceline-ml-NAME= that evaluates the mode-line. To
+use it, set =mode-line-format= to
+
+#+BEGIN_SRC emacs-lisp
+  ("%e" (:eval (spaceline-ml-NAME)))
+#+END_SRC
+
+If you do not specify a name, the modeline will be installed as =main=.
+
+If you do not specify segment lists, it will either recompile the given modeline
+with the segments specified last time, or recompile /all/ modelines if the name
+is not specified.
+
+When called interactively, the latter behaviour takes effect, that is, all
+modelines are recompiled.
+
+The variable =spaceline-byte-compile= decides whether the resulting function
+will be byte-compiled. This is recommended for regular usage, as it involves
+potentially significant performance benefits.
