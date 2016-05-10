@@ -51,12 +51,6 @@
 (defvar spaceline-pre-hook nil
   "Hook run before the modeline is rendered.")
 
-(defvar spaceline--global-excludes nil
-  "List of symbols that will be excluded from `global-mode-string'.
-
-This list is populated by `spacemacs-install' by investigating the
-`:global-override' properties of all the included segments.")
-
 (defvar spaceline-separator-dir-left nil
   "The separator directions to use for the left side.
 Cons of the form (DIR . DIR) where DIR is one of left and right, or nil, in
@@ -210,24 +204,6 @@ The following bindings are available in BODY:
                          (when (symbolp segment) (symbol-plist sym)))))
      ,@body))
 
-(defun spaceline--update-global-excludes-from-list (segments)
-  "Add global overrides from the segment list SEGMENTS."
-  (when segments
-    (spaceline--parse-segment-spec (car segments)
-      (let* ((exclude (plist-get props :global-override))
-             (excludes (if (listp exclude) exclude (list exclude))))
-        (dolist (e excludes)
-          (add-to-list 'spaceline--global-excludes e))))
-    (spaceline--update-global-excludes-from-list (cdr segments))))
-
-(defun spaceline--update-global-excludes ()
-  "Populate the list `spacemacs--global-excludes'.
-
-Depends on the values of `spaceline-left' and `spaceline-right',"
-  (setq spaceline--global-excludes nil)
-  (spaceline--update-global-excludes-from-list spaceline-left)
-  (spaceline--update-global-excludes-from-list spaceline-right))
-
 (defun spaceline--gen-separator (face side)
   `((when needs-separator
       ,(if (eq 'l side)
@@ -320,6 +296,8 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
            (right-segs (if (> nargs 1) (pop args)
                          (cddr (assq target spaceline-mode-lines))))
            (target-func (intern (format "spaceline-ml-%s" target)))
+           (global-excludes (append (spaceline--global-excludes left-segs)
+                                    (spaceline--global-excludes right-segs)))
            (sep-style (format "powerline-%s" powerline-default-separator))
 
            (sep-dirs (spaceline--get-separator-dirs 'l))
@@ -327,6 +305,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
             `(let ((default-face face1) (other-face face2)
                    (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
                    (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+                   (global-excludes ',global-excludes)
                    prior next-prior produced needs-separator separator-face result)
                ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'l)) left-segs))
                ,@(spaceline--gen-separator 'line-face 'l)
@@ -337,6 +316,7 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
             `(let ((default-face face1) (other-face face2)
                    (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
                    (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+                   (global-excludes ',global-excludes)
                    prior next-prior needs-separator separator-face result)
                ,@(apply 'append (mapcar (lambda (s) (spaceline--gen-segment s 'r)) (reverse right-segs)))
                ,@(spaceline--gen-separator 'line-face 'r)
@@ -414,15 +394,23 @@ by `spaceline--eval-segment'."
        (put ',toggle-var :code ',value)
        (put ',toggle-var :global-override ',global-override))))
 
-(defun spaceline--global ()
-  "Return `global-mode-string' with the excluded segments removed."
-  (cond
-   ((listp global-mode-string)
-    (-difference global-mode-string spaceline--global-excludes))
-   (t global-mode-string)))
+(defun spaceline--global-excludes (segments)
+  "Compute global overrides from the segment list SEGMENTS."
+  (let (excludes)
+    (dolist (s-spec segments)
+      (spaceline--parse-segment-spec s-spec
+        (setq excludes (append (plist-get props :global-override) excludes))
+        (when (listp segment)
+          (setq excludes (append (spaceline--global-excludes segment) excludes)))))
+    excludes))
+
 (spaceline-define-segment global
-  (powerline-raw (spaceline--global))
-  :when (spaceline--mode-line-nonempty (spaceline--global)))
+  (let* ((global-excludes (bound-and-true-p global-excludes))
+         (global (if (listp global-mode-string)
+                     (-difference global-mode-string global-excludes)
+                   global-mode-string)))
+    (when (spaceline--mode-line-nonempty global)
+      (powerline-raw global))))
 
 (defun spaceline--get-separator-dirs (side)
   "Gets the preconfigured separator directions for SIDE, or the \"best\" ones,
