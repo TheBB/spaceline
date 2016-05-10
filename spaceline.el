@@ -486,7 +486,11 @@ The supported properties are
       ;; Possibly byte compile the output
       (when spaceline-byte-compile
         (let ((byte-compile-warnings nil))
-          (byte-compile target-func))))))
+          (byte-compile target-func)))
+
+      ;; This is not strictly required, but it lets people use `spaceline-compile' as
+      ;; an all-in-one fix-everything button
+      (powerline-reset))))
 
 (defalias 'spaceline-install 'spaceline-compile)
 
