@@ -210,16 +210,11 @@ The following bindings are available in BODY:
                      ,spec
                    (cons ,spec nil)))
           (segment (car input))
-          (segment-symbol (when (symbolp segment)
-                            (intern (format "spaceline--segment-%S" segment))))
-          (sym-def (when (symbolp segment) (cdr (assq segment spaceline-segments))))
-          (sym-form (when (symbolp segment) (cdr (assq 'code sym-def))))
-          (sym-sep (when (symbolp segment) (cdr (assq 'separator sym-def))))
-          (sym-fallback (when (symbolp segment) (cdr (assq 'fallback sym-def))))
+          (sym (when (symbolp segment) (intern (format "spaceline-%s-p" segment))))
+          (sym-form (when (symbolp segment) (get sym :code)))
           (input-props (cdr input))
           (props (append input-props
-                         (when (symbolp segment)
-                           (symbol-plist segment-symbol)))))
+                         (when (symbolp segment) (symbol-plist sym)))))
      ,@body))
 
 (defun spaceline--update-global-excludes-from-list (segments)
@@ -258,14 +253,14 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
 (defun spaceline--gen-segment (segment-spec side &optional outer-props deep)
   (spaceline--parse-segment-spec segment-spec
     (let* ((props (append props outer-props))
-           (fallback (or (plist-get props :fallback) sym-fallback))
+           (fallback (plist-get props :fallback))
            (nest-props (append '(:fallback nil) input-props outer-props))
            (condition (if (plist-member props :when)
                           (plist-get props :when) t))
            (face (or (plist-get props :face) 'default-face))
            (face (if (memq face '(default-face other-face highlight-face))
                      face `(quote ,face)))
-           (separator `(powerline-raw ,(or (plist-get props :separator) sym-sep " ") ,face))
+           (separator `(powerline-raw ,(or (plist-get props :separator) " ") ,face))
            (tight-left (or (plist-get props :tight)
                            (plist-get props :tight-left)))
            (tight-right (or (plist-get props :tight)
@@ -371,13 +366,6 @@ Depends on the values of `spaceline-left' and `spaceline-right',"
                (let ((byte-compile-warnings nil))
                  (byte-compile ',target-func)))))))
 
-(defvar spaceline-segments nil
-  "Alist of segments. Each segment is an alist with keys:
-- `code'
-- `condition'
-- `docstring'
-- `global-override'.")
-
 (defmacro spaceline-define-segment (name value &rest props)
   "Define a modeline segment called NAME with value VALUE and properties PROPS.
 
@@ -424,13 +412,9 @@ by `spaceline--eval-segment'."
        (defun ,toggle-func () (interactive) (setq ,toggle-var (not ,toggle-var)))
        (defun ,toggle-func-on () (interactive) (setq ,toggle-var t))
        (defun ,toggle-func-off () (interactive) (setq ,toggle-var nil))
-       (push '(,name
-               (code . ,value)
-               (docstring . ,docstring)
-               (global-override . ,global-override)
-               (separator . ,(or (plist-get props :separator) " "))
-               (fallback . ,(plist-get props :fallback)))
-             spaceline-segments))))
+       (setplist ',toggle-var (append (symbol-plist ',toggle-var) ',props))
+       (put ',toggle-var :code ',value)
+       (put ',toggle-var :global-override ',global-override))))
 
 (defun spaceline--global ()
   "Return `global-mode-string' with the excluded segments removed."

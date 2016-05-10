@@ -98,7 +98,10 @@
     (spaceline-install '("a" ("b" :tight-left t) "c") nil)
     (should (string= " a b > c > " (spaceline-ml-main)))
     (spaceline-install '("a" ("b" :tight-right t) "c") nil)
-    (should (string= " a > b c > " (spaceline-ml-main)))))
+    (should (string= " a > b c > " (spaceline-ml-main)))
+    (spaceline-define-segment tight "" "tight" :tight t)
+    (spaceline-install '("a" tight "c") nil)
+    (should (string= " a tight c > " (spaceline-ml-main)))))
 
 (ert-deftest spaceline-literal-segments-r ()
   "Tests literal segments (right side)."
@@ -200,4 +203,7 @@
     (spaceline-install nil '("a" ("b" :tight-left t) "c"))
     (should (string= " < a b < c " (spaceline-ml-main)))
     (spaceline-install nil '("a" ("b" :tight-right t) "c"))
-    (should (string= " < a < b c " (spaceline-ml-main)))))
+    (should (string= " < a < b c " (spaceline-ml-main)))
+    (spaceline-define-segment tight "" "tight" :tight t)
+    (spaceline-install nil '("a" tight "c"))
+    (should (string= " < a tight c " (spaceline-ml-main)))))
