@@ -1,6 +1,6 @@
 #+TITLE: Spaceline
 
-[[https://melpa.org/#/spaceline][http://melpa.org/packages/spaceline-badge.svg]] [[https://stable.melpa.org/#/spaceline][https://stable.melpa.org/packages/spaceline-badge.svg]]
+[[https://melpa.org/#/spaceline][http://melpa.org/packages/spaceline-badge.svg]] [[https://stable.melpa.org/#/spaceline][https://stable.melpa.org/packages/spaceline-badge.svg]] [[https://travis-ci.org/TheBB/spaceline][https://travis-ci.org/TheBB/spaceline.svg]]
 
 * Contents                                                           :TOC_2_org:
  - [[Introduction][Introduction]]
