@@ -90,12 +90,6 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 ;; Helm custom mode
 ;; ================
 
-(defadvice helm-display-mode-line (after spaceline-helm)
-  "Set up a custom helm modeline."
-  (setq spaceline--helm-current-source source
-        mode-line-format '("%e" (:eval (spaceline-ml-helm))))
-  (when force (force-mode-line-update)))
-
 (define-minor-mode spaceline-helm-mode
   "Customize the mode-line in helm."
   :init-value nil
@@ -108,27 +102,16 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
                       helm-follow
                       helm-prefix-argument)
                     '(helm-help))
+        (defadvice helm-display-mode-line (after spaceline-helm)
+          "Set up a custom helm modeline."
+          (setq spaceline--helm-current-source source
+                mode-line-format '("%e" (:eval (spaceline-ml-helm))))
+          (when force (force-mode-line-update)))
         (ad-activate 'helm-display-mode-line))
     (ad-deactivate 'helm-display-mode-line)))
 
 ;; Info custom mode
 ;; ================
-
-(defadvice Info-set-mode-line (after spaceline-info)
-  "Set up a custom info modeline."
-  (if (featurep 'info+)
-      (let* ((nodes (s-split " > " mode-line-format))
-             (topic (prog2
-                        (string-match "(\\(.+\\))\\(.+\\)" (car nodes))
-                        (propertize (concat "INFO "
-                                            (match-string 1 (car nodes)))
-                                    'face 'bold)
-                      (setcar nodes (match-string 2 (car nodes))))))
-        (setq spaceline--info-nodes nodes)
-        (setq spaceline--info-topic topic)
-        (setq-local mode-line-format '("%e" (:eval (spaceline-ml-info)))))
-    (message "info+ is not available: spaceline-info-mode disabled")
-    (spaceline-info-mode -1)))
 
 (define-minor-mode spaceline-info-mode
   "Customize the mode-line in info.
@@ -138,6 +121,21 @@ This minor mode requires info+."
   (if spaceline-info-mode
       (progn
         (spaceline-install 'info '(info-topic (info-nodes :separator " > ")) nil)
+        (defadvice Info-set-mode-line (after spaceline-info)
+          "Set up a custom info modeline."
+          (if (featurep 'info+)
+              (let* ((nodes (s-split " > " mode-line-format))
+                     (topic (prog2
+                                (string-match "(\\(.+\\))\\(.+\\)" (car nodes))
+                                (propertize (concat "INFO "
+                                                    (match-string 1 (car nodes)))
+                                            'face 'bold)
+                              (setcar nodes (match-string 2 (car nodes))))))
+                (setq spaceline--info-nodes nodes)
+                (setq spaceline--info-topic topic)
+                (setq-local mode-line-format '("%e" (:eval (spaceline-ml-info)))))
+            (message "info+ is not available: spaceline-info-mode disabled")
+            (spaceline-info-mode -1)))
         (ad-activate 'Info-set-mode-line))
     (ad-deactivate 'Info-set-mode-line)))
 
