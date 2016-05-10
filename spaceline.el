@@ -408,7 +408,9 @@ by `spaceline--eval-segment'."
        (defun ,toggle-func () (interactive) (setq ,toggle-var (not ,toggle-var)))
        (defun ,toggle-func-on () (interactive) (setq ,toggle-var t))
        (defun ,toggle-func-off () (interactive) (setq ,toggle-var nil))
-       (setplist ',toggle-var (append (symbol-plist ',toggle-var) ',props))
+       (let ((doc (get ',toggle-var 'variable-documentation)))
+         (setplist ',toggle-var ',props)
+         (put ',toggle-var 'variable-documentation doc))
        (put ',toggle-var :code ',value)
        (put ',toggle-var :global-override ',global-override))))
 
