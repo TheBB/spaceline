@@ -141,7 +141,7 @@ the current Evil state if all the other dependencies do not report information
 include any information from Evil.
 
 You can color the modeline according to the current Evil state by setting
-=spaceline-higlight-face-func= to =spaceline-highlight-face-evil-state=.
+=spaceline-highlight-face-func= to =spaceline-highlight-face-evil-state=.
 
 ** Troubleshooting
 There are a number of reasons why Spaceline might look different on your setup
