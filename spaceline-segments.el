@@ -87,7 +87,8 @@
 
 (spaceline-define-segment remote-host
   "Hostname for remote buffers."
-  (when (file-remote-p default-directory 'host)
+  (when (and default-directory
+             (file-remote-p default-directory 'host))
     (concat "@" (file-remote-p default-directory 'host))))
 
 (spaceline-define-segment major-mode
