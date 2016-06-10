@@ -454,10 +454,9 @@ enabled."
            (str (if (and tag (< 0 (length tag)))
                     tag
                   (when num (int-to-string num)))))
-      (if spaceline-workspace-numbers-unicode
-          (or (spaceline--unicode-number str)
-              (propertize str 'face 'bold))
-        (propertize str 'face 'bold)))))
+      (or (when spaceline-workspace-numbers-unicode
+            (spaceline--unicode-number str))
+          (propertize str 'face 'bold)))))
 
 (defvar spaceline-display-default-perspective nil
   "If non-nil, the default perspective name is displayed in the mode-line.")
