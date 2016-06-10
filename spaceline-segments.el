@@ -493,13 +493,17 @@ enabled."
   "Face for flycheck info feedback in the modeline."
   :group 'spaceline)
 
+(defvar spaceline-flycheck-bullet "•%s"
+  "The bullet used for the flycheck segment. This should be a
+  format string with a single `%s'-expression corresponding to
+  the number of errors.")
 (defmacro spaceline--flycheck-lighter (state)
   "Return flycheck information for the given error type STATE."
   `(let* ((counts (flycheck-count-errors flycheck-current-errors))
           (errorp (flycheck-has-current-errors-p ',state))
           (err (or (cdr (assq ',state counts)) "?"))
           (running (eq 'running flycheck-last-status-change)))
-     (if (or errorp running) (format "•%s" err))))
+     (if (or errorp running) (format spaceline-flycheck-bullet err))))
 
 (dolist (state '(error warning info))
   (let ((segment-name (intern (format "flycheck-%S" state)))
