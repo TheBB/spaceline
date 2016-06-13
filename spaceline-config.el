@@ -90,6 +90,9 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 ;; Helm custom mode
 ;; ================
 
+(defun spaceline--helm-ag-update ()
+  (setq mode-line-format '("%e" (:eval (spaceline-ml-helm-done)))))
+
 (define-minor-mode spaceline-helm-mode
   "Customize the mode-line in helm."
   :init-value nil
@@ -97,7 +100,13 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
   (if spaceline-helm-mode
       (progn
         (spaceline-install 'helm
-                    '(helm-buffer-id
+                    '((helm-buffer-id :face highlight-face)
+                      helm-number
+                      helm-follow
+                      helm-prefix-argument)
+                    '(helm-help))
+        (spaceline-install 'helm-done
+                    '(((helm-buffer-id helm-done) :face highlight-face)
                       helm-number
                       helm-follow
                       helm-prefix-argument)
@@ -107,7 +116,9 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
           (setq spaceline--helm-current-source source
                 mode-line-format '("%e" (:eval (spaceline-ml-helm))))
           (when force (force-mode-line-update)))
+        (setq helm-ag-show-status-function 'spaceline--helm-ag-update)
         (ad-activate 'helm-display-mode-line))
+    (setq helm-ag-show-status-function 'helm-ag-show-status-default-mode-line)
     (ad-deactivate 'helm-display-mode-line)))
 
 ;; Info custom mode

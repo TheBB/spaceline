@@ -235,8 +235,11 @@ a function that returns a name to use.")
              (t
               (string-match "\\*helm:? \\(mode \\)?\\([^\\*]+\\)\\*" name)
               (concat "HELM " (capitalize (match-string 2 name))))))
-     'face 'bold))
-  :face highlight-face)
+     'face 'bold)))
+
+(spaceline-define-segment helm-done
+  "Done."
+  (propertize "(DONE)" 'face 'bold))
 
 (spaceline-define-segment helm-number
   "Number of helm candidates."
