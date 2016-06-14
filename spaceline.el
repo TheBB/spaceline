@@ -51,6 +51,11 @@ Each CAR is a symbol naming the modeline, and the CDR is a cons
 cell (LEFT . RIGHT) where LEFT and RIGHT are lists of segments.
 See `spaceline-compile' for a description of segments.")
 
+(defvar spaceline-inflation nil
+  "A factor by which to artificially pad the modeline. Note that
+this does not currently also impact the size of the powerline
+separators. Those must be set separately.")
+
 (defvar spaceline-pre-hook nil
   "Hook run before the modeline is rendered.")
 
@@ -479,9 +484,14 @@ The supported properties are
                       (face2 (spaceline--get-face 'face2 active))
                       (lhs ,left-code)
                       (rhs ,right-code))
-                 (concat (powerline-render lhs)
-                         (powerline-fill line-face (powerline-width rhs))
-                         (powerline-render rhs)))))
+                 (concat
+                  ,@(when spaceline-inflation
+                      `((propertize "\u200b" 'display
+                                    '((raise ,(/ (1- spaceline-inflation) -2.0))
+                                      (height ,spaceline-inflation)))))
+                  (powerline-render lhs)
+                  (powerline-fill line-face (powerline-width rhs))
+                  (powerline-render rhs)))))
 
       ;; Possibly byte compile the output
       (when spaceline-byte-compile
