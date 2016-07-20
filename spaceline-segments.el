@@ -141,8 +141,8 @@
   "The current column number."
   "%2c")
 
-(declare-function pdf-view 'pdf-view-current-page)
-(declare-function pdf-view 'pdf-cache-number-of-pages)
+(declare-function pdf-view-current-page 'pdf-view)
+(declare-function pdf-cache-number-of-pages 'pdf-view)
 
 (defun spaceline--pdfview-page-number ()
   (format "(%d/%d)"
