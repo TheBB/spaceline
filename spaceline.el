@@ -92,6 +92,10 @@ return a face to use.
 
 This variable supersedes `spaceline-highlight-face-func' if set.")
 
+(defvar spaceline-always-show-segments nil
+  "When true, show all the segments that would otherwise be
+hidden in inactive windows.")
+
 (defun spaceline--get-separator-dirs (side)
   "Gets the preconfigured separator directions for SIDE, or the \"best\" ones,
 if not specified."
@@ -477,11 +481,12 @@ The supported properties are
       ;; right).
       (eval `(defun ,target-func ()
                (run-hooks 'spaceline-pre-hook)
-               (let* ((active (powerline-selected-window-active))
-                      (line-face (spaceline--get-face 'line active))
-                      (highlight-face (spaceline--get-face 'highlight active))
-                      (face1 (spaceline--get-face 'face1 active))
-                      (face2 (spaceline--get-face 'face2 active))
+               (let* ((active-strict (powerline-selected-window-active))
+                      (active (or spaceline-always-show-segments active-strict))
+                      (line-face (spaceline--get-face 'line active-strict))
+                      (highlight-face (spaceline--get-face 'highlight active-strict))
+                      (face1 (spaceline--get-face 'face1 active-strict))
+                      (face2 (spaceline--get-face 'face2 active-strict))
                       (lhs ,left-code)
                       (rhs ,right-code))
                  (concat
