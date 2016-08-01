@@ -563,7 +563,9 @@ enabled."
                   'help-echo "Virtual environment (via pyenv)"))))
 
 (spaceline-define-segment which-function
-  (when (and active (bound-and-true-p which-function-mode))
+  (when (and active
+             (bound-and-true-p which-function-mode)
+             (bound-and-true-p which-func-mode))
     (let* ((current (format-mode-line which-func-current)))
       (when (string-match "{\\(.*\\)}" current)
         (setq current (match-string 1 current)))
