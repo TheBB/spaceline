@@ -276,7 +276,7 @@ Returns a list of forms."
            (condition (if (plist-member props :when)
                           (plist-get props :when) t))
            (face (or (plist-get props :face) 'default-face))
-           (face (if (memq face '(default-face other-face highlight-face))
+           (face (if (memq face '(default-face other-face highlight-face line-face))
                      face `(quote ,face)))
            (separator `(powerline-raw ,(or (plist-get props :separator) " ") ,face))
            (tight-left (or (plist-get props :tight)
