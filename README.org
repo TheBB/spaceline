@@ -117,6 +117,12 @@ and notifications from it.
 *** ERC
 [[http://www.emacswiki.org/emacs/ERC][ERC]] is an IRC client built in to Emacs. Spaceline shows channels with new
 messages if you have =erc-track= turned on.
+*** Circe
+[[https://github.com/jorgenschaefer/circe][Circe]] is another IRC client for Emacs; it also provides a generic API for
+listing modified buffers called =tracking-mode=.
+
+Spaceline shows channels with new messages if you have =tracking-mode= turned
+on; use =C-c C-SPC= to cycle through modified tracked buffers.
 
 *** Org
 Spaceline shows the currently clocking [[http://orgmode.org/][org-mode]] task.
