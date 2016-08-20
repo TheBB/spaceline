@@ -146,7 +146,9 @@
 
 (defun spaceline--pdfview-page-number ()
   (format "(%d/%d)"
-	  (pdf-view-current-page)
+          ;; `pdf-view-current-page' is a macro in an optional dependency
+          ;; any better solutions?
+          (eval `(pdf-view-current-page))
 	  (pdf-cache-number-of-pages)))
 
 (spaceline-define-segment line-column
