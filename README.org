@@ -1,6 +1,6 @@
 #+TITLE: Spaceline
 
-[[https://melpa.org/#/spaceline][http://melpa.org/packages/spaceline-badge.svg]] [[https://stable.melpa.org/#/spaceline][https://stable.melpa.org/packages/spaceline-badge.svg]] [[https://travis-ci.org/TheBB/spaceline][https://travis-ci.org/TheBB/spaceline.svg]]
+[[https://melpa.org/#/spaceline][http://melpa.org/packages/spaceline-badge.svg]] [[https://stable.melpa.org/#/spaceline][https://stable.melpa.org/packages/spaceline-badge.svg]] [[https://travis-ci.org/TheBB/spaceline][https://travis-ci.org/TheBB/spaceline.svg]] [[https://github.com/syl20bnr/spacemacs][file:https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg]]
 
 * Contents                                                           :TOC_2_gh:
 - [[#introduction][Introduction]]
