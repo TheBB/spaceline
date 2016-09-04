@@ -562,6 +562,13 @@ enabled."
                   'face 'spaceline-python-venv
                   'help-echo "Virtual environment (via pyenv)"))))
 
+(spaceline-define-segment paradox-menu
+  "The current package info including upgradable, new, installed
+and total packages"
+  (when (and active
+	     (eq 'paradox-menu-mode major-mode))
+    mode-line-buffer-identification))
+
 (spaceline-define-segment which-function
   (when (and active
              (bound-and-true-p which-function-mode)
