@@ -146,7 +146,7 @@
 
 (defun spaceline--pdfview-page-number ()
   (format "(%d/%d)"
-	  (pdf-view-current-page)
+	  (eval (pdf-view-current-page))
 	  (pdf-cache-number-of-pages)))
 
 (spaceline-define-segment line-column
