@@ -463,7 +463,8 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
 (spaceline-define-segment workspace-number
   "The current workspace name or number. Requires `eyebrowse-mode' to be
 enabled."
-  (when (bound-and-true-p eyebrowse-mode)
+  (when (and (bound-and-true-p eyebrowse-mode)
+             (< 1 (length (eyebrowse--get 'window-configs))))
     (let* ((num (eyebrowse--get 'current-slot))
            (tag (when num (nth 2 (assoc num (eyebrowse--get 'window-configs)))))
            (str (if (and tag (< 0 (length tag)))
