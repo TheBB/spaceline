@@ -43,6 +43,7 @@
 
               `(which-function
                 (python-pyvenv :fallback python-pyenv)
+                purpose
                 (battery :when active)
                 selection-info
                 input-method

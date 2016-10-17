@@ -328,6 +328,7 @@ a function that returns a name to use.")
 (declare-function safe-persp-name 'persp-mode)
 (declare-function get-frame-persp 'persp-mode)
 (declare-function window-numbering-get-number 'window-numbering)
+(declare-function purpose--modeline-string 'window-purpose)
 (declare-function pyenv-mode-version 'pyenv-mode)
 (declare-function pyenv-mode-full-path 'pyenv-mode)
 
@@ -543,6 +544,14 @@ enabled."
   '((t (:foreground "plum1" :distant-foreground "DarkMagenta")))
   "Face for highlighting the python venv."
   :group 'spaceline)
+
+(spaceline-define-segment purpose
+  "The current window purpose. Requires `purpose-mode' to be
+enabled."
+  (when (bound-and-true-p purpose-mode)
+    (propertize (substring (purpose--modeline-string) 2 -1)
+                'face 'spaceline-python-venv
+                'help-echo "Window purpose")))
 
 (spaceline-define-segment python-pyvenv
   "The current python venv.  Works with `pyvenv'."
