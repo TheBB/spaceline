@@ -373,6 +373,20 @@ Returns a list of forms."
               `((unless (eq ,prev-res-var result)
                   ,@clean-up-code)))))))))
 
+(defun spaceline-preprocess (&rest segments)
+  (apply 'append
+         (mapcar
+          (lambda (seg)
+            (cond
+             ((and (listp seg) (car seg) (eq :eval (car seg)))
+              (list (apply 'spaceline-preprocess (eval (cadr seg)))))
+             ((and (listp seg) (car seg) (eq :eval-expand (car seg)))
+              (apply 'spaceline-preprocess (eval (cadr seg))))
+             ((listp seg)
+              (list (apply 'spaceline-preprocess seg)))
+             (t (list seg))))
+          segments)))
+
 (defun spaceline-compile (&rest args)
   "Compile a modeline.
 
@@ -404,6 +418,13 @@ Each element in LEFT and RIGHT must be a valid segment. Namely,
 - a list of segments; or
 - a list where the first element is a segment, and the rest of
   the list is a plist.
+- a list where the first element is `:eval', and the second
+  element is a form that evaluates to a valid segment.
+- a list where the first element is `:eval-expand', and the
+  second element is a form that evaluates to a list of segments,
+  which are spliced in.
+
+`:eval' is to , as `:eval-expand' is to ,@
 
 The supported properties are
 - `:when', a form that must evaluate to non-nil for the segment to
@@ -429,16 +450,15 @@ The supported properties are
     (let* (;; Handle the different calling conventions
            (nargs (length args))
            (target (if (cl-oddp nargs) (pop args) 'main))
-           (left-segs (if (> nargs 1) (pop args)
+           (left-segs (if (> nargs 1) (apply 'spaceline-preprocess (pop args))
                         (cadr (assq target spaceline--mode-lines))))
-           (right-segs (if (> nargs 1) (pop args)
+           (right-segs (if (> nargs 1) (apply 'spaceline-preprocess (pop args))
                          (cddr (assq target spaceline--mode-lines))))
            (target-func (intern (format "spaceline-ml-%s" target)))
 
            ;; Special support for the global segment: compile list of excludes
            (global-excludes (append (spaceline--global-excludes left-segs)
                                     (spaceline--global-excludes right-segs)))
-
 
            (sep-style (format "powerline-%s" powerline-default-separator))
 
