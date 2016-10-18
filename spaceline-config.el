@@ -45,6 +45,7 @@
                 (python-pyvenv :fallback python-pyenv)
                 purpose
                 (battery :when active)
+		paradox-menu
                 selection-info
                 input-method
                 ((buffer-encoding-abbrev

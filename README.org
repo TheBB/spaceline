@@ -212,6 +212,7 @@ Here is a complete list of segments bundled with Spacemacs.
 - =which-function=: integrates with =which-function-mode=.
 - =python-pyvenv=: integrates with =pyvenv=.
 - =python-pyenv=: integrates with =pyenv=.
+- =paradox-menu=: integrates with =paradox=.
 - =selection-info=: information about the currently active selection, if any.
 - =input-method=: shows the current active input method, if any.
 - =buffer-encoding-abbrev=: the line ending convention used in the current
