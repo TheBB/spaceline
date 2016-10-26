@@ -401,8 +401,9 @@ package."
 This segment overrides the modeline functionality of
 `fancy-battery-mode'."
   (when (bound-and-true-p fancy-battery-mode)
-    (powerline-raw (s-trim (spaceline--fancy-battery-mode-line))
-                   (spaceline--fancy-battery-face)))
+    (let ((text (spaceline--fancy-battery-mode-line)))
+      (and text (powerline-raw (s-trim text)
+                               (spaceline--fancy-battery-face)))))
   :global-override fancy-battery-mode-line)
 
 (defvar spaceline-org-clock-format-function
