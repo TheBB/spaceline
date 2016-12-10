@@ -89,15 +89,15 @@ theme will show the current workspace number. The Emacs theme uses the workspace
 number as a fallback for the perspective name: thus if persp-mode is installed,
 the Eyebrowse workspace will not be shown.
 
-*** Window-numbering
-[[https://github.com/nschum/window-numbering.el][Window-numbering]] shows a number for each window, and it works with both themes.
+*** Winum
+[[https://github.com/deb0ch/winum.el][Winum]] shows a number for each window, and it works with both themes.
 
-To make this package work, you have to override its own modeline display
-function:
+To prevent =winum= from inserting its own number in the mode-line, you have to
+set =winum-auto-setup-mode-line= to nil before activating =winum-mode=:
 
 #+BEGIN_SRC emacs-lisp
-  (defun window-numbering-install-mode-line (&optional position)
-    "Do nothing.")
+(setq winum-auto-setup-mode-line nil)
+(winum-mode)
 #+END_SRC
 
 *** Auto-compile
