@@ -327,6 +327,7 @@ a function that returns a name to use.")
 (declare-function nyan-create 'nyan-mode)
 (declare-function safe-persp-name 'persp-mode)
 (declare-function get-frame-persp 'persp-mode)
+(declare-function winum-get-number 'winum)
 (declare-function window-numbering-get-number 'window-numbering)
 (declare-function purpose--modeline-string 'window-purpose)
 (declare-function pyenv-mode-version 'pyenv-mode)
@@ -446,16 +447,23 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
    ((string= "7" str) "➐")
    ((string= "8" str) "➑")
    ((string= "9" str) "➒")
-   ((string= "0" str) "➓")))
+   ((string= "10" str) "➓")
+   (t str)))
 
 (defvar spaceline-window-numbers-unicode nil
   "Set to true to enable unicode display in the `window-number' segment.")
 
 (spaceline-define-segment window-number
-  "The current window number. Requires `window-numbering-mode' to be enabled."
-  (when (bound-and-true-p window-numbering-mode)
-    (let* ((num (window-numbering-get-number))
-           (str (when num (int-to-string num))))
+  "The current window number.
+Requires either `winum-mode' or `window-numbering-mode' to be enabled."
+  (let* ((num (cond
+               ((bound-and-true-p winum-mode)
+                (winum-get-number))
+               ((bound-and-true-p window-numbering-mode)
+                (window-numbering-get-number))
+               (t nil)))
+         (str (when num (int-to-string num))))
+    (when num
       (if spaceline-window-numbers-unicode
           (spaceline--unicode-number str)
         (propertize str 'face 'bold)))))
