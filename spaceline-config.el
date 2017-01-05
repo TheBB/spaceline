@@ -23,55 +23,71 @@
 
 (require 'spaceline-segments)
 
-(defun spaceline--theme (left second-left &rest additional-segments)
-  "Convenience function for the spacemacs and emacs themes."
-  (spaceline-install `(,left
-                anzu
-                auto-compile
-                ,second-left
-                major-mode
-                (process :when active)
-                ((flycheck-error flycheck-warning flycheck-info)
-                 :when active)
-                (minor-modes :when active)
-                (mu4e-alert-segment :when active)
-                (erc-track :when active)
-                (version-control :when active)
-                (org-pomodoro :when active)
-                (org-clock :when active)
-                nyan-cat)
+(defvar spaceline-left-side
+  '((:eval spaceline-location-segment)
+    anzu
+    auto-compile
+    (:eval spaceline-buffer-segment)
+    major-mode
+    (process :when active)
+    ((flycheck-error flycheck-warning flycheck-info)
+     :when active)
+    (minor-modes :when active)
+    (mu4e-alert-segment :when active)
+    (erc-track :when active)
+    (version-control :when active)
+    (org-pomodoro :when active)
+    (org-clock :when active)
+    nyan-cat)
+  "The default list of segments on the left side.")
 
-              `(which-function
-                (python-pyvenv :fallback python-pyenv)
-                purpose
-                (battery :when active)
-                selection-info
-                input-method
-                ((buffer-encoding-abbrev
-                  point-position
-                  line-column)
-                 :separator " | ")
-                (global :when active)
-                ,@additional-segments
-                buffer-position
-                hud))
+(defvar spaceline-location-segment
+  '((persp-name
+     workspace-number
+     window-number)
+    :fallback evil-state
+    :separator "|"
+    :face highlight-face))
 
-  (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main)))))
+(defvar spaceline-buffer-segment
+  '(buffer-modified buffer-size buffer-id remote-host))
+
+(defvar spaceline-right-side
+  '(which-function
+    (python-pyvenv :fallback python-pyenv)
+    purpose
+    (battery :when active)
+    selection-info
+    input-method
+    ((buffer-encoding-abbrev
+      point-position
+      line-column)
+     :separator " | ")
+    (global :when active)
+    (:eval-expand spaceline-additional-segments)
+    buffer-position
+    hud)
+  "The default list of segments on the right side.")
+
+(defvar spaceline-additional-segments nil)
 
 (defun spaceline-spacemacs-theme (&rest additional-segments)
   "Install the modeline used by Spacemacs.
 
 ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 `buffer-position'."
-  (apply 'spaceline--theme
+  (let ((spaceline-additional-segments additional-segments)
+        (spaceline-location-segment
          '((persp-name
             workspace-number
             window-number)
            :fallback evil-state
            :separator "|"
-           :face highlight-face)
-         '(buffer-modified buffer-size buffer-id remote-host)
-         additional-segments))
+           :face highlight-face))
+        (spaceline-buffer-segment
+         '(buffer-modified buffer-size buffer-id remote-host)))
+    (spaceline-install spaceline-left-side spaceline-right-side))
+  (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main)))))
 
 (defun spaceline-emacs-theme (&rest additional-segments)
   "Install a modeline close to the one used by Spacemacs, but which
@@ -79,14 +95,16 @@ looks better without third-party dependencies.
 
 ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 `buffer-position'."
-  (apply 'spaceline--theme
+  (let ((spaceline-additional-segments additional-segments)
+        (spaceline-location-segment
          '(((((persp-name :fallback workspace-number)
               window-number) :separator "|")
             buffer-modified
             buffer-size)
-           :face highlight-face)
-         '(buffer-id remote-host)
-         additional-segments))
+           :face highlight-face))
+        (spaceline-buffer-segment '(buffer-id remote-host)))
+    (spaceline-install spaceline-left-side spaceline-right-side))
+  (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main)))))
 
 ;; Helm custom mode
 ;; ================
