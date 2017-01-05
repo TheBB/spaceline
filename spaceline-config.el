@@ -36,6 +36,7 @@
                 (minor-modes :when active)
                 (mu4e-alert-segment :when active)
                 (erc-track :when active)
+                (tracking-mode :when active :separator "")
                 (version-control :when active)
                 (org-pomodoro :when active)
                 (org-clock :when active)

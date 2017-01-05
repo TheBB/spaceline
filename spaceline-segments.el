@@ -332,6 +332,7 @@ a function that returns a name to use.")
 (declare-function purpose--modeline-string 'window-purpose)
 (declare-function pyenv-mode-version 'pyenv-mode)
 (declare-function pyenv-mode-full-path 'pyenv-mode)
+(declare-function tracking-mode 'tracking)
 
 (spaceline-define-segment projectile-root
   "Show the current projectile root."
@@ -358,6 +359,13 @@ package."
   (when (bound-and-true-p erc-track-mode)
     (mapcar (lambda (b) (buffer-name (car b)))
             erc-modified-channels-alist)))
+
+(spaceline-define-segment tracking-mode
+  "Show names of tracked buffers with changes.
+
+Requires that `tracking-mode' is enabled."
+  (when (bound-and-true-p tracking-mode)
+    tracking-mode-line-buffers))
 
 (defun spaceline--fancy-battery-percentage ()
   "Return the load percentage or an empty string."
