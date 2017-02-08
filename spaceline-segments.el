@@ -18,11 +18,11 @@
 ;;; Commentary:
 
 ;; This file contains a variety of segments that may be of general interest in
-;; many people's modelines. It contains both "stock" segments which are usable
+;; many people's modelines.  It contains both "stock" segments which are usable
 ;; without any additional packages, as well as a number of segments which depend
 ;; on optional third-party packages.
 
-;; Note: The `global' segment is defined in spaceline.el, not here. It's the
+;; Note: The `global' segment is defined in spaceline.el, not here.  It's the
 ;; only exception.
 
 ;;; Code:
@@ -145,6 +145,9 @@
 (declare-function pdf-cache-number-of-pages 'pdf-view)
 
 (defun spaceline--pdfview-page-number ()
+  "The current `pdf-view-mode' page number to display in the mode-line.
+Return a formated string containing the current and last page number for the
+currently displayed pdf file in `pdf-view-mode'."
   (format "(%d/%d)"
           ;; `pdf-view-current-page' is a macro in an optional dependency
           ;; any better solutions?
@@ -154,7 +157,7 @@
 (spaceline-define-segment line-column
   "The current line and column numbers, or `(current page/number of pages)`
 in pdf-view mode (enabled by the `pdf-tools' package)."
-  (if (eq 'pdf-view-mode major-mode)
+  (if (eq major-mode 'pdf-view-mode)
       (spaceline--pdfview-page-number)
     "%l:%2c"))
 
@@ -235,8 +238,8 @@ segment.  Otherwise only show the active input method, if any."
     ("*helm-ag*" . (lambda ()
                      (format "HELM Ag: Using %s"
                              (car (split-string helm-ag-base-command))))))
-  "Alist of custom helm buffer names to use. The cdr can also be
-a function that returns a name to use.")
+  "Alist of custom helm buffer names to use.
+The cdr can also be a function that returns a name to use.")
 (spaceline-define-segment helm-buffer-id
   "Helm session identifier."
   (when (bound-and-true-p helm-alive-p)
@@ -283,7 +286,7 @@ a function that returns a name to use.")
         (propertize (format "C-u %s" arg) 'face 'helm-prefarg)))))
 
 (defvar spaceline--helm-current-source nil
-  "The currently active helm source")
+  "The currently active helm source.")
 (spaceline-define-segment helm-follow
   "Helm follow indicator."
   (when (and (bound-and-true-p helm-alive-p)
@@ -386,7 +389,7 @@ package."
        (t (concat (if (string= "AC" type) " AC" "") percentage time))))))
 
 (defun spaceline--fancy-battery-face ()
-  "Return a face appropriate for powerline"
+  "Return a face appropriate for powerline."
   (let ((type (cdr (assq ?L fancy-battery-last-status))))
     (if (and type (string= "AC" type))
         'fancy-battery-charging
@@ -520,9 +523,10 @@ enabled."
   :group 'spaceline)
 
 (defvar spaceline-flycheck-bullet "•%s"
-  "The bullet used for the flycheck segment. This should be a
-  format string with a single `%s'-expression corresponding to
-  the number of errors.")
+  "The bullet used for the flycheck segment.
+This should be a format string with a single `%s'-expression corresponding to
+the number of errors.")
+
 (defmacro spaceline--flycheck-lighter (state)
   "Return flycheck information for the given error type STATE."
   `(let* ((counts (flycheck-count-errors flycheck-current-errors))
