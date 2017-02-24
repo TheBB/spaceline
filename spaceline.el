@@ -415,6 +415,9 @@ Each element in LEFT and RIGHT must be a valid segment. Namely,
   the list is a plist.
 
 The supported properties are
+- `:priority', a number representing the priority of appearance
+  of that segment over the others, the lower the higher the priority.
+  -1 is the default and the lowest.
 - `:when', a form that must evaluate to non-nil for the segment to
   show (default t)
 - `:face', the face with which to render the segment; may either
@@ -564,14 +567,16 @@ See `spaceline--init-runtime-data' for more info about these variables."
                    (dolist (segment-spec left-segs)
                      (spaceline--parse-segment-spec segment-spec
                        (push (cons (spaceline--gen-segment segment-spec 'l)
-                                   nil)
+                                   `((priority . ,(or (plist-get props :priority) -1))
+                                     (spec . ,segment-spec)))
                              list)))
                    (reverse list)))
            (right (let (list)
                     (dolist (segment-spec right-segs)
                       (spaceline--parse-segment-spec segment-spec
                         (push (cons (spaceline--gen-segment segment-spec 'r)
-                                    nil)
+                                    `((priority . ,(or (plist-get props :priority) -1))
+                                      (spec . ,segment-spec)))
                               list)))
                     list)))
        (defvar ,segments-code-left left
@@ -665,24 +670,42 @@ This function does:
   it by priority."
   `(progn
      (setq ,segments-code-target-left
-           (--map (cons (car it) nil) ,segments-code-target-left))
+           (--map (cons (car it) (cdr it)) ,segments-code-target-left))
      (setq ,segments-code-target-right
-           (--map (cons (car it) nil) ,segments-code-target-right))
+           (--map (cons (car it) (cdr it)) ,segments-code-target-right))
      (let ((left ,segments-code-target-left)
            (right ,segments-code-target-right))
        (while (or (car left) (car right))
          (when (car left)
-           (let ((runtime-data `(,(cons 'shown t)
-                                 ,(cons 'length 0))))
+           (let ((runtime-data (append `(,(cons 'shown t)
+                                         ,(cons 'length 0))
+                                       (cdar left))))
              (setcdr (car left) runtime-data)
              (push runtime-data ,responsiveness-runtime-data))
            (setq left (cdr left)))
          (when (car right)
-           (let ((runtime-data `(,(cons 'shown t)
-                                 ,(cons 'length 0))))
+           (let ((runtime-data (append `(,(cons 'shown t)
+                                         ,(cons 'length 0))
+                                       (cdar right))))
              (setcdr (car right) runtime-data)
              (push runtime-data ,responsiveness-runtime-data))
-           (setq right (cdr right)))))))
+           (setq right (cdr right)))))
+     (setq ,responsiveness-runtime-data
+           (sort ,responsiveness-runtime-data
+                 'spaceline--compare-priorities))))
+
+(defun spaceline--compare-priorities (first-alist second-alist)
+  "Comparison predicate for sorting the segments runtime data by priority.
+Used as a predicate for `sort' in `spaceline--init-runtime-data'."
+  (let ((first (cdr (assoc 'priority first-alist)))
+        (second (cdr (assoc 'priority second-alist))))
+    (if (equal first second)
+        nil
+      (if (equal first -1)
+          t
+        (if (equal second -1)
+            nil
+          (> first second))))))
 
 (defmacro spaceline-define-segment (name value &rest props)
   "Define a modeline segment called NAME with value VALUE and properties PROPS.
