@@ -789,7 +789,7 @@ the changes to take effect."
                      (cons "" (-difference global-mode-string global-excludes))
                    global-mode-string)))
     (when (spaceline--mode-line-nonempty global)
-      (powerline-raw global))))
+      (string-trim (powerline-raw global)))))
 
 (provide 'spaceline)
 
