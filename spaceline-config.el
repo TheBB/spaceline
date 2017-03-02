@@ -70,7 +70,6 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
             workspace-number
             window-number)
            :fallback evil-state
-           :separator "|"
            :face highlight-face
            :priority 0)
          '((buffer-modified buffer-size buffer-id remote-host)
