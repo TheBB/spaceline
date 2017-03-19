@@ -230,7 +230,7 @@ themes.
 - =column=: current column.
 - =projectile-root=: root of current projectile project, integrates with
   =projectile=.
-- =buffer-encoding=: like =buffer-encoding=, but not abbreviated.
+- =buffer-encoding=: like =buffer-encoding-abbrev=, but not abbreviated.
 
 For the custom helm modeline, the following segments are used.
 
