@@ -151,12 +151,20 @@
           (eval `(pdf-view-current-page))
 	  (pdf-cache-number-of-pages)))
 
+(declare-function doc-view-current-page 'doc-view)
+(declare-function doc-view-last-page-number 'doc-view)
+
+(defun spaceline--docview-page-number ()
+  (format "(%d/%d)"
+          (eval `(doc-view-current-page)) ;same as pdf-view-current-page
+          (doc-view-last-page-number)))
+
 (spaceline-define-segment line-column
   "The current line and column numbers, or `(current page/number of pages)`
-in pdf-view mode (enabled by the `pdf-tools' package)."
-  (if (eq 'pdf-view-mode major-mode)
-      (spaceline--pdfview-page-number)
-    "%l:%2c"))
+in pdf-view mode (enabled by the `pdf-tools' package) or doc-view mode."
+  (cond ((eq 'pdf-view-mode major-mode) (spaceline--pdfview-page-number))
+        ((eq 'doc-view-mode major-mode) (spaceline--docview-page-number))
+        (t "%l:%2c")))
 
 
 (spaceline-define-segment buffer-position
