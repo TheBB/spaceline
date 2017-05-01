@@ -100,6 +100,10 @@ set =winum-auto-setup-mode-line= to nil before activating =winum-mode=:
 (winum-mode)
 #+END_SRC
 
+Winum is the successor of winumber-numbering.el which is no longer maintained and
+therefore not supported by spaceline. Users of window-numbering.el are encouraged
+to make the switch to winum.
+
 *** Auto-compile
 [[https://github.com/tarsius/auto-compile][Auto-compile]] automatically compiles Emacs Lisp files on save if there is an
 older byte-compiled file. Spaceline shows warnings when they occur.

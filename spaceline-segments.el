@@ -145,11 +145,12 @@
 (declare-function pdf-cache-number-of-pages 'pdf-view)
 
 (defun spaceline--pdfview-page-number ()
+  "Format pdf-view page numbers."
   (format "(%d/%d)"
           ;; `pdf-view-current-page' is a macro in an optional dependency
           ;; any better solutions?
           (eval `(pdf-view-current-page))
-	  (pdf-cache-number-of-pages)))
+          (pdf-cache-number-of-pages)))
 
 (spaceline-define-segment line-column
   "The current line and column numbers, or `(current page/number of pages)`
@@ -235,8 +236,8 @@ segment.  Otherwise only show the active input method, if any."
     ("*helm-ag*" . (lambda ()
                      (format "HELM Ag: Using %s"
                              (car (split-string helm-ag-base-command))))))
-  "Alist of custom helm buffer names to use. The cdr can also be
-a function that returns a name to use.")
+  "Alist of custom helm buffer names to use.
+The cdr can also be a function that returns a name to use.")
 (spaceline-define-segment helm-buffer-id
   "Helm session identifier."
   (when (bound-and-true-p helm-alive-p)
@@ -283,7 +284,7 @@ a function that returns a name to use.")
         (propertize (format "C-u %s" arg) 'face 'helm-prefarg)))))
 
 (defvar spaceline--helm-current-source nil
-  "The currently active helm source")
+  "The currently active helm source.")
 (spaceline-define-segment helm-follow
   "Helm follow indicator."
   (when (and (bound-and-true-p helm-alive-p)
@@ -386,7 +387,7 @@ package."
        (t (concat (if (string= "AC" type) " AC" "") percentage time))))))
 
 (defun spaceline--fancy-battery-face ()
-  "Return a face appropriate for powerline"
+  "Return a face appropriate for powerline."
   (let ((type (cdr (assq ?L fancy-battery-last-status))))
     (if (and type (string= "AC" type))
         'fancy-battery-charging
@@ -454,16 +455,9 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
   "Set to true to enable unicode display in the `window-number' segment.")
 
 (spaceline-define-segment window-number
-  "The current window number.
-Requires either `winum-mode' or `window-numbering-mode' to be enabled."
-  (let* ((num (cond
-               ((bound-and-true-p winum-mode)
-                (winum-get-number))
-               ((bound-and-true-p window-numbering-mode)
-                (window-numbering-get-number))
-               (t nil)))
-         (str (when num (int-to-string num))))
-    (when num
+  "The current window number. Requires `winum-mode' to be enabled."
+  (when (bound-and-true-p winum-mode)
+    (-when-let (str (-some-> (winum-get-number) (int-to-string)))
       (if spaceline-window-numbers-unicode
           (spaceline--unicode-number str)
         (propertize str 'face 'bold)))))
@@ -520,9 +514,10 @@ enabled."
   :group 'spaceline)
 
 (defvar spaceline-flycheck-bullet "•%s"
-  "The bullet used for the flycheck segment. This should be a
-  format string with a single `%s'-expression corresponding to
-  the number of errors.")
+  "The bullet used for the flycheck segment.
+This should be a format string with a single `%s'-expression
+corresponding to the number of errors.")
+
 (defmacro spaceline--flycheck-lighter (state)
   "Return flycheck information for the given error type STATE."
   `(let* ((counts (flycheck-count-errors flycheck-current-errors))
