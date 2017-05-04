@@ -595,6 +595,7 @@ and total packages"
     (let* ((current (format-mode-line which-func-current)))
       (when (string-match "{\\(.*\\)}" current)
         (setq current (match-string 1 current)))
+      (setq current (replace-regexp-in-string "%" "%%" current))
       (propertize current
                   'local-map which-func-keymap
                   'face 'which-func
