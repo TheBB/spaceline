@@ -94,6 +94,8 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 ;; Helm custom mode
 ;; ================
 
+(defvar helm-ag-show-status-function)
+
 (defun spaceline--helm-ag-update ()
   (setq mode-line-format '("%e" (:eval (spaceline-ml-helm-done)))))
 
