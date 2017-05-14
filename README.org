@@ -107,8 +107,7 @@ older byte-compiled file. Spaceline shows warnings when they occur.
 *** Anzu
 [[https://github.com/syohex/emacs-anzu][Anzu]] shows the current match and the total number of matches while searching.
 
-Note that Anzu inserts itself in the modeline, therefore make sure to initialize
-Spaceline /after/ Anzu.
+Note that Anzu inserts itself in the modeline, to let spaceline handle the modeline, make sure to =(setq anzu-cons-mode-line-p nil)= or customize it.
 
 *** Flycheck
 [[https://github.com/flycheck/flycheck/][Flycheck]] is a powerful syntax-checking package. Spaceline shows errors, warnings
