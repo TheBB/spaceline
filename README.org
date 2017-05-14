@@ -3,25 +3,25 @@
 [[https://melpa.org/#/spaceline][http://melpa.org/packages/spaceline-badge.svg]] [[https://stable.melpa.org/#/spaceline][https://stable.melpa.org/packages/spaceline-badge.svg]] [[https://travis-ci.org/TheBB/spaceline][https://travis-ci.org/TheBB/spaceline.svg]]
 
 * Contents                                                           :TOC_2_gh:
- - [[#introduction][Introduction]]
- - [[#the-default-themes][The default themes]]
-   - [[#optional-dependencies][Optional dependencies]]
-   - [[#troubleshooting][Troubleshooting]]
- - [[#moderate-configuration][Moderate configuration]]
-   - [[#turning-segments-on-and-off][Turning segments on and off]]
-   - [[#the-highlight-face][The highlight face]]
-   - [[#other-faces][Other faces]]
-   - [[#powerline-separators][Powerline separators]]
-   - [[#hooks][Hooks]]
-   - [[#unicode-numbers][Unicode numbers]]
-   - [[#minor-modes-separator][Minor modes separator]]
-   - [[#org-clock][Org clock]]
- - [[#deep-configuration][Deep configuration]]
-   - [[#segments][Segments]]
-   - [[#defining-a-segment][Defining a segment]]
-   - [[#properties][Properties]]
-   - [[#bindings][Bindings]]
-   - [[#compiling-a-mode-line][Compiling a mode-line]]
+- [[#introduction][Introduction]]
+- [[#the-default-themes][The default themes]]
+  - [[#optional-dependencies][Optional dependencies]]
+  - [[#troubleshooting][Troubleshooting]]
+- [[#moderate-configuration][Moderate configuration]]
+  - [[#turning-segments-on-and-off][Turning segments on and off]]
+  - [[#the-highlight-face][The highlight face]]
+  - [[#other-faces][Other faces]]
+  - [[#powerline-separators][Powerline separators]]
+  - [[#hooks][Hooks]]
+  - [[#unicode-numbers][Unicode numbers]]
+  - [[#minor-modes-separator][Minor modes separator]]
+  - [[#org-clock][Org clock]]
+- [[#deep-configuration][Deep configuration]]
+  - [[#segments][Segments]]
+  - [[#defining-a-segment][Defining a segment]]
+  - [[#properties][Properties]]
+  - [[#bindings][Bindings]]
+  - [[#compiling-a-mode-line][Compiling a mode-line]]
 
 * Introduction
 This is the package that provides [[http://spacemacs.org/][Spacemacs]] with its famous mode-line theme. It
@@ -107,8 +107,8 @@ older byte-compiled file. Spaceline shows warnings when they occur.
 *** Anzu
 [[https://github.com/syohex/emacs-anzu][Anzu]] shows the current match and the total number of matches while searching.
 
-Note that Anzu inserts itself in the modeline, therefore make sure to initialize
-Spaceline /after/ Anzu.
+Note that Anzu inserts itself in the modeline, to let spaceline handle the
+modeline, make sure to =(setq anzu-cons-mode-line-p nil)= or customize it.
 
 *** Flycheck
 [[https://github.com/flycheck/flycheck/][Flycheck]] is a powerful syntax-checking package. Spaceline shows errors, warnings
