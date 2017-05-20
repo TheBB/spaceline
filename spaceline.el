@@ -379,9 +379,6 @@ Returns a list of forms."
                       (setq result-length len))
                   (setq segment-length 0)))))))))
 
-(defvar spaceline--format nil)
-(make-variable-buffer-local 'spaceline--format)
-
 (defun spaceline-compile (&rest args)
   "Compile a modeline.
 
@@ -472,15 +469,14 @@ The supported properties are
       ;; define the function that Emacs will call to generate the mode-line's
       ;; format string every time the mode-line is refreshed.
       (eval `(defun ,target-func ()
-               (when (not ,runtime-data)
+               (unless ,runtime-data
                  (spaceline--init-runtime-data ,segments-code-left
                                                ,segments-code-right
                                                ,runtime-data))
-               (setq spaceline--format
-                     (spaceline--render-mode-line ,left-code ,right-code))
-               (spaceline--adjust-to-window ,runtime-data
-                                            ,target-func)
-               spaceline--format))
+               (let ((fmt (spaceline--render-mode-line ,left-code ,right-code)))
+                 (when (spaceline--adjust-to-window ,runtime-data fmt)
+                   (setq fmt (spaceline--render-mode-line ,left-code ,right-code)))
+                 fmt)))
 
       (when spaceline-byte-compile
         (let ((byte-compile-warnings nil))
@@ -493,44 +489,42 @@ The supported properties are
 (defalias 'spaceline-install 'spaceline-compile)
 
 (defmacro spaceline--code-for-side (global-excludes
-                                    segments-code
-                                    side)
+                             segments-code
+                             side)
   "Return the code that will evaluate all segments for one side.
 GLOBAL-EXCLUDES is used for the global segment, see `spaceline-define-segment'.
 SEGMENTS-CODE is a list of pieces of code where each node is the code for one
               segment.
 SIDE is either 'l or 'r, respectively for the left and the right side."
-  `(let* ((default-face face1)
-          (other-face face2)
-          (sep-style (format "powerline-%s" powerline-default-separator))
-          (sep-dirs (spaceline--get-separator-dirs ',side))
-          (default-sep (intern (format "%s-%s" sep-style (car sep-dirs))))
-          (other-sep (intern (format "%s-%s" sep-style (cdr sep-dirs))))
-          (global-excludes ',global-excludes)
-          (result-length 0)
-          (segment-length 0)
-          prior
-          next-prior
-          needs-separator
-          separator-face
-          result)
-     (dolist (segment ,segments-code)
-       (when (cdr (assoc 'shown (cdr segment)))
-         (setq prev-result result)
-         (eval `(progn ,@(car segment)))
-         (setcdr (assoc 'length (cdr segment)) segment-length)))
-     ,@(spaceline--gen-separator 'line-face side)
-     ;; use the same condition as in spaceline--gen-separator to
-     ;; increase the size of the last visible segment accordingly:
-     (when needs-separator
-       (let* ((last-visible-segment (--last (not (equal 0 (cdr (assoc 'length (cdr it)))))
-                                            ,segments-code))
-              (last-visible-segment-length (assoc 'length last-visible-segment)))
-         (setcdr last-visible-segment-length
-                 (1+ (cdr last-visible-segment-length)))))
-     ,(if (equal side 'l)
-          '(reverse result)
-        'result)))
+  (let ((sep-style (format "powerline-%s" powerline-default-separator))
+        (sep-dirs (spaceline--get-separator-dirs side)))
+    `(let* ((default-face face1)
+            (other-face face2)
+            (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
+            (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+            (global-excludes ',global-excludes)
+            (result-length 0)
+            (segment-length 0)
+            prior
+            next-prior
+            needs-separator
+            separator-face
+            result)
+       (dolist (segment ,segments-code)
+         (when (cdr (assoc 'shown (cdr segment)))
+           (eval `(progn ,@(car segment)))
+           (setcdr (assoc 'length (cdr segment)) segment-length)))
+       ,@(spaceline--gen-separator 'line-face side)
+       ;; use the same condition as in spaceline--gen-separator to
+       ;; increase the size of the last visible segment accordingly:
+       (when needs-separator
+         (let* ((last-visible-segment (--last (not (equal 0 (cdr (assoc 'length (cdr it)))))
+                                              ,segments-code))
+                (last-visible-segment-length (assoc 'length last-visible-segment)))
+           (cl-incf (cdr last-visible-segment-length))))
+       ,(if (equal side 'l)
+            '(reverse result)
+          'result))))
 
 (defmacro spaceline--declare-runtime-variables (segments-code-left
                                                 segments-code-right
@@ -559,7 +553,7 @@ RESPONSIVENESS-RUNTIME-<side>-SYM:
 '(((shown . t) (length . 0) (priority . 42))
   ((shown . t) (length . 0) (priority . 42))
   ...
-  ((shown . t) (length . 0)) (priority . 42))
+  ((shown . t) (length . 0) (priority . 42)))
 
 See `spaceline--init-runtime-data' for more info about these variables."
   `(progn
@@ -568,7 +562,8 @@ See `spaceline--init-runtime-data' for more info about these variables."
                      (spaceline--parse-segment-spec segment-spec
                        (push (cons (spaceline--gen-segment segment-spec 'l)
                                    `((priority . ,(or (plist-get props :priority) -1))
-                                     (spec . ,segment-spec)))
+                                     (shown . t)
+                                     (length . 0)))
                              list)))
                    (reverse list)))
            (right (let (list)
@@ -576,25 +571,26 @@ See `spaceline--init-runtime-data' for more info about these variables."
                       (spaceline--parse-segment-spec segment-spec
                         (push (cons (spaceline--gen-segment segment-spec 'r)
                                     `((priority . ,(or (plist-get props :priority) -1))
-                                      (spec . ,segment-spec)))
+                                      (shown . t)
+                                      (length . 0)))
                               list)))
                     list)))
-       (defvar ,segments-code-left left
+       (defvar-local ,segments-code-left left
          "See `spaceline--declare-runtime-variables'.")
-       (make-variable-buffer-local segments-code-left)
        (setq-default ,segments-code-left left)
-       (setq ,segments-code-left left)
 
-       (defvar ,segments-code-right right
+       (defvar-local ,segments-code-right right
          "See `spaceline--declare-runtime-variables'.")
-       (make-variable-buffer-local segments-code-right)
-       (setq-default ,segments-code-right right)
-       (setq ,segments-code-right right))
+       (setq-default ,segments-code-right right))
 
-     (defvar ,runtime-data nil
+     (defvar-local ,runtime-data nil
        "See `spaceline--declare-runtime-variables'.")
-     (make-variable-buffer-local runtime-data)
-     (setq ,runtime-data nil)))
+     (setq-default ,runtime-data nil)
+     (dolist (buf (buffer-list))
+       (with-current-buffer buf
+         (kill-local-variable ',segments-code-left)
+         (kill-local-variable ',segments-code-right)
+         (kill-local-variable ',runtime-data)))))
 
 (defmacro spaceline--render-mode-line (left-code right-code)
   "Call powerline to generate the mode-line format string.
@@ -618,39 +614,38 @@ LEFT-CODE and RIGHT-CODE are the code that will be used "
         (powerline-fill line-face (powerline-width rhs))
         (powerline-render rhs)))))
 
-(defmacro spaceline--adjust-to-window (responsiveness-runtime-data spaceline-func)
+(defmacro spaceline--adjust-to-window (responsiveness-runtime-data format)
   "Adjust the spaceline to the window by hiding or showing segments.
+
 RESPONSIVENESS-RUNTIME-DATA is a list of segments runtime data used to hide or
 show segments, see `spaceline--declare-runtime-variables' for more info about
 how responsiveness works.
-SPACELINE-FUNC is the symbol of the function for the evaluation of the current
-spaceline, see `spaceline-compile'"
+
+FMT is the rendered modeline with the current visibility settings.
+
+Returns a truthy value if the visibility of any segment changed."
   ;; `1-' to not count the space generated by `powerline-fill'
-  `(let ((spaceline--length (1- (length (format-mode-line spaceline--format)))))
+  `(let ((spaceline--length (1- (length (format-mode-line ,format))))
+         (width (window-width))
+         changed)
      (if (> spaceline--length (window-width))
-         ;; hide some segments
+         ;; The modeline is too long, so try to hide some segments that are shown
          (let ((to-hide (--drop-while (eq (cdr (assoc 'shown it)) nil)
                                       ,responsiveness-runtime-data)))
            (--each-while to-hide
-               (< (window-width) spaceline--length)
-             (progn
-               (setq spaceline--length (- spaceline--length
-                                          (cdr (assoc 'length it))))
-               (setcdr (assoc 'shown it) nil))))
-       ;; show again some hidden segments
+               (< width spaceline--length)
+             (cl-decf spaceline--length (cdr (assoc 'length it)))
+             (setcdr (assoc 'shown it) nil)
+             (setq changed t)))
+       ;; The modeline is shorter than it could be, so try to show some hidden segments
        (let ((to-show (--drop-while (cdr (assoc 'shown it))
                                     (reverse ,responsiveness-runtime-data))))
          (--each-while to-show
-             (> (window-width) (+ spaceline--length
-                                  (cdr (assoc 'length it))))
-           (progn
-             (setq spaceline--length (+ spaceline--length
-                                        (cdr (assoc 'length it))))
-             (setcdr (assoc 'shown it) t)))))
-     (unless (eq spaceline--length
-                 ;; `1-' to not count the space generated by `powerline-fill'
-                 (1- (length (format-mode-line spaceline--format))))
-       (,spaceline-func))))
+             (> width (+ spaceline--length (cdr (assoc 'length it))))
+           (cl-incf spaceline--length (cdr (assoc 'length it)))
+           (setcdr (assoc 'shown it) t)
+           (setq changed t))))
+     changed))
 
 (defmacro spaceline--init-runtime-data (segments-code-target-left
                                         segments-code-target-right
@@ -670,26 +665,14 @@ This function does:
   it by priority."
   `(progn
      (setq ,segments-code-target-left
-           (--map (cons (car it) (cdr it)) ,segments-code-target-left))
+           (--map (cons (car it) (copy-tree (cdr it))) ,segments-code-target-left))
      (setq ,segments-code-target-right
-           (--map (cons (car it) (cdr it)) ,segments-code-target-right))
+           (--map (cons (car it) (copy-tree (cdr it))) ,segments-code-target-right))
      (let ((left ,segments-code-target-left)
            (right ,segments-code-target-right))
-       (while (or (car left) (car right))
-         (when (car left)
-           (let ((runtime-data (append `(,(cons 'shown t)
-                                         ,(cons 'length 0))
-                                       (cdar left))))
-             (setcdr (car left) runtime-data)
-             (push runtime-data ,responsiveness-runtime-data))
-           (setq left (cdr left)))
-         (when (car right)
-           (let ((runtime-data (append `(,(cons 'shown t)
-                                         ,(cons 'length 0))
-                                       (cdar right))))
-             (setcdr (car right) runtime-data)
-             (push runtime-data ,responsiveness-runtime-data))
-           (setq right (cdr right)))))
+       (while (or left right)
+         (when left (push (cdr (pop left)) ,responsiveness-runtime-data))
+         (when right (push (cdr (pop right)) ,responsiveness-runtime-data))))
      (setq ,responsiveness-runtime-data
            (sort ,responsiveness-runtime-data
                  'spaceline--compare-priorities))))
