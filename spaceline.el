@@ -525,6 +525,7 @@ is either l or r, respectively for the left and the right side."
                      (aset runtime-data 1 segment-length))) ; Update the length
                 (if (eq 'l side) segments (reverse segments)))
        ,@(spaceline--gen-separator 'line-face side)
+       ;; XXX: This code is dead
        ;; ;; use the same condition as in spaceline--gen-separator to
        ;; ;; increase the size of the last visible segment accordingly:
        ;; (when needs-separator
