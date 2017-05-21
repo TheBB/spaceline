@@ -333,12 +333,18 @@ a function that returns a name to use.")
 (declare-function pyenv-mode-version 'pyenv-mode)
 (declare-function pyenv-mode-full-path 'pyenv-mode)
 
+(defvar spaceline-projectile-tramp-disable nil
+  "If set to `t', disable the projectile segment in remote buffers.")
+
 (spaceline-define-segment projectile-root
   "Show the current projectile root."
-  (when (and (fboundp 'projectile-project-p)
-             (stringp (projectile-project-p))
-             (not (string= (projectile-project-name) (buffer-name))))
-    (projectile-project-name)))
+  (unless (and spaceline-projectile-tramp-disable
+               (file-remote-p (or (buffer-file-name) ""))
+               (file-remote-p (or default-directory "")))
+    (when (and (fboundp 'projectile-project-p)
+               (stringp (projectile-project-p))
+               (not (string= (projectile-project-name) (buffer-name))))
+      (projectile-project-name))))
 
 (spaceline-define-segment anzu
   "Show the current match number and the total number of matches.
