@@ -446,35 +446,37 @@ The supported properties are
            ;; Special support for the global segment: compile list of excludes
            (global-excludes (append (spaceline--global-excludes left-segs)
                                     (spaceline--global-excludes right-segs)))
-           (segments-code-left (intern (format "spaceline--segments-code-%s-left"
-                                               target)))
-           (segments-code-right (intern (format "spaceline--segments-code-%s-right"
-                                                target)))
-           (runtime-data (intern (format "spaceline--runtime-data-%s"
-                                         target)))
-           (left-code `(spaceline--code-for-side ,global-excludes
-                                                 ,segments-code-left
-                                                 l))
-           (right-code `(spaceline--code-for-side ,global-excludes
-                                                  ,segments-code-right
-                                                  r)))
-      (eval `(spaceline--declare-runtime-variables ,segments-code-left
-                                                   ,segments-code-right
-                                                   ,runtime-data))
+           ;; Symbols for runtime data
+           (left-symbol (intern (format "spaceline--segments-code-%s-left" target)))
+           (right-symbol (intern (format "spaceline--segments-code-%s-right" target)))
+           (priority-symbol (intern (format "spaceline--runtime-data-%s" target)))
+           (left-code `(spaceline--code-for-side
+                        ,global-excludes ,left-symbol ,left-segs l))
+           (right-code `(spaceline--code-for-side
+                         ,global-excludes ,right-symbol ,right-segs r)))
+
+      ;; Declare the global runtime defaults
+      (spaceline--declare-runtime left-segs right-segs
+                           left-symbol
+                           right-symbol
+                           priority-symbol)
+
       ;; Update the stored segments so that recompilation will work
       (unless (assq target spaceline--mode-lines)
         (push `(,target) spaceline--mode-lines))
       (setcdr (assq target spaceline--mode-lines) `(,left-segs . ,right-segs))
 
-      ;; define the function that Emacs will call to generate the mode-line's
+      ;; Define the function that Emacs will call to generate the mode-line's
       ;; format string every time the mode-line is refreshed.
       (eval `(defun ,target-func ()
-               (unless ,runtime-data
-                 (spaceline--init-runtime-data ,segments-code-left
-                                               ,segments-code-right
-                                               ,runtime-data))
+               ;; Initialize the local runtime if necessary
+               (unless ,priority-symbol
+                 (spaceline--init-runtime ',left-symbol
+                                   ',right-symbol
+                                   ',priority-symbol))
+               ;; Render the modeline
                (let ((fmt (spaceline--render-mode-line ,left-code ,right-code)))
-                 (when (spaceline--adjust-to-window ,runtime-data fmt)
+                 (when (spaceline--adjust-to-window ,priority-symbol fmt)
                    (setq fmt (spaceline--render-mode-line ,left-code ,right-code)))
                  fmt)))
 
@@ -489,13 +491,19 @@ The supported properties are
 (defalias 'spaceline-install 'spaceline-compile)
 
 (defmacro spaceline--code-for-side (global-excludes
-                             segments-code
+                             runtime-symbol
+                             segments
                              side)
-  "Return the code that will evaluate all segments for one side.
+  "Generate the code that will evaluate all segments for one side.
+
 GLOBAL-EXCLUDES is used for the global segment, see `spaceline-define-segment'.
-SEGMENTS-CODE is a list of pieces of code where each node is the code for one
-              segment.
-SIDE is either 'l or 'r, respectively for the left and the right side."
+
+RUNTIME-SYMBOL is a symbol storing the runtime data for this side, one
+three-element vector for each top-level segment, see
+`spaceline--declare-runtime' and `spaceline--init-runtime'.
+
+SEGMENTS is a list of segment specifications (see `spaceline--compile') and SIDE
+is either l or r, respectively for the left and the right side."
   (let ((sep-style (format "powerline-%s" powerline-default-separator))
         (sep-dirs (spaceline--get-separator-dirs side)))
     `(let* ((default-face face1)
@@ -505,15 +513,17 @@ SIDE is either 'l or 'r, respectively for the left and the right side."
             (global-excludes ',global-excludes)
             (result-length 0)
             (segment-length 0)
+            (runtime-pointer ,runtime-symbol)
             prior
             next-prior
             needs-separator
             separator-face
             result)
-       (dolist (segment ,segments-code)
-         (when (aref (cdr segment) 2)
-           (eval `(progn ,@(car segment)))
-           (aset (cdr segment) 1 segment-length)))
+       ,@(--map `(let ((runtime-data (pop runtime-pointer)))
+                   (when (aref runtime-data 2) ; Only render if this segment is shown
+                     ,@(spaceline--gen-segment it side)
+                     (aset runtime-data 1 segment-length))) ; Update the length
+                (if (eq 'l side) segments (reverse segments)))
        ,@(spaceline--gen-separator 'line-face side)
        ;; ;; use the same condition as in spaceline--gen-separator to
        ;; ;; increase the size of the last visible segment accordingly:
@@ -522,73 +532,45 @@ SIDE is either 'l or 'r, respectively for the left and the right side."
        ;;                                        ,segments-code))
        ;;          (last-visible-segment-length (assoc 'length last-visible-segment)))
        ;;     (cl-incf (cdr last-visible-segment-length))))
-       ,(if (equal side 'l)
-            '(reverse result)
-          'result))))
+       ,(if (eq side 'l) '(reverse result) 'result))))
 
-(defmacro spaceline--declare-runtime-variables (segments-code-left
-                                                segments-code-right
-                                                runtime-data)
-  "Declare the variables used at runtime that are particular to one spaceline.
+(defun spaceline--declare-runtime (segments-left
+                            segments-right
+                            left-symbol
+                            right-symbol
+                            priority-symbol)
+  "Initialize the global runtime data for a modeline.
 
-SEGMENT-CODE-TARGET-LEFT-SYM and SEGMENT-CODE-TARGET-RIGHT-SYM are the generated
-symbols that will hold the lists of segments for the left and right sides of the
-target spaceline used at runtime. Each element contains the code needed to draw
-the segment as well as runtime data for deciding whether to show it or not. This
-variable is buffer-local and specific to a mode-line (target).
+The runtime consist of a three-element vector for each top-level
+segment in the modeline. The elements are:
+- priority: The priority of the segment (derived from its `:priority' property)
+- length: The rendered length of the segment
+- shown: Whether the segment is displayed or not
 
-After initialization in `spaceline--init-runtime-data' it will look like:
+The effect of this function is to create the default values for
+these vectors, and store them in the varibles LEFT-SYMBOL and
+RIGHT-SYMBOL, respectively, which are lists. The variable
+PRIORITY-SYMBOL is initialized with default value nil.
 
-'(((<segment-1-code>) . [<priority> <length> <shown>])
-  ((<segment-2-code>) . [<priority> <length> <shown>])
-  ...
-  ((<segment-n-code>) . [<priority> <length> <shown>]))
+See `spaceline--init-runtime-data' for more information."
+  (let ((left (--map (spaceline--parse-segment-spec it
+                       (vector (or (plist-get props :priority) -1) 0 t))
+                     segments-left))
+        (right (--map (spaceline--parse-segment-spec it
+                        (vector (or (plist-get props :priority) -1) 0 t))
+                      segments-right)))
+    (eval `(defvar-local ,left-symbol nil "See `spaceline--declare-runtime'."))
+    (set-default left-symbol left)
+    (eval `(defvar-local ,right-symbol nil "See `spaceline--declare-runtime'."))
+    (set-default right-symbol (reverse right)))
 
-with <length> and <shown> initialized as 0 and t for all segments.
-
-RESPONSIVENESS-RUNTIME-DATA-TARGET is the generated symbol that will hold the
-list used at runtime to decide which segments to display or hide based on the
-width of the window.
-Each element of this list is the cdr of an element of
-RESPONSIVENESS-RUNTIME-<side>-SYM:
-
-'([<priority> <length> <shown>]
-  [<priority> <length> <shown>]
-  ...
-  [<priority> <length> <shown>])
-
-See `spaceline--init-runtime-data' for more info about these variables."
-  `(progn
-     (let ((left (let (list)
-                   (dolist (segment-spec left-segs)
-                     (spaceline--parse-segment-spec segment-spec
-                       (push (cons (spaceline--gen-segment segment-spec 'l)
-                                   (vector (or (plist-get props :priority) -1) 0 t))
-                             list)))
-                   (reverse list)))
-           (right (let (list)
-                    (dolist (segment-spec right-segs)
-                      (spaceline--parse-segment-spec segment-spec
-                        (push (cons (spaceline--gen-segment segment-spec 'r)
-                                    (vector (or (plist-get props :priority) -1) 0 t))
-                              list)))
-                    list)))
-       (defvar-local ,segments-code-left left
-         "See `spaceline--declare-runtime-variables'.")
-       (setq-default ,segments-code-left left)
-
-       (defvar-local ,segments-code-right right
-         "See `spaceline--declare-runtime-variables'.")
-       (setq-default ,segments-code-right right))
-
-     (defvar-local ,runtime-data nil
-       "See `spaceline--declare-runtime-variables'.")
-     (setq-default ,runtime-data nil)
-     (dolist (buf (buffer-list))
-       (with-current-buffer buf
-         (kill-local-variable ',segments-code-left)
-         (kill-local-variable ',segments-code-right)
-         (kill-local-variable ',runtime-data)))))
+  (eval `(defvar-local ,priority-symbol nil "See `spaceline--declare-runtime'."))
+  (set-default priority-symbol nil)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (kill-local-variable left-symbol)
+      (kill-local-variable right-symbol)
+      (kill-local-variable priority-symbol))))
 
 (defmacro spaceline--render-mode-line (left-code right-code)
   "Call powerline to generate the mode-line format string.
@@ -611,6 +593,32 @@ LEFT-CODE and RIGHT-CODE are the code that will be used "
         (powerline-render lhs)
         (powerline-fill line-face (powerline-width rhs))
         (powerline-render rhs)))))
+
+(defun spaceline--init-runtime (left-symbol
+                            right-symbol
+                            priority-symbol)
+  "Initialize data structures used for the responsiveness of the modeline.
+
+This function
+- creates local deep copies of the global values of LEFT-SYMBOL and RIGHT-SYMBOL,
+- initializes PRIORITY-SYMBOl, a reordering of the same vectors whose order
+  (by priority) decides the order of segments disappearance / reappearance with
+  the size of the window.
+
+Note that the changes in the resulting PRIORITY-SYMBOL list are
+visible from LEFT-SYMBOL and RIGHT-SYMBOL, and vice versa. This
+creates a data structure that is efficiently accessible both in
+order of priority and order of segments."
+  (let ((left (--map (copy-tree it) (default-value left-symbol)))
+        (right (--map (copy-tree it) (default-value right-symbol)))
+        priority)
+    (set (make-local-variable left-symbol) left)
+    (set (make-local-variable right-symbol) right)
+    (while (or left right)
+      (when left (push (pop left) priority))
+      (when right (push (pop right) priority)))
+    (set (make-local-variable priority-symbol)
+         (sort priority 'spaceline--compare-priorities))))
 
 (defmacro spaceline--adjust-to-window (responsiveness-runtime-data format)
   "Adjust the spaceline to the window by hiding or showing segments.
@@ -644,36 +652,6 @@ Returns a truthy value if the visibility of any segment changed."
            (aset it 2 t)
            (setq changed t))))
      changed))
-
-(defmacro spaceline--init-runtime-data (segments-code-target-left
-                                        segments-code-target-right
-                                        responsiveness-runtime-data)
-  "Initialize data structures used for the responsiveness of the spaceline.
-This function does:
-- deep copy SEGMENTS-CODE-TARGET-LEFT and SEGMENTS-CODE-TARGET-RIGHT variables
-  so that they are deeply local to a window,
-- initialize RESPONSIVENESS-RUNTIME-DATA, which order decides the order of
-  segments disappearance / reappearance with the size of the window,
-- instantiate runtime variables of which we push the same instance into both
-  RESPONSIVENESS-RUNTIME-DATA and after each segment's code, so that we can show
-  or hide segments by modifying only RESPONSIVENESS-RUNTIME-DATA,
-- order that list to hide or show the segments by order of priority, and in case
-  of equality in priority from the center to the outside, alternating sides. It
-  is done by first building the list alternating sides, and then stably sorting
-  it by priority."
-  `(progn
-     (setq ,segments-code-target-left
-           (--map (cons (car it) (copy-tree (cdr it))) ,segments-code-target-left))
-     (setq ,segments-code-target-right
-           (--map (cons (car it) (copy-tree (cdr it))) ,segments-code-target-right))
-     (let ((left ,segments-code-target-left)
-           (right ,segments-code-target-right))
-       (while (or left right)
-         (when left (push (cdr (pop left)) ,responsiveness-runtime-data))
-         (when right (push (cdr (pop right)) ,responsiveness-runtime-data))))
-     (setq ,responsiveness-runtime-data
-           (sort ,responsiveness-runtime-data
-                 'spaceline--compare-priorities))))
 
 (defun spaceline--compare-priorities (first-alist second-alist)
   "Comparison predicate for sorting the segments runtime data by priority.
