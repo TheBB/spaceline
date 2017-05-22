@@ -468,17 +468,18 @@ The supported properties are
 
       ;; Define the function that Emacs will call to generate the mode-line's
       ;; format string every time the mode-line is refreshed.
-      (eval `(defun ,target-func ()
-               ;; Initialize the local runtime if necessary
-               (unless ,priority-symbol
-                 (spaceline--init-runtime ',left-symbol
-                                   ',right-symbol
-                                   ',priority-symbol))
-               ;; Render the modeline
-               (let ((fmt (spaceline--render-mode-line ,left-code ,right-code)))
-                 (when (spaceline--adjust-to-window ,priority-symbol fmt)
-                   (setq fmt (spaceline--render-mode-line ,left-code ,right-code)))
-                 fmt)))
+      (eval (macroexpand-all
+             `(defun ,target-func ()
+                ;; Initialize the local runtime if necessary
+                (unless ,priority-symbol
+                  (spaceline--init-runtime ',left-symbol
+                                    ',right-symbol
+                                    ',priority-symbol))
+                ;; Render the modeline
+                (let ((fmt (spaceline--render-mode-line ,left-code ,right-code)))
+                  (when (spaceline--adjust-to-window ,priority-symbol fmt)
+                    (setq fmt (spaceline--render-mode-line ,left-code ,right-code)))
+                  fmt))))
 
       (when spaceline-byte-compile
         (let ((byte-compile-warnings nil))
