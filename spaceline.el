@@ -560,7 +560,7 @@ these vectors, and store them in the varibles LEFT-SYMBOL and
 RIGHT-SYMBOL, respectively, which are lists. The variable
 PRIORITY-SYMBOL is initialized with default value nil.
 
-See `spaceline--init-runtime-data' for more information."
+See `spaceline--init-runtime' for more information."
   (let ((left (--map (spaceline--parse-segment-spec it
                        (vector (or (plist-get props :priority) -1) 0 t))
                      segments-left))
@@ -632,7 +632,7 @@ order of priority and order of segments."
   "Adjust the spaceline to the window by hiding or showing segments.
 
 RESPONSIVENESS-RUNTIME-DATA is a list of segments runtime data used to hide or
-show segments, see `spaceline--declare-runtime-variables' for more info about
+show segments, see `spaceline--declare-runtime' for more info about
 how responsiveness works.
 
 FMT is the rendered modeline with the current visibility settings.
@@ -663,7 +663,7 @@ Returns a truthy value if the visibility of any segment changed."
 
 (defun spaceline--compare-priorities (first-alist second-alist)
   "Comparison predicate for sorting the segments runtime data by priority.
-Used as a predicate for `sort' in `spaceline--init-runtime-data'."
+Used as a predicate for `sort' in `spaceline--init-runtime'."
   (let ((first (spaceline--priority first-alist))
         (second (spaceline--priority second-alist)))
     (cond
