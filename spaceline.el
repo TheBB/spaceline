@@ -514,7 +514,7 @@ SIDE is either 'l or 'r, respectively for the left and the right side."
             needs-separator
             separator-face
             result)
-       ,@(--map `(let ((runtime-data (cdr (pop runtime-pointer))))
+       ,@(--map `(let ((runtime-data (pop runtime-pointer)))
                    (when (aref runtime-data 2) ; Only render if this segment is shown
                      ,@(spaceline--gen-segment it side)
                      (aset runtime-data 1 segment-length))) ; Update the length
@@ -568,16 +568,12 @@ See `spaceline--init-runtime-data' for more info about these variables."
      (let ((left (let (list)
                    (dolist (segment-spec left-segs)
                      (spaceline--parse-segment-spec segment-spec
-                       (push (cons (spaceline--gen-segment segment-spec 'l)
-                                   (vector (or (plist-get props :priority) -1) 0 t))
-                             list)))
+                       (push (vector (or (plist-get props :priority) -1) 0 t) list)))
                    (reverse list)))
            (right (let (list)
                     (dolist (segment-spec right-segs)
                       (spaceline--parse-segment-spec segment-spec
-                        (push (cons (spaceline--gen-segment segment-spec 'r)
-                                    (vector (or (plist-get props :priority) -1) 0 t))
-                              list)))
+                        (push (vector (or (plist-get props :priority) -1) 0 t) list)))
                     list)))
        (defvar-local ,segments-code-left left
          "See `spaceline--declare-runtime-variables'.")
@@ -669,14 +665,14 @@ This function does:
   it by priority."
   `(progn
      (setq ,segments-code-target-left
-           (--map (cons (car it) (copy-tree (cdr it))) ,segments-code-target-left))
+           (--map (copy-tree it) ,segments-code-target-left))
      (setq ,segments-code-target-right
-           (--map (cons (car it) (copy-tree (cdr it))) ,segments-code-target-right))
+           (--map (copy-tree it) ,segments-code-target-right))
      (let ((left ,segments-code-target-left)
            (right ,segments-code-target-right))
        (while (or left right)
-         (when left (push (cdr (pop left)) ,responsiveness-runtime-data))
-         (when right (push (cdr (pop right)) ,responsiveness-runtime-data))))
+         (when left (push (pop left) ,responsiveness-runtime-data))
+         (when right (push (pop right) ,responsiveness-runtime-data))))
      (setq ,responsiveness-runtime-data
            (sort ,responsiveness-runtime-data
                  'spaceline--compare-priorities))))
