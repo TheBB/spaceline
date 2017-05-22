@@ -454,9 +454,11 @@ The supported properties are
                                          target)))
            (left-code `(spaceline--code-for-side ,global-excludes
                                                  ,segments-code-left
+                                                 ,left-segs
                                                  l))
            (right-code `(spaceline--code-for-side ,global-excludes
                                                   ,segments-code-right
+                                                  ,right-segs
                                                   r)))
       (eval `(spaceline--declare-runtime-variables ,segments-code-left
                                                    ,segments-code-right
@@ -490,6 +492,7 @@ The supported properties are
 
 (defmacro spaceline--code-for-side (global-excludes
                              segments-code
+                             segments
                              side)
   "Return the code that will evaluate all segments for one side.
 GLOBAL-EXCLUDES is used for the global segment, see `spaceline-define-segment'.
@@ -505,15 +508,17 @@ SIDE is either 'l or 'r, respectively for the left and the right side."
             (global-excludes ',global-excludes)
             (result-length 0)
             (segment-length 0)
+            (runtime-pointer ,segments-code)
             prior
             next-prior
             needs-separator
             separator-face
             result)
-       (dolist (segment ,segments-code)
-         (when (aref (cdr segment) 2)
-           (eval `(progn ,@(car segment)))
-           (aset (cdr segment) 1 segment-length)))
+       ,@(--map `(let ((runtime-data (cdr (pop runtime-pointer))))
+                   (when (aref runtime-data 2) ; Only render if this segment is shown
+                     ,@(spaceline--gen-segment it side)
+                     (aset runtime-data 1 segment-length))) ; Update the length
+                (if (eq 'l side) segments (reverse segments)))
        ,@(spaceline--gen-separator 'line-face side)
        ;; XXX: This code is dead
        ;; ;; use the same condition as in spaceline--gen-separator to
