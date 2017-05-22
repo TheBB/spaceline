@@ -577,22 +577,22 @@ See `spaceline--init-runtime-data' for more info about these variables."
                                       (length . 0)))
                               list)))
                     list)))
-       (defvar ,segments-code-left left
+       (defvar-local ,segments-code-left left
          "See `spaceline--declare-runtime-variables'.")
-       (make-variable-buffer-local segments-code-left)
        (setq-default ,segments-code-left left)
-       (setq ,segments-code-left left)
 
-       (defvar ,segments-code-right right
+       (defvar-local ,segments-code-right right
          "See `spaceline--declare-runtime-variables'.")
-       (make-variable-buffer-local segments-code-right)
-       (setq-default ,segments-code-right right)
-       (setq ,segments-code-right right))
+       (setq-default ,segments-code-right right))
 
-     (defvar ,runtime-data nil
+     (defvar-local ,runtime-data nil
        "See `spaceline--declare-runtime-variables'.")
-     (make-variable-buffer-local runtime-data)
-     (setq ,runtime-data nil)))
+     (setq-default ,runtime-data nil)
+     (dolist (buf (buffer-list))
+       (with-current-buffer buf
+         (kill-local-variable ',segments-code-left)
+         (kill-local-variable ',segments-code-right)
+         (kill-local-variable ',runtime-data)))))
 
 (defmacro spaceline--render-mode-line (left-code right-code)
   "Call powerline to generate the mode-line format string.
