@@ -511,17 +511,18 @@ SIDE is either 'l or 'r, respectively for the left and the right side."
             separator-face
             result)
        (dolist (segment ,segments-code)
-         (when (cdr (assoc 'shown (cdr segment)))
+         (when (aref (cdr segment) 2)
            (eval `(progn ,@(car segment)))
-           (setcdr (assoc 'length (cdr segment)) segment-length)))
+           (aset (cdr segment) 1 segment-length)))
        ,@(spaceline--gen-separator 'line-face side)
-       ;; use the same condition as in spaceline--gen-separator to
-       ;; increase the size of the last visible segment accordingly:
-       (when needs-separator
-         (let* ((last-visible-segment (--last (not (equal 0 (cdr (assoc 'length (cdr it)))))
-                                              ,segments-code))
-                (last-visible-segment-length (assoc 'length last-visible-segment)))
-           (cl-incf (cdr last-visible-segment-length))))
+       ;; XXX: This code is dead
+       ;; ;; use the same condition as in spaceline--gen-separator to
+       ;; ;; increase the size of the last visible segment accordingly:
+       ;; (when needs-separator
+       ;;   (let* ((last-visible-segment (--last (not (equal 0 (cdr (assoc 'length (cdr it)))))
+       ;;                                        ,segments-code))
+       ;;          (last-visible-segment-length (assoc 'length last-visible-segment)))
+       ;;     (cl-incf (cdr last-visible-segment-length))))
        ,(if (equal side 'l)
             '(reverse result)
           'result))))
@@ -539,10 +540,12 @@ variable is buffer-local and specific to a mode-line (target).
 
 After initialization in `spaceline--init-runtime-data' it will look like:
 
-'(((<segment-1-code>) . ((shown . t) (length . 0) (priority . 42)))
-  ((<segment-2-code>) . ((shown . t) (length . 0) (priority . 42)))
+'(((<segment-1-code>) . [<priority> <length> <shown>])
+  ((<segment-2-code>) . [<priority> <length> <shown>])
   ...
-  ((<segment-n-code>) . ((shown . t) (length . 0) (priority . 42))))
+  ((<segment-n-code>) . [<priority> <length> <shown>]))
+
+with <length> and <shown> initialized as 0 and t for all segments.
 
 RESPONSIVENESS-RUNTIME-DATA-TARGET is the generated symbol that will hold the
 list used at runtime to decide which segments to display or hide based on the
@@ -550,10 +553,10 @@ width of the window.
 Each element of this list is the cdr of an element of
 RESPONSIVENESS-RUNTIME-<side>-SYM:
 
-'(((shown . t) (length . 0) (priority . 42))
-  ((shown . t) (length . 0) (priority . 42))
+'([<priority> <length> <shown>]
+  [<priority> <length> <shown>]
   ...
-  ((shown . t) (length . 0)) (priority . 42))
+  [<priority> <length> <shown>])
 
 See `spaceline--init-runtime-data' for more info about these variables."
   `(progn
@@ -561,18 +564,14 @@ See `spaceline--init-runtime-data' for more info about these variables."
                    (dolist (segment-spec left-segs)
                      (spaceline--parse-segment-spec segment-spec
                        (push (cons (spaceline--gen-segment segment-spec 'l)
-                                   `((priority . ,(or (plist-get props :priority) -1))
-                                     (shown . t)
-                                     (length . 0)))
+                                   (vector (or (plist-get props :priority) -1) 0 t))
                              list)))
                    (reverse list)))
            (right (let (list)
                     (dolist (segment-spec right-segs)
                       (spaceline--parse-segment-spec segment-spec
                         (push (cons (spaceline--gen-segment segment-spec 'r)
-                                    `((priority . ,(or (plist-get props :priority) -1))
-                                      (shown . t)
-                                      (length . 0)))
+                                    (vector (or (plist-get props :priority) -1) 0 t))
                               list)))
                     list)))
        (defvar-local ,segments-code-left left
@@ -630,20 +629,20 @@ Returns a truthy value if the visibility of any segment changed."
          changed)
      (if (> spaceline--length (window-width))
          ;; The modeline is too long, so try to hide some segments that are shown
-         (let ((to-hide (--drop-while (eq (cdr (assoc 'shown it)) nil)
+         (let ((to-hide (--drop-while (eq (aref it 2) nil)
                                       ,responsiveness-runtime-data)))
            (--each-while to-hide
                (< width spaceline--length)
-             (cl-decf spaceline--length (cdr (assoc 'length it)))
-             (setcdr (assoc 'shown it) nil)
+             (cl-decf spaceline--length (aref it 1))
+             (aset it 2 nil)
              (setq changed t)))
        ;; The modeline is shorter than it could be, so try to show some hidden segments
-       (let ((to-show (--drop-while (cdr (assoc 'shown it))
+       (let ((to-show (--drop-while (aref it 2)
                                     (reverse ,responsiveness-runtime-data))))
          (--each-while to-show
-             (> width (+ spaceline--length (cdr (assoc 'length it))))
-           (cl-incf spaceline--length (cdr (assoc 'length it)))
-           (setcdr (assoc 'shown it) t)
+             (> width (+ spaceline--length (aref it 1)))
+           (cl-incf spaceline--length (aref it 1))
+           (aset it 2 t)
            (setq changed t))))
      changed))
 
@@ -680,8 +679,8 @@ This function does:
 (defun spaceline--compare-priorities (first-alist second-alist)
   "Comparison predicate for sorting the segments runtime data by priority.
 Used as a predicate for `sort' in `spaceline--init-runtime-data'."
-  (let ((first (cdr (assoc 'priority first-alist)))
-        (second (cdr (assoc 'priority second-alist))))
+  (let ((first (aref first-alist 0))
+        (second (aref first-alist 0)))
     (if (equal first second)
         nil
       (if (equal first -1)
