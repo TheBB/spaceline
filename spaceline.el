@@ -644,7 +644,7 @@ Returns a truthy value if the visibility of any segment changed."
          changed)
      (if (> total-length (window-width))
          ;; The modeline is too long, so try to hide some segments that are shown
-         (let ((to-hide (--drop-while (eq (spaceline--shown it) nil)
+         (let ((to-hide (--drop-while (not (spaceline--shown it))
                                       ,responsiveness-runtime-data)))
            (--each-while to-hide
                (< width total-length)
