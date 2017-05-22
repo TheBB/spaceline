@@ -489,44 +489,42 @@ The supported properties are
 (defalias 'spaceline-install 'spaceline-compile)
 
 (defmacro spaceline--code-for-side (global-excludes
-                                    segments-code
-                                    side)
+                             segments-code
+                             side)
   "Return the code that will evaluate all segments for one side.
 GLOBAL-EXCLUDES is used for the global segment, see `spaceline-define-segment'.
 SEGMENTS-CODE is a list of pieces of code where each node is the code for one
               segment.
 SIDE is either 'l or 'r, respectively for the left and the right side."
-  `(let* ((default-face face1)
-          (other-face face2)
-          (sep-style (format "powerline-%s" powerline-default-separator))
-          (sep-dirs (spaceline--get-separator-dirs ',side))
-          (default-sep (intern (format "%s-%s" sep-style (car sep-dirs))))
-          (other-sep (intern (format "%s-%s" sep-style (cdr sep-dirs))))
-          (global-excludes ',global-excludes)
-          (result-length 0)
-          (segment-length 0)
-          prior
-          next-prior
-          needs-separator
-          separator-face
-          result)
-     (dolist (segment ,segments-code)
-       (when (cdr (assoc 'shown (cdr segment)))
-         (setq prev-result result)
-         (eval `(progn ,@(car segment)))
-         (setcdr (assoc 'length (cdr segment)) segment-length)))
-     ,@(spaceline--gen-separator 'line-face side)
-     ;; use the same condition as in spaceline--gen-separator to
-     ;; increase the size of the last visible segment accordingly:
-     (when needs-separator
-       (let* ((last-visible-segment (--last (not (equal 0 (cdr (assoc 'length (cdr it)))))
-                                            ,segments-code))
-              (last-visible-segment-length (assoc 'length last-visible-segment)))
-         (setcdr last-visible-segment-length
-                 (1+ (cdr last-visible-segment-length)))))
-     ,(if (equal side 'l)
-          '(reverse result)
-        'result)))
+  (let ((sep-style (format "powerline-%s" powerline-default-separator))
+        (sep-dirs (spaceline--get-separator-dirs side)))
+    `(let* ((default-face face1)
+            (other-face face2)
+            (default-sep ',(intern (format "%s-%s" sep-style (car sep-dirs))))
+            (other-sep ',(intern (format "%s-%s" sep-style (cdr sep-dirs))))
+            (global-excludes ',global-excludes)
+            (result-length 0)
+            (segment-length 0)
+            prior
+            next-prior
+            needs-separator
+            separator-face
+            result)
+       (dolist (segment ,segments-code)
+         (when (cdr (assoc 'shown (cdr segment)))
+           (eval `(progn ,@(car segment)))
+           (setcdr (assoc 'length (cdr segment)) segment-length)))
+       ,@(spaceline--gen-separator 'line-face side)
+       ;; use the same condition as in spaceline--gen-separator to
+       ;; increase the size of the last visible segment accordingly:
+       (when needs-separator
+         (let* ((last-visible-segment (--last (not (equal 0 (cdr (assoc 'length (cdr it)))))
+                                              ,segments-code))
+                (last-visible-segment-length (assoc 'length last-visible-segment)))
+           (cl-incf (cdr last-visible-segment-length))))
+       ,(if (equal side 'l)
+            '(reverse result)
+          'result))))
 
 (defmacro spaceline--declare-runtime-variables (segments-code-left
                                                 segments-code-right
