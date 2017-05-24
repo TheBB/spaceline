@@ -113,13 +113,15 @@ FACE and ACTIVE have the same meanings as in
 `spaceline-face-func'.  It delegates the work to
 `spaceline-face-func' if it is given, otherwise falls back to
 default configuration."
-  (if spaceline-face-func
+  (if (and spaceline-face-func
+           (facep (funcall spaceline-face-func face active)))
       (funcall spaceline-face-func face active)
     (cond
      ((eq 'face1 face) (if active 'powerline-active1 'powerline-inactive1))
      ((eq 'face2 face) (if active 'mode-line 'mode-line-inactive))
      ((eq 'line face) (if active 'powerline-active2 'powerline-inactive2))
-     ((eq 'highlight face) (if active
+     ((eq 'highlight face) (if (and active
+                                    (facep (funcall spaceline-highlight-face-func)))
                                (funcall spaceline-highlight-face-func)
                              'powerline-inactive1)))))
 
