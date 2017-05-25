@@ -23,6 +23,8 @@
 
 (require 'spaceline-segments)
 
+(defvar helm-ag-show-status-function)
+
 (defun spaceline--theme (left second-left &rest additional-segments)
   "Convenience function for the spacemacs and emacs themes."
   (spaceline-install `(,left
