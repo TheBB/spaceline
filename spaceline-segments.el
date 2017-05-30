@@ -152,7 +152,7 @@ currently displayed pdf file in `pdf-view-mode'."
           ;; `pdf-view-current-page' is a macro in an optional dependency
           ;; any better solutions?
           (eval `(pdf-view-current-page))
-	  (pdf-cache-number-of-pages)))
+          (pdf-cache-number-of-pages)))
 
 (spaceline-define-segment line-column
   "The current line and column numbers, or `(current page/number of pages)`

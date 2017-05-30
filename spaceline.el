@@ -430,6 +430,7 @@ The supported properties are
   either side (default nil)
 - `:fallback', another segment that will be called if no output
   is produced"
+  (declare (indent defun))
   (interactive)
   (if (not args)
       ;; Recompile all modelines
@@ -491,10 +492,8 @@ The supported properties are
 
 (defalias 'spaceline-install 'spaceline-compile)
 
-(defmacro spaceline--code-for-side (global-excludes
-                             runtime-symbol
-                             segments
-                             side)
+(defmacro spaceline--code-for-side
+    (global-excludes runtime-symbol segments side)
   "Generate the code that will evaluate all segments for one side.
 
 GLOBAL-EXCLUDES is used for the global segment, see `spaceline-define-segment'.
@@ -542,11 +541,8 @@ is either l or r, respectively for the left and the right side."
 (defmacro spaceline--set-length (vec val) `(aset ,vec 1 ,val))
 (defmacro spaceline--set-shown (vec val) `(aset ,vec 2 ,val))
 
-(defun spaceline--declare-runtime (segments-left
-                            segments-right
-                            left-symbol
-                            right-symbol
-                            priority-symbol)
+(defun spaceline--declare-runtime
+    (segments-left segments-right left-symbol right-symbol priority-symbol)
   "Initialize the global runtime data for a modeline.
 
 The runtime consist of a three-element vector for each top-level
@@ -602,9 +598,7 @@ LEFT-CODE and RIGHT-CODE are the code that will be used "
         (powerline-fill line-face (powerline-width rhs))
         (powerline-render rhs)))))
 
-(defun spaceline--init-runtime (left-symbol
-                            right-symbol
-                            priority-symbol)
+(defun spaceline--init-runtime (left-symbol right-symbol priority-symbol)
   "Initialize data structures used for the responsiveness of the modeline.
 
 This function
