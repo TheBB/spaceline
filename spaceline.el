@@ -46,6 +46,10 @@
 (defvar spaceline-byte-compile t
   "Whether to byte compile the modeline.")
 
+(defvar spaceline-responsive t
+  "If true, the modeline responds to narrow windows by
+dynamically hiding segments.")
+
 (defvar spaceline--mode-lines nil
   "Alist of modelines.
 Each CAR is a symbol naming the modeline, and the CDR is a cons
@@ -479,8 +483,9 @@ The supported properties are
                                     ',priority-symbol))
                 ;; Render the modeline
                 (let ((fmt (spaceline--render-mode-line ,left-code ,right-code)))
-                  (when (spaceline--adjust-to-window ,priority-symbol fmt)
-                    (setq fmt (spaceline--render-mode-line ,left-code ,right-code)))
+                  (and spaceline-responsive
+                       (spaceline--adjust-to-window ,priority-symbol fmt)
+                       (setq fmt (spaceline--render-mode-line ,left-code ,right-code)))
                   fmt))))
 
       (when spaceline-byte-compile
