@@ -74,7 +74,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
            :face highlight-face
            :priority 0)
          '((buffer-modified buffer-size buffer-id remote-host)
-           :priority 1)
+           :priority 5)
          additional-segments))
 
 (defun spaceline-emacs-theme (&rest additional-segments)
@@ -88,8 +88,10 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
               window-number) :separator "|")
             buffer-modified
             buffer-size)
-           :face highlight-face)
-         '(buffer-id remote-host)
+           :face highlight-face
+           :priority 0)
+         '((buffer-id remote-host)
+           :priority 5)
          additional-segments))
 
 ;; Helm custom mode
