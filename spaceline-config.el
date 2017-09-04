@@ -94,8 +94,8 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
            :priority 5)
          additional-segments))
 
-;; Helm custom mode
-;; ================
+;;; Helm custom mode
+;;  ================
 
 (defvar helm-ag-show-status-function)
 
@@ -130,8 +130,8 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
     (setq helm-ag-show-status-function 'helm-ag-show-status-default-mode-line)
     (ad-deactivate 'helm-display-mode-line)))
 
-;; Info custom mode
-;; ================
+;;; Info custom mode
+;;  ================
 
 (define-minor-mode spaceline-info-mode
   "Customize the mode-line in info.

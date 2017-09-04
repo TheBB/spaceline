@@ -33,8 +33,8 @@
 (defvar evil-state)
 (defvar evil-visual-selection)
 
-;; Stock segments - no optional dependencies
-;; =========================================
+;;; Stock segments - no optional dependencies
+;;  =========================================
 
 (defvar spaceline-minor-modes-separator "|")
 (spaceline-define-segment minor-modes
@@ -223,8 +223,8 @@ segment.  Otherwise only show the active input method, if any."
     (powerline-hud highlight-face default-face))
   :tight t)
 
-;; Helm segments
-;; =============
+;;; Helm segments
+;;  =============
 
 (declare-function helm-candidate-number-at-point 'helm)
 (declare-function helm-get-candidate-number 'helm)
@@ -294,8 +294,8 @@ The cdr can also be a function that returns a name to use.")
              (eq 1 (cdr (assq 'follow spaceline--helm-current-source))))
     "HF"))
 
-;; Info segments
-;; =============
+;;; Info segments
+;;  =============
 
 (defvar spaceline--info-topic nil
   "Topic for the info modeline.")
@@ -308,8 +308,8 @@ The cdr can also be a function that returns a name to use.")
   "Breadcrumbs for the info modeline."
   spaceline--info-nodes)
 
-;; Segments requiring optional dependencies
-;; ========================================
+;;; Segments requiring optional dependencies
+;;  ========================================
 
 (defvar erc-modified-channels-alist)
 (defvar fancy-battery-last-status)
