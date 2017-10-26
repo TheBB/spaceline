@@ -533,14 +533,6 @@ is either l or r, respectively for the left and the right side."
                      (spaceline--set-length runtime-data segment-length))) ; Update the length
                 (if (eq 'l side) segments (reverse segments)))
        ,@(spaceline--gen-separator 'line-face side)
-       ;; XXX: This code is dead
-       ;; ;; use the same condition as in spaceline--gen-separator to
-       ;; ;; increase the size of the last visible segment accordingly:
-       ;; (when needs-separator
-       ;;   (let* ((last-visible-segment (--last (not (equal 0 (cdr (assoc 'length (cdr it)))))
-       ;;                                        ,segments-code))
-       ;;          (last-visible-segment-length (assoc 'length last-visible-segment)))
-       ;;     (cl-incf (cdr last-visible-segment-length))))
        ,(if (eq side 'l) '(reverse result) 'result))))
 
 (defmacro spaceline--priority (val) `(aref ,val 0))
