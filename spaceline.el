@@ -498,6 +498,8 @@ The supported properties are
 
 (defalias 'spaceline-install 'spaceline-compile)
 
+(make-obsolete-variable 'spaceline-install 'spaceline-compile "2.0.2")
+
 (defmacro spaceline--code-for-side
     (global-excludes runtime-symbol segments side)
   "Generate the code that will evaluate all segments for one side.
