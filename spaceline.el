@@ -754,6 +754,16 @@ the changes to take effect."
     (when (spaceline--mode-line-nonempty global)
       (string-trim (powerline-raw global)))))
 
+(defun spaceline--string-trim-from-center (str len)
+  "Return STR with its center chars trimmed for it to be a maximum length of LEN.
+When characters are trimmed, they are replaced with '...'."
+  (if (> (length str) len)
+      (let ((mid (/ (- len 3) 2)))
+        (concat (substring str 0 mid)
+                (apply #'propertize "..." (text-properties-at (- mid 1) str))
+                (substring str (- (1+ mid)) nil)))
+    str))
+
 (provide 'spaceline)
 
 ;;; spaceline.el ends here

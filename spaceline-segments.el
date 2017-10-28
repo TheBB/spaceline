@@ -81,9 +81,16 @@
   "Size of buffer."
   (powerline-buffer-size))
 
+(defcustom spaceline-buffer-id-max-length 45
+  "The maximum displayed length of the buffer-id segment."
+  :type 'boolean
+  :group 'spaceline)
+
 (spaceline-define-segment buffer-id
   "Name of buffer."
-  (s-trim (powerline-buffer-id 'mode-line-buffer-id)))
+  (s-trim (spaceline--string-trim-from-center
+           (powerline-buffer-id 'mode-line-buffer-id)
+           spaceline-buffer-id-max-length)))
 
 (spaceline-define-segment remote-host
   "Hostname for remote buffers."
