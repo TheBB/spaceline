@@ -566,10 +566,10 @@ PRIORITY-SYMBOL is initialized with default value nil.
 
 See `spaceline--init-runtime' for more information."
   (let ((left (--map (spaceline--parse-segment-spec it
-                       (vector (or (plist-get props :priority) -1) 0 t))
+                       (vector (or (plist-get props :priority) 0) 0 t))
                      segments-left))
         (right (--map (spaceline--parse-segment-spec it
-                        (vector (or (plist-get props :priority) -1) 0 t))
+                        (vector (or (plist-get props :priority) 0) 0 t))
                       segments-right)))
     (eval `(defvar-local ,left-symbol nil "See `spaceline--declare-runtime'."))
     (set-default left-symbol left)
