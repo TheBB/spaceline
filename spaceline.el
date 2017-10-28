@@ -668,7 +668,7 @@ Returns a truthy value if the visibility of any segment changed."
 Used as a predicate for `sort' in `spaceline--init-runtime'."
   (let ((first (spaceline--priority first-alist))
         (second (spaceline--priority second-alist)))
-    (> first second)))
+    (< first second)))
 
 (defmacro spaceline-define-segment (name value &rest props)
   "Define a modeline segment called NAME with value VALUE and properties PROPS.

@@ -27,37 +27,38 @@
   "Convenience function for the spacemacs and emacs themes."
   (spaceline-compile
     `(,left
-      (anzu :priority 4)
+      (anzu :priority 95)
       auto-compile
       ,second-left
-      major-mode
+      (major-mode :priority 79)
       (process :when active)
       ((flycheck-error flycheck-warning flycheck-info)
        :when active
-       :priority 3)
-      (minor-modes :when active)
+       :priority 89)
+      (minor-modes :when active
+                   :priority 9)
       (mu4e-alert-segment :when active)
       (erc-track :when active)
       (version-control :when active
-                       :priority 7)
+                       :priority 78)
       (org-pomodoro :when active)
       (org-clock :when active)
       nyan-cat)
     `(which-function
       (python-pyvenv :fallback python-pyenv)
-      purpose
+      (purpose :priority 94)
       (battery :when active)
-      (selection-info :priority 2)
+      (selection-info :priority 95)
       input-method
       ((buffer-encoding-abbrev
         point-position
         line-column)
        :separator " | "
-       :priority 3)
+       :priority 96)
       (global :when active)
       ,@additional-segments
-      (buffer-position :priority 0)
-      (hud :priority 0)))
+      (buffer-position :priority 99)
+      (hud :priority 99)))
 
   (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main)))))
 
@@ -72,9 +73,9 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
             window-number)
            :fallback evil-state
            :face highlight-face
-           :priority 0)
+           :priority 100)
          '((buffer-modified buffer-size buffer-id remote-host)
-           :priority 5)
+           :priority 98)
          additional-segments))
 
 (defun spaceline-emacs-theme (&rest additional-segments)
@@ -89,9 +90,9 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
             buffer-modified
             buffer-size)
            :face highlight-face
-           :priority 0)
+           :priority 100)
          '((buffer-id remote-host)
-           :priority 5)
+           :priority 98)
          additional-segments))
 
 ;;; Helm custom mode
