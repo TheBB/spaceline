@@ -83,7 +83,7 @@
 
 (spaceline-define-segment buffer-id
   "Name of buffer."
-  (s-trim (powerline-buffer-id 'mode-line-buffer-id)))
+  (s-trim (powerline-buffer-id (if active 'mode-line-buffer-id 'mode-line-buffer-id-inactive))))
 
 (spaceline-define-segment remote-host
   "Hostname for remote buffers."
