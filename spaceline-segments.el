@@ -615,6 +615,11 @@ mouse-3: go to end"))))
     mu4e-alert-mode-line)
   :global-override ((:eval mu4e-alert-mode-line)))
 
+(spaceline-define-segment recursive-edit
+  "Shows the current recursive-edit depth."
+  (format "↻%s" (recursion-depth))
+  :when (> (recursion-depth) 0))
+
 (provide 'spaceline-segments)
 
 ;;; spaceline-segments.el ends here
