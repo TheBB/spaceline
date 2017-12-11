@@ -620,6 +620,11 @@ mouse-3: go to end"))))
   (format "↻%s" (recursion-depth))
   :when (> (recursion-depth) 0))
 
+(spaceline-define-segment macrodef
+  "Shows when defining a keyboard macro."
+  "•REC"
+  :when defining-kbd-macro)
+
 (provide 'spaceline-segments)
 
 ;;; spaceline-segments.el ends here
