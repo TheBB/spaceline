@@ -321,7 +321,6 @@ The cdr can also be a function that returns a name to use.")
 (defvar which-func-current)
 (defvar which-func-keymap)
 
-(declare-function projectile-project-p 'projectile)
 (declare-function projectile-project-name 'projectile)
 (declare-function anzu--update-mode-line 'anzu)
 (declare-function evil-state-property 'evil-common)
@@ -338,10 +337,10 @@ The cdr can also be a function that returns a name to use.")
 
 (spaceline-define-segment projectile-root
   "Show the current projectile root."
-  (when (and (fboundp 'projectile-project-p)
-             (stringp (projectile-project-p))
-             (not (string= (projectile-project-name) (buffer-name))))
-    (projectile-project-name)))
+  (when (fboundp 'projectile-project-name)
+    (let ((project-name (projectile-project-name)))
+      (unless (string= project-name (buffer-name))
+        project-name))))
 
 (spaceline-define-segment anzu
   "Show the current match number and the total number of matches.
