@@ -83,7 +83,7 @@
 
 (defcustom spaceline-buffer-id-max-length 45
   "The maximum displayed length of the buffer-id segment."
-  :type 'boolean
+  :type 'integer
   :group 'spaceline)
 
 (spaceline-define-segment buffer-id
