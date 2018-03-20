@@ -15,6 +15,11 @@ env:
   - EVM_EMACS=emacs-26-pretest-travis
   - EVM_EMACS=emacs-git-snapshot-travis
 
+matrix:
+  allow_failtures:
+    env:
+      - EVM_EMACS=emacs-git-snapshot-travis
+
 before_install:
  - curl -fsSkL https://gist.github.com/rejeep/ebcd57c3af83b049833b/raw > x.sh && source ./x.sh
  - evm install $EVM_EMACS --use --skip
