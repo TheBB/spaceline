@@ -1,2 +1,2 @@
 *.elc
-/deps
+/.cask
