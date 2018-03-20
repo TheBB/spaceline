@@ -621,6 +621,14 @@ mouse-3: go to end"))))
     mu4e-alert-mode-line)
   :global-override ((:eval mu4e-alert-mode-line)))
 
+(spaceline-define-segment current-company-backend
+(when (bound-and-true-p company-candidates)
+  (if (consp company-backend)
+      (company--group-lighter (nth company-selection
+				   company-candidates)
+			      company-lighter-base)
+    (symbol-name company-backend))))
+
 (provide 'spaceline-segments)
 
 ;;; spaceline-segments.el ends here
