@@ -408,6 +408,9 @@ If `spaceline-byte-compile' is non-nil, this function will be
 byte-compiled. This is recommended for regular usage as it
 improves performance significantly.
 
+If the segments are known statically at compile time, consider
+using `spaceline-generate' instead.
+
 Each element in LEFT and RIGHT must be a valid segment. Namely,
 - A literal string, integer or floating point number; or
 - a symbol, which has been defined with
@@ -448,45 +451,9 @@ The supported properties are
                         (cadr (assq target spaceline--mode-lines))))
            (right-segs (if (> nargs 1) (pop args)
                          (cddr (assq target spaceline--mode-lines))))
-           (target-func (intern (format "spaceline-ml-%s" target)))
-           ;; Special support for the global segment: compile list of excludes
-           (global-excludes (append (spaceline--global-excludes left-segs)
-                                    (spaceline--global-excludes right-segs)))
-           ;; Symbols for runtime data
-           (left-symbol (intern (format "spaceline--segments-code-%s-left" target)))
-           (right-symbol (intern (format "spaceline--segments-code-%s-right" target)))
-           (priority-symbol (intern (format "spaceline--runtime-data-%s" target)))
-           (left-code `(spaceline--code-for-side
-                        ,global-excludes ,left-symbol ,left-segs l))
-           (right-code `(spaceline--code-for-side
-                         ,global-excludes ,right-symbol ,right-segs r)))
+           (target-func (intern (format "spaceline-ml-%s" target))))
 
-      ;; Declare the global runtime defaults
-      (spaceline--declare-runtime left-segs right-segs
-                           left-symbol
-                           right-symbol
-                           priority-symbol)
-
-      ;; Update the stored segments so that recompilation will work
-      (unless (assq target spaceline--mode-lines)
-        (push `(,target) spaceline--mode-lines))
-      (setcdr (assq target spaceline--mode-lines) `(,left-segs . ,right-segs))
-
-      ;; Define the function that Emacs will call to generate the mode-line's
-      ;; format string every time the mode-line is refreshed.
-      (eval (macroexpand-all
-             `(defun ,target-func ()
-                ;; Initialize the local runtime if necessary
-                (unless ,priority-symbol
-                  (spaceline--init-runtime ',left-symbol
-                                    ',right-symbol
-                                    ',priority-symbol))
-                ;; Render the modeline
-                (let ((fmt (spaceline--render-mode-line ,left-code ,right-code)))
-                  (and spaceline-responsive
-                       (spaceline--adjust-to-window ,priority-symbol fmt)
-                       (setq fmt (spaceline--render-mode-line ,left-code ,right-code)))
-                  fmt))))
+      (eval (macroexpand-all `(spaceline-generate ,target ,left-segs ,right-segs)))
 
       (when spaceline-byte-compile
         (let ((byte-compile-warnings nil))
@@ -499,6 +466,70 @@ The supported properties are
 (defalias 'spaceline-install 'spaceline-compile)
 
 (make-obsolete-variable 'spaceline-install 'spaceline-compile "2.0.2")
+
+(defmacro spaceline-generate (&rest args)
+  "Compile a modeline.
+
+This is a macro-version of `spaceline-compile', useful for
+generating a modeline function when the segments are known
+statically at compile time.
+
+This macro accepts two calling conventions:
+- With three arguments, TARGET, LEFT and RIGHT, it compiles a
+  modeline named TARGET, with segment lists LEFT and RIGHT for
+  the left and right sides respectively.
+- With two arguments, LEFT and RIGHT, the target takes the
+  default value `main'.
+
+In all cases, a function called `spaceline-ml-TARGET' is defined,
+which evaluates the modeline. It can then be used as a modeline
+by setting `mode-line-format' to
+
+    (\"%e\" (:eval (spaceline-ml-TARGET)))
+
+See the documentation for `spaceline-compile' for how to specify
+LEFT and RIGHT."
+  (declare (indent defun))
+  (let* (;; Handle the different calling conventions
+         (nargs (length args))
+         (target (if (cl-oddp nargs) (pop args) 'main))
+         (left-segs (car args))
+         (right-segs (cadr args))
+         (target-func (intern (format "spaceline-ml-%s" target)))
+         ;; Special support for the global segment: compile list of excludes
+         (global-excludes (append (spaceline--global-excludes left-segs)
+                                  (spaceline--global-excludes right-segs)))
+         ;; Symbols for runtime data
+         (left-symbol (intern (format "spaceline--segments-code-%s-left" target)))
+         (right-symbol (intern (format "spaceline--segments-code-%s-right" target)))
+         (priority-symbol (intern (format "spaceline--runtime-data-%s" target)))
+         (left-code `(spaceline--code-for-side
+                      ,global-excludes ,left-symbol ,left-segs l))
+         (right-code `(spaceline--code-for-side
+                       ,global-excludes ,right-symbol ,right-segs r)))
+    `(progn
+
+       ;; Declare global runtime defaults
+       (spaceline--declare-runtime ',left-segs ',right-segs ',left-symbol ',right-symbol ',priority-symbol)
+
+       ;; Update stored segments so that recompilation will work
+       (unless (assq ',target spaceline--mode-lines)
+         (push '(,target) spaceline--mode-lines))
+       (setcdr (assq ',target spaceline--mode-lines)
+               '(,left-segs . ,right-segs))
+
+       ;; Define the function that Emacs will call to generate the mode-line's
+       ;; format string every time the mode-line is refreshed.
+       (defun ,target-func ()
+         ;; Initialize the local runtime if necessary
+         (unless ,priority-symbol
+           (spaceline--init-runtime ',left-symbol ',right-symbol ',priority-symbol))
+         ;; Render the modeline
+         (let ((fmt (spaceline--render-mode-line ,left-code ,right-code)))
+           (and spaceline-responsive
+                (spaceline--adjust-to-window ,priority-symbol fmt)
+                (setq fmt (spaceline--render-mode-line ,left-code ,right-code)))
+           fmt)))))
 
 (defmacro spaceline--code-for-side
     (global-excludes runtime-symbol segments side)
