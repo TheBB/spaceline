@@ -510,7 +510,7 @@ LEFT and RIGHT."
     `(progn
 
        ;; Declare global runtime defaults
-       (spaceline--declare-runtime ',left-segs ',right-segs ',left-symbol ',right-symbol ',priority-symbol)
+       (spaceline--declare-runtime ,left-segs ,right-segs ,left-symbol ,right-symbol ,priority-symbol)
 
        ;; Update stored segments so that recompilation will work
        (unless (assq ',target spaceline--mode-lines)
@@ -523,7 +523,7 @@ LEFT and RIGHT."
        (defun ,target-func ()
          ;; Initialize the local runtime if necessary
          (unless ,priority-symbol
-           (spaceline--init-runtime ',left-symbol ',right-symbol ',priority-symbol))
+           (spaceline--init-runtime ,left-symbol ,right-symbol ,priority-symbol))
          ;; Render the modeline
          (let ((fmt (spaceline--render-mode-line ,left-code ,right-code)))
            (and spaceline-responsive
@@ -572,7 +572,7 @@ is either l or r, respectively for the left and the right side."
 (defmacro spaceline--set-length (vec val) `(aset ,vec 1 ,val))
 (defmacro spaceline--set-shown (vec val) `(aset ,vec 2 ,val))
 
-(defun spaceline--declare-runtime
+(defmacro spaceline--declare-runtime
     (segments-left segments-right left-symbol right-symbol priority-symbol)
   "Initialize the global runtime data for a modeline.
 
@@ -594,18 +594,21 @@ See `spaceline--init-runtime' for more information."
         (right (--map (spaceline--parse-segment-spec it
                         (vector (or (plist-get props :priority) 0) 0 t))
                       segments-right)))
-    (eval `(defvar-local ,left-symbol nil "See `spaceline--declare-runtime'."))
-    (set-default left-symbol left)
-    (eval `(defvar-local ,right-symbol nil "See `spaceline--declare-runtime'."))
-    (set-default right-symbol (reverse right)))
+    `(progn
+       ;; We use both defvar and setq so that recompilation will work.
+       (defvar-local ,left-symbol nil "See `spaceline--declare-runtime'.")
+       (setq-default ,left-symbol ',left)
+       (defvar-local ,right-symbol nil "See `spaceline--declare-runtime'.")
+       (setq-default ,right-symbol ',(reverse right))
+       (defvar-local ,priority-symbol nil "See `spaceline--declare-runtime'.")
 
-  (eval `(defvar-local ,priority-symbol nil "See `spaceline--declare-runtime'."))
-  (set-default priority-symbol nil)
-  (dolist (buf (buffer-list))
-    (with-current-buffer buf
-      (kill-local-variable left-symbol)
-      (kill-local-variable right-symbol)
-      (kill-local-variable priority-symbol))))
+       ;; Since we have possibly changed the defaults of these variables, kill
+       ;; any local bindings that may exist.
+       (dolist (buf (buffer-list))
+         (with-current-buffer buf
+           (kill-local-variable ',left-symbol)
+           (kill-local-variable ',right-symbol)
+           (kill-local-variable ',priority-symbol))))))
 
 (defmacro spaceline--render-mode-line (left-code right-code)
   "Call powerline to generate the mode-line format string.
@@ -629,7 +632,7 @@ LEFT-CODE and RIGHT-CODE are the code that will be used "
         (powerline-fill line-face (powerline-width rhs))
         (powerline-render rhs)))))
 
-(defun spaceline--init-runtime (left-symbol right-symbol priority-symbol)
+(defmacro spaceline--init-runtime (left-symbol right-symbol priority-symbol)
   "Initialize data structures used for the responsiveness of the modeline.
 
 This function
@@ -642,16 +645,16 @@ Note that the changes in the resulting PRIORITY-SYMBOL list are
 visible from LEFT-SYMBOL and RIGHT-SYMBOL, and vice versa. This
 creates a data structure that is efficiently accessible both in
 order of priority and order of segments."
-  (let ((left (--map (copy-tree it) (default-value left-symbol)))
-        (right (--map (copy-tree it) (default-value right-symbol)))
-        priority)
-    (set (make-local-variable left-symbol) left)
-    (set (make-local-variable right-symbol) right)
-    (while (or left right)
-      (when left (push (pop left) priority))
-      (when right (push (pop right) priority)))
-    (set (make-local-variable priority-symbol)
-         (sort priority 'spaceline--compare-priorities))))
+  `(let ((left (--map (copy-tree it) (default-value ',left-symbol)))
+         (right (--map (copy-tree it) (default-value ',right-symbol)))
+         priority)
+     (set (make-local-variable ',left-symbol) left)
+     (set (make-local-variable ',right-symbol) right)
+     (while (or left right)
+       (when left (push (pop left) priority))
+       (when right (push (pop right) priority)))
+     (set (make-local-variable ',priority-symbol)
+          (sort priority 'spaceline--compare-priorities))))
 
 (defmacro spaceline--adjust-to-window (responsiveness-runtime-data format)
   "Adjust the spaceline to the window by hiding or showing segments.
