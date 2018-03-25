@@ -790,7 +790,7 @@ When unspecified, ELLIPSIS defaults to ‘...’."
       (progn
         (unless ellipsis
           (setq ellipsis "..."))
-        (let ((mid (/ (- len (length ellipsis)) 2)))
+        (let ((mid (max 1 (/ (- len (length ellipsis)) 2))))
           (concat (substring str 0 mid)
                   (apply #'propertize ellipsis (text-properties-at (- mid 1) str))
                   (substring str (- (1+ mid)) nil))))
