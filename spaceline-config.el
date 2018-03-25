@@ -62,6 +62,7 @@
 
   (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main)))))
 
+;;;###autoload
 (defun spaceline-spacemacs-theme (&rest additional-segments)
   "Install the modeline used by Spacemacs.
 
@@ -78,6 +79,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
            :priority 98)
          additional-segments))
 
+;;;###autoload
 (defun spaceline-emacs-theme (&rest additional-segments)
   "Install a modeline close to the one used by Spacemacs, but which
 looks better without third-party dependencies.
@@ -103,6 +105,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 (defun spaceline--helm-ag-update ()
   (setq mode-line-format '("%e" (:eval (spaceline-ml-helm-done)))))
 
+;;;###autoload
 (define-minor-mode spaceline-helm-mode
   "Customize the mode-line in helm."
   :init-value nil
@@ -134,6 +137,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 ;;; Info custom mode
 ;;  ================
 
+;;;###autoload
 (define-minor-mode spaceline-info-mode
   "Customize the mode-line in info.
 This minor mode requires info+."
