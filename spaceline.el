@@ -261,11 +261,13 @@ output, if and only if it actually produces output.  This will
     (setq prior next-prior)
     (setq separator-face ,face)))
 
-(defun spaceline--gen-segment (segment-spec side &optional outer-props deep-or-fallback deep)
+(defun spaceline--gen-segment (segment-spec side hidden &optional outer-props deep-or-fallback deep)
   "Generate the code for evaluating a segment.
 SEGMENT-SPEC is a valid Spaceline segment.  See
-`spaceline-compile'.  SIDE is either l or r. OUTER-PROPS is a
-property list with properties inherited from parent segments.
+`spaceline-compile'.  SIDE is either l or r.  HIDDEN is a form
+that evaluates to true if the segment should be hidden, nil
+otherwise.  OUTER-PROPS is a property list with properties
+inherited from parent segments.
 
 DEEP-OR-FALLBACK is nil if this segment is a top level segment or
 a fallback for a top level segment.
@@ -301,17 +303,19 @@ Returns a list of forms."
            ;; of children or parent segments.
            (previous-result (make-symbol "spaceline--previous-result"))
 
-           clean-up-code)
+           clean-up-make clean-up-code)
 
       ;; On the right we output we produce output in the reverse direction,
       ;; so the meanings of left and right are interchanged
       (when (eq 'r side) (cl-rotatef tight-left tight-right))
 
-      ;; The clean-up-code runs for top level segments which produced output
+      ;; Clean-up-make and clean-up-code runs for top level segments that produce output
+      ;; Anything that modifies `result' goes in clean-up-make
+      (setq clean-up-make
+            ;; Add padding unless the segment is tight
+            (unless tight-right `((push (propertize " " 'face ,face) result))))
       (setq clean-up-code
-            `(;; Add padding unless the segment is tight
-              ,@(unless tight-right `((push (propertize " " 'face ,face) result)))
-              ;; Rotate the faces for the next top level segment
+            `(;; Rotate the faces for the next top level segment
               ,@(unless (plist-get props :skip-alternate)
                   '((cl-rotatef default-face other-face)))
               ;; We need a new separator at the next producing segment
@@ -337,7 +341,7 @@ Returns a list of forms."
                 `((let ((next-prior ,separator))
                     ,@(apply 'append
                              (mapcar (lambda (s)
-                                       (spaceline--gen-segment s side nest-props 'deep-or-fallback 'deep))
+                                       (spaceline--gen-segment s side hidden nest-props 'deep-or-fallback 'deep))
                                      (if (eq 'r side) (reverse segment) segment))))
                   ;; Since PRIOR may have been disrupted, we reset it here
                   (setq prior next-prior)))
@@ -362,31 +366,28 @@ Returns a list of forms."
                 ;; empty string here
                 `(,@(spaceline--gen-produce face side)
                   (push (powerline-raw (format "%s" ,segment) ,face) result)))))
-          ;; At this point, if previous-result is `eq' to result, the segment did
-          ;; not produce output
-          ,@(cond
-             ;; For deep segments (not top level) with fallback, we call the
-             ;; fallback if they failed to produce
-             ((and fallback deep-or-fallback)
-              `((unless (eq ,previous-result result)
-                  ,@(spaceline--gen-segment fallback side nest-props deep-or-fallback 'deep))))
-             ;; For top level segments with fallbacks, we call the fallback if
-             ;; they failed to produce, or clean up if they did
-             ((and fallback (not deep-or-fallback))
+
+          ;; If the segment failed to produce, but has a fallback, we call the fallback
+          ,@(when fallback
+              `((when (eq ,previous-result result)
+                  ,@(spaceline--gen-segment fallback side hidden nest-props deep-or-fallback 'deep))))
+
+          ;; Compute the length of the segment, and possibly run clean-up code
+          ,@(unless deep
               `((if (eq ,previous-result result)
-                    (progn ,@(spaceline--gen-segment fallback side nest-props deep-or-fallback 'deep))
-                  ,@clean-up-code)))
-             ;; For top level segments without fallbacks, we clean up if they
-             ;; produced
-             ((and (not fallback) (not deep-or-fallback))
-              `((unless (eq ,previous-result result)
-                  ,@clean-up-code))))
-          ,@(when (not deep)
-              `((if (not (eq ,previous-result result))
-                    (let ((len (string-width (format-mode-line (powerline-render result)))))
-                      (setq segment-length (- len result-length))
-                      (setq result-length len))
-                  (setq segment-length 0)))))))))
+                    ;; The segment didn't produce, so just set it to zero
+                    (setq segment-length 0)
+                  ;; The segment produced. First, do any clean-up that might alter the length
+                  ,@clean-up-make
+                  ;; Compute the length
+                  (let ((len (string-width (format-mode-line (powerline-render result)))))
+                    (setq segment-length (- len result-length))
+                    ;; If the segment is hidden, forcibly reset the result pointer
+                    ;; If it's not hidden, update the result length and perform the rest of the cleanup
+                    (if ,hidden
+                        (setq result ,previous-result)
+                      ,@clean-up-code
+                      (setq result-length len)))))))))))
 
 (defun spaceline-compile (&rest args)
   "Compile a modeline.
@@ -563,9 +564,8 @@ is either l or r, respectively for the left and the right side."
             separator-face
             result)
        ,@(--map `(let ((runtime-data (pop runtime-pointer)))
-                   (when (spaceline--shown runtime-data) ; Only render if this segment is shown
-                     ,@(spaceline--gen-segment it side)
-                     (spaceline--set-length runtime-data segment-length))) ; Update the length
+                   ,@(spaceline--gen-segment it side '(not (spaceline--shown runtime-data)))
+                   (spaceline--set-length runtime-data segment-length))
                 (if (eq 'l side) segments (reverse segments)))
        ,@(spaceline--gen-separator 'line-face side)
        ,(if (eq side 'l) '(reverse result) 'result))))
