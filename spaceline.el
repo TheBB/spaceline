@@ -261,15 +261,19 @@ output, if and only if it actually produces output.  This will
     (setq prior next-prior)
     (setq separator-face ,face)))
 
-(defun spaceline--gen-segment (segment-spec side &optional outer-props deep)
+(defun spaceline--gen-segment (segment-spec side &optional outer-props deep-or-fallback deep)
   "Generate the code for evaluating a segment.
 SEGMENT-SPEC is a valid Spaceline segment.  See
 `spaceline-compile'.  SIDE is either l or r. OUTER-PROPS is a
 property list with properties inherited from parent segments.
-DEEP is true if this segment is not a top level segment.
+
+DEEP-OR-FALLBACK is nil if this segment is a top level segment or
+a fallback for a top level segment.
+
+DEEP is nil if and only if this segment is a top level segment.
 
 This function should only be called from outside code with
-OUTER-PROPS and DEEP set to nil.
+OUTER-PROPS, DEEP-OR-FALLBACK and DEEP set to nil.
 
 Returns a list of forms."
   (spaceline--parse-segment-spec segment-spec
@@ -320,7 +324,7 @@ Returns a list of forms."
         (let ((,previous-result result))
 
           ;; Top-level non-tight segments need padding
-          ,@(unless (or deep tight-left)
+          ,@(unless (or deep-or-fallback tight-left)
               `((setq prior (propertize " " 'face ,face))))
 
           ;; Evaluate the segment
@@ -333,7 +337,7 @@ Returns a list of forms."
                 `((let ((next-prior ,separator))
                     ,@(apply 'append
                              (mapcar (lambda (s)
-                                       (spaceline--gen-segment s side nest-props 'deep))
+                                       (spaceline--gen-segment s side nest-props 'deep-or-fallback 'deep))
                                      (if (eq 'r side) (reverse segment) segment))))
                   ;; Since PRIOR may have been disrupted, we reset it here
                   (setq prior next-prior)))
@@ -363,18 +367,18 @@ Returns a list of forms."
           ,@(cond
              ;; For deep segments (not top level) with fallback, we call the
              ;; fallback if they failed to produce
-             ((and fallback deep)
+             ((and fallback deep-or-fallback)
               `((unless (eq ,previous-result result)
-                  ,@(spaceline--gen-segment fallback side nest-props deep))))
+                  ,@(spaceline--gen-segment fallback side nest-props deep-or-fallback 'deep))))
              ;; For top level segments with fallbacks, we call the fallback if
              ;; they failed to produce, or clean up if they did
-             ((and fallback (not deep))
+             ((and fallback (not deep-or-fallback))
               `((if (eq ,previous-result result)
-                    (progn ,@(spaceline--gen-segment fallback side nest-props deep))
+                    (progn ,@(spaceline--gen-segment fallback side nest-props deep-or-fallback 'deep))
                   ,@clean-up-code)))
              ;; For top level segments without fallbacks, we clean up if they
              ;; produced
-             ((and (not fallback) (not deep))
+             ((and (not fallback) (not deep-or-fallback))
               `((unless (eq ,previous-result result)
                   ,@clean-up-code))))
           ,@(when (not deep)
