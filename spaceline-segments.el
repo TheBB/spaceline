@@ -339,6 +339,7 @@ The cdr can also be a function that returns a name to use.")
 (declare-function winum-get-number 'winum)
 (declare-function window-numbering-get-number 'window-numbering)
 (declare-function purpose--modeline-string 'window-purpose)
+(declare-function purpose-window-purpose-dedicated-p 'window-purpose)
 (declare-function pyenv-mode-version 'pyenv-mode)
 (declare-function pyenv-mode-full-path 'pyenv-mode)
 
