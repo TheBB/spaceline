@@ -564,10 +564,17 @@ the number of errors.")
   "Face for highlighting the python venv."
   :group 'spaceline)
 
+(defvar spaceline-purpose-hide-if-not-dedicated nil
+  "Hide the purpose segment if the window is not dedicated in
+some way.")
+
 (spaceline-define-segment purpose
   "The current window purpose. Requires `purpose-mode' to be
 enabled."
-  (when (bound-and-true-p purpose-mode)
+  (when (and (bound-and-true-p purpose-mode)
+             (or (not spaceline-purpose-hide-if-not-dedicated)
+                 (purpose-window-purpose-dedicated-p)
+                 (window-dedicated-p)))
     (propertize (substring (purpose--modeline-string) 2 -1)
                 'face 'spaceline-python-venv
                 'help-echo "Window purpose")))
