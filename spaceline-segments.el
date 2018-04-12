@@ -318,7 +318,8 @@ The cdr can also be a function that returns a name to use.")
 ;;; Segments requiring optional dependencies
 ;;  ========================================
 
-(defvar erc-modified-channels-alist)
+(defvar erc-modified-channels-object)
+(defvar erc-track-position-in-mode-line)
 (defvar fancy-battery-last-status)
 (defvar fancy-battery-show-percentage)
 (defvar mu4e-alert-mode-line)
@@ -364,10 +365,13 @@ package."
 
 (spaceline-define-segment erc-track
   "Show the ERC buffers with new messages. Requires
-`erc-track-mode' to be enabled."
-  (when (bound-and-true-p erc-track-mode)
-    (mapcar (lambda (b) (buffer-name (car b)))
-            erc-modified-channels-alist)))
+`erc-track-mode' to be enabled and
+`erc-track-position-in-mode-line' to be set to true."
+  (when (and (bound-and-true-p erc-track-mode)
+             erc-track-position-in-mode-line
+             erc-modified-channels-object)
+    (s-trim erc-modified-channels-object))
+  :global-override erc-modified-channels-object)
 
 (defun spaceline--fancy-battery-percentage ()
   "Return the load percentage or an empty string."
