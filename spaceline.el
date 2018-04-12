@@ -792,10 +792,9 @@ the changes to take effect."
     excludes))
 
 (spaceline-define-segment global
-  (let* ((global-excludes (bound-and-true-p global-excludes))
-         (global (if (listp global-mode-string)
-                     (cons "" (-difference global-mode-string global-excludes))
-                   global-mode-string)))
+  (let ((global (if (listp global-mode-string)
+                    (cons "" (-difference global-mode-string global-excludes))
+                  global-mode-string)))
     (when (spaceline--mode-line-nonempty global)
       (string-trim (powerline-raw global)))))
 
