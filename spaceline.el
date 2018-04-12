@@ -303,7 +303,16 @@ Returns a list of forms."
            ;; of children or parent segments.
            (previous-result (make-symbol "spaceline--previous-result"))
 
-           clean-up-make clean-up-code)
+           ;; A temporary variable to store the setting of `needs-separator',
+           ;; in case we update it and need to change it back
+           (previous-needs-separator (make-symbol "spaceline--previous-needs-separator"))
+
+           ;; A temporary variable to store the setting of `separator-face',
+           ;; in case we update it and need to change it back
+           (previous-separator-face (make-symbol "spaceline--previous-separator-face"))
+
+           clean-up-make
+           clean-up-code)
 
       ;; On the right we output we produce output in the reverse direction,
       ;; so the meanings of left and right are interchanged
@@ -321,11 +330,13 @@ Returns a list of forms."
               ;; We need a new separator at the next producing segment
               (setq needs-separator ,(not tight-right))))
 
-      `(;; Don't produce a separator if the segment is tight
-        ,@(when tight-left `((setq needs-separator nil)))
+      `(;; Store the current result pointer in the temp variable
+        (let ((,previous-result result)
+              (,previous-needs-separator needs-separator)
+              (,previous-separator-face separator-face))
 
-        ;; Store the current result pointer in the temp variable
-        (let ((,previous-result result))
+          ;; Don't produce a separator if the segment is tight
+          ,@(when tight-left `((setq needs-separator nil)))
 
           ;; Top-level non-tight segments need padding
           ,@(unless (or deep-or-fallback tight-left)
@@ -385,7 +396,9 @@ Returns a list of forms."
                     ;; If the segment is hidden, forcibly reset the result pointer
                     ;; If it's not hidden, update the result length and perform the rest of the cleanup
                     (if ,hidden
-                        (setq result ,previous-result)
+                        (setq result ,previous-result
+                              needs-separator ,previous-needs-separator
+                              separator-face ,previous-separator-face)
                       ,@clean-up-code
                       (setq result-length len)))))))))))
 
