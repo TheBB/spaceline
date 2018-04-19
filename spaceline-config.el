@@ -54,7 +54,7 @@
         point-position
         line-column)
        :separator " | "
-       :priority 96)
+       :priority 100)
       (global :when active)
       ,@additional-segments
       (buffer-position :priority 99)
