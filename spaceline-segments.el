@@ -318,6 +318,7 @@ The cdr can also be a function that returns a name to use.")
 ;;; Segments requiring optional dependencies
 ;;  ========================================
 
+(defvar conda-env-current-name)
 (defvar erc-modified-channels-object)
 (defvar erc-track-position-in-mode-line)
 (defvar fancy-battery-last-status)
@@ -583,6 +584,22 @@ enabled."
     (propertize (substring (purpose--modeline-string) 2 -1)
                 'face 'spaceline-python-venv
                 'help-echo "Window purpose")))
+
+(spaceline-define-segment python-env
+  "The current python env.  Works with `pyvenv', `pyenv' and `conda'."
+  (when (and active (eq 'python-mode major-mode))
+    (let (name source)
+      (cond
+       ((bound-and-true-p pyvenv-virtual-env-name)
+        (setq name pyvenv-virtual-env-name source "pyvenv"))
+       ((bound-and-true-p conda-env-current-name)
+        (setq name conda-env-current-name source "conda"))
+       ((and (fboundp 'pyenv-mode) (setq name (pyenv-mode-version)))
+        (setq source "pyenv")))
+      (when name
+        (propertize name
+                    'face 'spaceline-python-venv
+                    'help-echo (format "Virtual environment (via %s): %s" source name))))))
 
 (spaceline-define-segment python-pyvenv
   "The current python venv.  Works with `pyvenv'."
