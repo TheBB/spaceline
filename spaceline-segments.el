@@ -144,6 +144,33 @@
   "The current line number."
   "%l")
 
+(spaceline-define-segment total-lines
+  "The total number of lines."
+  (when (bound-and-true-p total-lines-mode)
+    (format "%d" total-lines)))
+
+(spaceline-define-segment lines-position
+  "The current position in the buffer based on the line count."
+  (when (bound-and-true-p total-lines-mode)
+    (save-excursion
+      (save-restriction
+        (widen)
+        (let ((current-line (line-number-at-pos))
+              (window-top-line (progn
+                                        (move-to-window-line 0)
+                                        (line-number-at-pos)))
+              (window-bottom-line (progn
+                                           (move-to-window-line -1)
+                                           (line-number-at-pos))))
+          (cond ((and (= window-top-line 1)
+                      (= window-bottom-line total-lines))
+                 "All")
+                 ((= window-top-line 1) "Top")
+                 ((= window-bottom-line total-lines) "Bottom")
+                 (t (format
+                     "%2d%%%%"
+                     (* 100 (/ current-line (float total-lines)))))))))))
+
 (spaceline-define-segment column
   "The current column number."
   "%2c")

@@ -227,6 +227,8 @@ In addition, the following segments are defined, but are not used in the default
 themes.
 
 - =line=: current line.
+- =total-lines=: total number of lines.
+- =lines-position=: position in file based on line count.
 - =column=: current column.
 - =projectile-root=: root of current projectile project, integrates with
   =projectile=.
