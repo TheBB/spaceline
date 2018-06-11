@@ -765,8 +765,6 @@ the changes to take effect."
     `(progn
        (defvar ,toggle-var ,enabled
          ,(format "True if modeline segment %S is enabled." name))
-       ;; In case the segment is redefined, we explicitly set the toggle
-       (setq ,toggle-var ,enabled)
 
        (defun ,toggle-func () (interactive) (setq ,toggle-var (not ,toggle-var)))
        (defun ,toggle-func-on () (interactive) (setq ,toggle-var t))
