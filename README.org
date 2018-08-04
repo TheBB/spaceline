@@ -410,8 +410,9 @@ The valid properties are
 - =:face=: The face in which to render the segment. It may be better to use this
   than (or in addition) to propertizing the output directly, since Spaceline
   needs to know the faces to propertize the separators correctly. This may be
-  either a face or a form evaluating to a face. In particular, you can use
-  =highlight-face= here to use the highlight face.
+  either =default-face=, =other-face= or =highlight-face=,  or a form evaluating
+  to a face. Thus any face symbol which is not either of the above three must be
+  quoted.
 - =:tight=: Set to =t= to tell Spaceline that the segment should not have any
   padding on the right or left. Use =:tight-left= and =:tight-right= for even
   finer control.

@@ -291,7 +291,7 @@ Returns a list of forms."
                           (plist-get props :when) t))
            (face (or (plist-get props :face) 'default-face))
            (face (if (memq face '(default-face other-face highlight-face line-face))
-                     face `(quote ,face)))
+                     face `(,@face)))
            (separator `(powerline-raw ,(or (plist-get props :separator) " ") ,face))
            (tight-left (or (plist-get props :tight)
                            (plist-get props :tight-left)))
@@ -444,8 +444,9 @@ The supported properties are
 - `:when', a form that must evaluate to non-nil for the segment to
   show (default t)
 - `:face', the face with which to render the segment; may either
-  be a fixed face or one of the variables `default-face',
-  `other-face' or `highlight-face' (default `default-face')
+  one of the variables `default-face', `other-face' or `highlight-face'
+  (default `default-face') or a form evaluating to a face. Thus any
+  face symbol which is not either of the above three must be quoted.
 - `:separator', a string inserted between each element in a list
   segment (default \" \")
 - `:tight-left', non-nil if the segment should have no padding on
