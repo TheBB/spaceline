@@ -349,7 +349,8 @@ The cdr can also be a function that returns a name to use.")
   "Show the current projectile root."
   (when (fboundp 'projectile-project-name)
     (let ((project-name (projectile-project-name)))
-      (unless (string= project-name (buffer-name))
+      (unless (or (string= project-name "-")
+                  (string= project-name (buffer-name)))
         project-name))))
 
 (spaceline-define-segment anzu
