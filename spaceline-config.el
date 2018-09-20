@@ -43,7 +43,8 @@
                        :priority 78)
       (org-pomodoro :when active)
       (org-clock :when active)
-      nyan-cat)
+      nyan-cat
+      parrot)
     `(which-function
       (python-pyvenv :fallback python-pyenv)
       (purpose :priority 94)
