@@ -146,7 +146,11 @@
 
 (spaceline-define-segment column
   "The current column number."
-  "%2c")
+  (if (and
+        (boundp column-number-indicator-zero-based)
+        (not column-number-indicator-zero-based))
+    "%2C"
+    "%2c"))
 
 (declare-function pdf-view-current-page 'pdf-view)
 (declare-function pdf-cache-number-of-pages 'pdf-view)
@@ -166,8 +170,11 @@ currently displayed pdf file in `pdf-view-mode'."
 in pdf-view mode (enabled by the `pdf-tools' package)."
   (if (eq major-mode 'pdf-view-mode)
       (spaceline--pdfview-page-number)
-    "%l:%2c"))
-
+    (if (and
+          (boundp column-number-indicator-zero-based)
+          (not column-number-indicator-zero-based))
+      "%l:%2C"
+      "%l:%2c")))
 
 (spaceline-define-segment buffer-position
   "The current approximate buffer position, in percent."
