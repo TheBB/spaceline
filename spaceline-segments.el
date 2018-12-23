@@ -147,7 +147,7 @@
 (spaceline-define-segment column
   "The current column number."
   (if (and
-        (boundp column-number-indicator-zero-based)
+        (boundp 'column-number-indicator-zero-based)
         (not column-number-indicator-zero-based))
     "%2C"
     "%2c"))
@@ -171,7 +171,7 @@ in pdf-view mode (enabled by the `pdf-tools' package)."
   (if (eq major-mode 'pdf-view-mode)
       (spaceline--pdfview-page-number)
     (if (and
-          (boundp column-number-indicator-zero-based)
+          (boundp 'column-number-indicator-zero-based)
           (not column-number-indicator-zero-based))
       "%l:%2C"
       "%l:%2c")))
