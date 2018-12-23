@@ -398,6 +398,8 @@ modelines with =M-x spaceline-compile= for the changes to take effect.
 ** Properties
 The valid properties are
 
+- =:priority=: arbitrary number to prioritize which segments are hidden first
+  when the window shrinks. The higher the number, the higher the priority.
 - =:when=: A form that, if it evaluates to =nil=, will prevent the segment from
   showing. Note that in =spaceline-define-segment= you might just as well use an
   ordinary =when= form. Therefore this only makes sense to use in a segment

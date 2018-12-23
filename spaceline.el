@@ -438,9 +438,8 @@ Each element in LEFT and RIGHT must be a valid segment. Namely,
   the list is a plist.
 
 The supported properties are
-- `:priority', a number representing the priority of appearance
-  of that segment over the others, the lower the higher the priority.
-  -1 is the default and the lowest.
+- `:priority', a number representing the priority of appearance of that
+  segment over the others, the higher the number the higher the priority.
 - `:when', a form that must evaluate to non-nil for the segment to
   show (default t)
 - `:face', the face with which to render the segment; may either
