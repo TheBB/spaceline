@@ -259,7 +259,7 @@ course you can write your own:
   default.
 - =spaceline-highlight-face-evil-state=: Chooses a face determined by the
   current evil state. The face corresponding to each state is determined by the
-  association list `spaceline-evil-state-faces`, which contains default values
+  association list =spaceline-evil-state-faces=, which contains default values
   for the standard evil states. (Spacemacs has a few more.)
 - =spaceline-highlight-face-modified=: Chooses a face determined by the status
   of the current buffer (modified, unmodified or read-only).
@@ -458,7 +458,7 @@ following bindings are available for convenience.
   If you don’t define a =:face=, this is what you get. For best results, stick
   to the default face as often as you can.
 - =other-face=: The alternating default face. Spaceline switches =default-face=
-  and `other-face` for each top-level segment.
+  and =other-face= for each top-level segment.
 - =highlight-face=: The face used to highlight ‘important’ parts, whatever that
   may be. This may be customized.
 - =line-face=: The face with which the empty part in the middle of the mode-line
@@ -493,12 +493,12 @@ will be byte-compiled. This is recommended for regular usage, as it involves
 potentially significant performance benefits.
 
 * Tweaking or defining your own mode-line
-To tweak the properties such as `:when` or `:priority` of specific segments,
+To tweak the properties such as =:when= or =:priority= of specific segments,
 or having your own selection of segments and order of appearance, you have to
-define your own mode-line and `spaceline-compile` it.
+define your own mode-line and =spaceline-compile= it.
 
 For instance, to use Spacemac's mode-line definition as a starting point to
-your own, add this to your `.emacs` or `.spacemacs` and tweak it:
+your own, add this to your =.emacs= or =.spacemacs= and tweak it:
 
 #+BEGIN_SRC emacs-lisp
   (spaceline-compile
