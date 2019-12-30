@@ -571,7 +571,8 @@ the number of errors.")
 (spaceline-define-segment evil-state
   "The current evil state.  Requires `evil-mode' to be enabled."
   (when (bound-and-true-p evil-local-mode)
-    (s-trim (evil-state-property evil-state :tag t))))
+    (let ((tag (evil-state-property evil-state :tag t)))
+      (s-trim (if (stringp tag) tag (funcall tag))))))
 
 (defface spaceline-python-venv
   '((t (:foreground "plum1" :distant-foreground "DarkMagenta")))
