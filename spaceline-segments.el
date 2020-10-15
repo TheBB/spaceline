@@ -152,6 +152,14 @@
     "%2C"
     "%2c"))
 
+(defun spaceline--docview-page-number ()
+  "The current `doc-view-mode' page number to display in the mode-line.
+Return a formated string containing the current and last page number for the
+currently displayed pdf file in `doc-view-mode'."
+  (format "(%d/%d)"
+          (doc-view-current-page)
+          (doc-view-last-page-number)))
+
 (declare-function pdf-view-current-page 'pdf-view)
 (declare-function pdf-cache-number-of-pages 'pdf-view)
 
@@ -168,13 +176,15 @@ currently displayed pdf file in `pdf-view-mode'."
 (spaceline-define-segment line-column
   "The current line and column numbers, or `(current page/number of pages)`
 in pdf-view mode (enabled by the `pdf-tools' package)."
-  (if (eq major-mode 'pdf-view-mode)
-      (spaceline--pdfview-page-number)
-    (if (and
-          (boundp 'column-number-indicator-zero-based)
-          (not column-number-indicator-zero-based))
-      "%l:%2C"
-      "%l:%2c")))
+  (cond ((eq major-mode 'doc-view-mode)
+         (spaceline--docview-page-number))
+        ((eq major-mode 'pdf-view-mode)
+         (spaceline--pdfview-page-number))
+        (t (if (and
+                (boundp 'column-number-indicator-zero-based)
+                (not column-number-indicator-zero-based))
+               "%l:%2C"
+             "%l:%2c"))))
 
 (spaceline-define-segment buffer-position
   "The current approximate buffer position, in percent."
