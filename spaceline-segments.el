@@ -157,7 +157,7 @@
 Return a formated string containing the current and last page number for the
 currently displayed pdf file in `doc-view-mode'."
   (format "(%d/%d)"
-          (doc-view-current-page)
+          (image-mode-window-get 'page nil)
           (doc-view-last-page-number)))
 
 (declare-function pdf-view-current-page 'pdf-view)
