@@ -144,6 +144,14 @@ include any information from Evil.
 You can color the modeline according to the current Evil state by setting
 =spaceline-highlight-face-func= to =spaceline-highlight-face-evil-state=.
 
+*** God
+[[https://github.com/chrisdone/god-mode/][God]] is a global minor mode for entering Emacs commands without
+modifier keys.  It's similar to Vim's separation of commands and
+insertion mode.
+
+You can color the modeline according to the current God state by setting
+=spaceline-highlight-face-func= to =spaceline-highlight-face-god-state=.
+
 ** Troubleshooting
 There are a number of reasons why Spaceline might look different on your setup
 compared to Spacemacs proper. Some of the most important ones are addressed here.
@@ -261,6 +269,8 @@ course you can write your own:
   current evil state. The face corresponding to each state is determined by the
   association list =spaceline-evil-state-faces=, which contains default values
   for the standard evil states. (Spacemacs has a few more.)
+- =spaceline-highlight-face-god-state=: Chooses a face determined by the
+  current god state.
 - =spaceline-highlight-face-modified=: Chooses a face determined by the status
   of the current buffer (modified, unmodified or read-only).
 

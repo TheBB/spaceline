@@ -142,6 +142,8 @@ default configuration."
              (spaceline-evil-replace "chocolate" "Evil replace state face.")
              (spaceline-evil-visual "gray" "Evil visual state face.")
              (spaceline-evil-motion "plum3" "Evil motion state face.")
+             (spaceline-god-inactive "DarkGoldenrod2" "God inactive state face.")
+             (spaceline-god-active "VioletRed" "God active state face.")
              (spaceline-unmodified "DarkGoldenrod2" "Unmodified buffer face.")
              (spaceline-modified "SkyBlue2" "Modified buffer face.")
              (spaceline-read-only "plum3" "Read-only buffer face.")))
@@ -177,6 +179,15 @@ Set `spaceline-highlight-face-func' to
              (face (assq state spaceline-evil-state-faces)))
         (if face (cdr face) (spaceline-highlight-face-default)))
     (spaceline-highlight-face-default)))
+
+(defun spaceline-highlight-face-god-state ()
+  "Set
+the highlight face depending on the god state.
+Set `spaceline-highlight-face-func' to
+`spaceline-highlight-face-god-state' to use this."
+  (cond
+    (god-local-mode 'spaceline-god-active)
+    (t 'spaceline-god-inactive)))
 
 (defun spaceline-highlight-face-modified ()
   "Set the highlight face depending on the buffer modified status.
