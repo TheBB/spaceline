@@ -57,7 +57,6 @@
        :priority 96)
       (global :when active)
       ,@additional-segments
-      (buffer-position :priority 99)
       (hud :priority 99)))
 
   (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main)))))
@@ -67,7 +66,7 @@
   "Install the modeline used by Spacemacs.
 
 ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
-`buffer-position'."
+`lines-position'."
   (apply 'spaceline--theme
          '((persp-name
             workspace-number
@@ -75,9 +74,11 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
            :fallback evil-state
            :face highlight-face
            :priority 100)
-         '((buffer-modified buffer-size buffer-id remote-host)
+         '((buffer-modified total-lines buffer-id remote-host)
            :priority 98)
-         additional-segments))
+         (list
+          additional-segments
+          '(lines-position :priority 99))))
 
 ;;;###autoload
 (defun spaceline-emacs-theme (&rest additional-segments)
@@ -95,7 +96,9 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
            :priority 100)
          '((buffer-id remote-host)
            :priority 98)
-         additional-segments))
+         (list
+          additional-segments
+          '(buffer-position :priority 99))))
 
 ;;; Helm custom mode
 ;;  ================
