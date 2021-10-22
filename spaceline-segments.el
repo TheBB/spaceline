@@ -79,7 +79,9 @@
 
 (spaceline-define-segment buffer-size
   "Size of buffer."
-  (powerline-buffer-size))
+  (if (bound-and-true-p total-lines-mode)
+      (format "%d" total-lines)
+    (powerline-buffer-size)))
 
 (defcustom spaceline-buffer-id-max-length 45
   "The maximum displayed length of the buffer-id segment."
