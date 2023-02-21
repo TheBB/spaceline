@@ -109,6 +109,21 @@
   (when (spaceline--mode-line-nonempty mode-line-process)
     (s-trim (powerline-raw mode-line-process))))
 
+(spaceline-define-segment version-control-simple
+  "Simplified version control information."
+  (when vc-mode
+    (powerline-raw
+     (when (buffer-file-name)
+       (pcase (vc-state (buffer-file-name))
+         (`up-to-date " ")
+         (`ignored " ")
+         (`edited "~")
+         (`added "+")
+         (`removed "-")
+         (`needs-merge "!")
+         (`needs-update "!")
+         (_ "?"))))))
+
 (spaceline-define-segment version-control
   "Version control information."
   (when vc-mode
