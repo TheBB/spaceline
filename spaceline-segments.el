@@ -245,8 +245,7 @@ segment.  Otherwise only show the active input method, if any."
 
 (spaceline-define-segment hud
   "A HUD that shows which part of the buffer is currently visible."
-  (when (string-match "\%" (format-mode-line "%p"))
-    (powerline-hud highlight-face default-face))
+  (powerline-hud highlight-face default-face)
   :tight t)
 
 ;;; Helm segments
