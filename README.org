@@ -202,7 +202,7 @@ Here is a complete list of segments bundled with Spacemacs.
 - =flycheck-warning=: number of flycheck warnings, integrates with =flycheck=.
 - =flycheck-info=: number of flycheck notifications, integrates with =flycheck=.
 - =minor-modes=: the currently enabled minor modes. The output of this segment
-  can be tweaked with [`diminish`](https://github.com/emacsmirror/diminish).
+  can be tweaked with [[https://github.com/emacsmirror/diminish][Diminish]].
 - =process=: the background process associated with the buffer, if any.
 - =erc-track=: IRC channels with new messages, integrates with =erc=.
 - =version-control=: version control information.
