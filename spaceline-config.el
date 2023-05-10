@@ -161,6 +161,7 @@ This minor mode requires info+."
   :global t
   (if spaceline-info-mode
       (progn
+        (require 'info+ nil t)
         (spaceline-compile 'info '(info-topic (info-nodes :separator " > ")) nil)
         (advice-add 'Info-set-mode-line :after 'spaceline--override-info-modeline))
     (advice-remove 'Info-set-mode-line 'spaceline--override-info-modeline)))
