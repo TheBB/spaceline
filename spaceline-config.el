@@ -137,6 +137,22 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 ;;; Info custom mode
 ;;  ================
 
+(defun spaceline--override-info-modeline (&rest _)
+  "Set up a custom info modeline."
+  (if (featurep 'info+)
+      (let* ((nodes (s-split " > " mode-line-format))
+             (topic (prog2
+                        (string-match "(\\(.+\\))\\(.+\\)" (car nodes))
+                        (propertize (concat "INFO "
+                                            (match-string 1 (car nodes)))
+                                    'face 'bold)
+                      (setcar nodes (match-string 2 (car nodes))))))
+        (setq spaceline--info-nodes nodes)
+        (setq spaceline--info-topic topic)
+        (setq-local mode-line-format '("%e" (:eval (spaceline-ml-info)))))
+    (message "info+ is not available: spaceline-info-mode disabled")
+    (spaceline-info-mode -1)))
+
 ;;;###autoload
 (define-minor-mode spaceline-info-mode
   "Customize the mode-line in info.
@@ -146,23 +162,8 @@ This minor mode requires info+."
   (if spaceline-info-mode
       (progn
         (spaceline-compile 'info '(info-topic (info-nodes :separator " > ")) nil)
-        (defadvice Info-set-mode-line (after spaceline-info)
-          "Set up a custom info modeline."
-          (if (featurep 'info+)
-              (let* ((nodes (s-split " > " mode-line-format))
-                     (topic (prog2
-                                (string-match "(\\(.+\\))\\(.+\\)" (car nodes))
-                                (propertize (concat "INFO "
-                                                    (match-string 1 (car nodes)))
-                                            'face 'bold)
-                              (setcar nodes (match-string 2 (car nodes))))))
-                (setq spaceline--info-nodes nodes)
-                (setq spaceline--info-topic topic)
-                (setq-local mode-line-format '("%e" (:eval (spaceline-ml-info)))))
-            (message "info+ is not available: spaceline-info-mode disabled")
-            (spaceline-info-mode -1)))
-        (ad-activate 'Info-set-mode-line))
-    (ad-deactivate 'Info-set-mode-line)))
+        (advice-add 'Info-set-mode-line :after 'spaceline--override-info-modeline))
+    (advice-remove 'Info-set-mode-line 'spaceline--override-info-modeline)))
 
 (provide 'spaceline-config)
 
