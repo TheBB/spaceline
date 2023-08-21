@@ -58,13 +58,13 @@
                                      "\nmouse-3: Toggle minor mode")
                   'local-map (let ((map (make-sparse-keymap)))
                                (define-key map
-                                 [mode-line down-mouse-1]
+                                 [mode-line mouse-1]
                                  (powerline-mouse 'minor 'menu lighter))
                                (define-key map
                                  [mode-line mouse-2]
                                  (powerline-mouse 'minor 'help lighter))
                                (define-key map
-                                 [mode-line down-mouse-3]
+                                 [mode-line mouse-3]
                                  (powerline-mouse 'minor 'menu lighter))
                                (define-key map
                                  [header-line down-mouse-3]
