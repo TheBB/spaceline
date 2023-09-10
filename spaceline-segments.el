@@ -695,6 +695,11 @@ mouse-3: go to end"))))
   "•REC"
   :when defining-kbd-macro)
 
+(spaceline-define-segment treesit-inspect
+  "Show tree-sitter node at point."
+  (when (and active (treesit-available-p) treesit-inspect-mode)
+    '((:eval treesit--inspect-name))))
+
 (provide 'spaceline-segments)
 
 ;;; spaceline-segments.el ends here
