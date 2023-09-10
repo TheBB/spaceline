@@ -108,6 +108,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
 ;;;###autoload
 (define-minor-mode spaceline-helm-mode
   "Customize the mode-line in helm."
+  :group 'spaceline
   :init-value nil
   :global t
   (if spaceline-helm-mode
@@ -142,6 +143,7 @@ ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
   "Customize the mode-line in info.
 This minor mode requires info+."
   :init-value nil
+  :group 'spaceline
   :global t
   (if spaceline-info-mode
       (progn
