@@ -56,6 +56,7 @@
         line-column)
        :separator " | "
        :priority 96)
+      (so-long :when active)
       (global :when active)
       ,@additional-segments
       (buffer-position :priority 99)
