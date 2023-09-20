@@ -37,6 +37,7 @@
        :priority 89)
       (minor-modes :when active
                    :priority 9)
+      (treesit-inspect :when active)
       (mu4e-alert-segment :when active)
       (erc-track :when active)
       (version-control :when active
