@@ -653,7 +653,8 @@ LEFT-CODE and RIGHT-CODE are the code that will be used "
   "Initialize data structures used for the responsiveness of the modeline.
 
 This function
-- creates local deep copies of the global values of LEFT-SYMBOL and RIGHT-SYMBOL,
+- creates local deep copies of the global values of LEFT-SYMBOL and
+  RIGHT-SYMBOL,
 - initializes PRIORITY-SYMBOl, a reordering of the same vectors whose order
   (by priority) decides the order of segments disappearance / reappearance with
   the size of the window.

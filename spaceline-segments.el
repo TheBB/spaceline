@@ -377,6 +377,8 @@ The cdr can also be a function that returns a name to use.")
 (declare-function purpose-window-purpose-dedicated-p 'window-purpose)
 (declare-function pyenv-mode-version 'pyenv-mode)
 (declare-function pyenv-mode-full-path 'pyenv-mode)
+(declare-function doc-view-last-page-number 'doc-view)
+(declare-function image-mode-window-get 'image-mode)
 
 (spaceline-define-segment projectile-root
   "Show the current projectile root."
