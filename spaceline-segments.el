@@ -699,7 +699,10 @@ mouse-3: go to end"))))
 
 (spaceline-define-segment treesit-inspect
   "Show tree-sitter node at point."
-  (when (and active (treesit-available-p) treesit-inspect-mode)
+  (when (and active
+             (fboundp 'treesit-available-p)
+             (treesit-available-p)
+             (bound-and-true-p treesit-inspect-mode))
     '((:eval treesit--inspect-name))))
 
 (provide 'spaceline-segments)
