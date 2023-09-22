@@ -705,6 +705,12 @@ mouse-3: go to end"))))
              (bound-and-true-p treesit-inspect-mode))
     '((:eval treesit--inspect-name))))
 
+(spaceline-define-segment so-long
+  "Show `so-long-mode-line-info'."
+  (when (and active
+             (bound-and-true-p so-long-mode-line-info))
+    '(("" so-long-mode-line-info))))
+
 (provide 'spaceline-segments)
 
 ;;; spaceline-segments.el ends here
