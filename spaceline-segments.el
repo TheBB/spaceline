@@ -624,7 +624,9 @@ enabled."
 
 (spaceline-define-segment python-env
   "The current python env.  Works with `pyvenv', `pyenv' and `conda'."
-  (when (and active (eq 'python-mode major-mode))
+  (when (and active
+             (or (eq 'python-mode major-mode)
+                 (eq 'python-ts-mode major-mode)))
     (let (name source)
       (cond
        ((bound-and-true-p pyvenv-virtual-env-name)
@@ -641,7 +643,8 @@ enabled."
 (spaceline-define-segment python-pyvenv
   "The current python venv.  Works with `pyvenv'."
   (when (and active
-             (eq 'python-mode major-mode)
+             (or (eq 'python-mode major-mode)
+                 (eq 'python-ts-mode major-mode))
              (bound-and-true-p pyvenv-virtual-env-name))
     (propertize pyvenv-virtual-env-name
                 'face 'spaceline-python-venv
