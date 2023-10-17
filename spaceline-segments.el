@@ -369,6 +369,7 @@ The cdr can also be a function that returns a name to use.")
 (declare-function eyebrowse--get 'eyebrowse)
 (declare-function mode-line-auto-compile-control 'auto-compile)
 (declare-function nyan-create 'nyan-mode)
+(declare-function parrot-create 'parrot)
 (declare-function safe-persp-name 'persp-mode)
 (declare-function get-frame-persp 'persp-mode)
 (declare-function winum-get-number 'winum)
@@ -486,6 +487,11 @@ This segment overrides the modeline functionality of `org-pomodoro' itself."
   "Shows the infamous nyan cat.  Requires `nyan-mode' to be enabled."
   (when (bound-and-true-p nyan-mode)
     (powerline-raw (nyan-create) default-face)))
+
+(spaceline-define-segment parrot
+  "Shows the infamous party parrot.  Requires `parrot-mode' to be enabled."
+  (when (bound-and-true-p parrot-mode)
+    (powerline-raw (parrot-create) default-face)))
 
 (defun spaceline--unicode-number (str)
   "Return a nice unicode representation of a single-digit number STR."
