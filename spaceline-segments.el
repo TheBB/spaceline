@@ -665,6 +665,19 @@ and total packages"
   (when (and active (derived-mode-p 'paradox-menu-mode))
     mode-line-buffer-identification))
 
+(defcustom spaceline-which-function-max-length nil
+  "When non-nil, truncate the which-function indicator to this length."
+  :type '(choice (integer :tag "Max. characters")
+                 (const :tag "Unlimited" nil))
+  :group 'spaceline)
+
+(defcustom spaceline-which-function-ellipsis "…"
+  "When the which-function indicator is longer than \
+`spaceline-which-function-max-length', truncate it and append \
+this string to it."
+  :type 'string
+  :group 'spaceline)
+
 (spaceline-define-segment which-function
   (when (and active
              (bound-and-true-p which-function-mode)
@@ -673,6 +686,11 @@ and total packages"
       (when (string-match "{\\(.*\\)}" current)
         (setq current (match-string 1 current)))
       (setq current (replace-regexp-in-string "%" "%%" current))
+      (when spaceline-which-function-max-length
+        (setq current (spaceline--string-trim-from-center
+                       current
+                       spaceline-which-function-max-length
+                       spaceline-which-function-ellipsis)))
       (propertize current
                   'local-map which-func-keymap
                   'face 'which-func
